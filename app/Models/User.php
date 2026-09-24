@@ -17,7 +17,7 @@ class User extends Authenticatable
     protected $primaryKey = 'id_usuario';
 
     protected $fillable = [
-        'id_persona',
+        'id_informacion_personal',
         'id_rol',
         'correo',
         'password_hash',
@@ -49,6 +49,6 @@ class User extends Authenticatable
 
     public function rol()
     {
-        return $this->belongsTo(Role::class, 'id_rol', 'id_rol');
+        return $this->belongsTo(Rol::class, 'id_rol', 'id_rol');
     }
 }
