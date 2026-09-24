@@ -14,19 +14,14 @@ return new class extends Migration
         // Tabla de usuarios.
         Schema::create('usuarios', function (Blueprint $table) {
             $table->id('id_usuario');
-            $table->string('nombres', 100);
-            $table->string('apellidos', 100);
+            $table->foreignId('id_informacion_personal')->unique()->constrained('informacion_personal', 'id_informacion_personal')->cascadeOnDelete();
+            $table->foreignId('id_rol')->constrained('roles', 'id_rol');
             $table->string('correo', 150)->unique();
             $table->string('password_hash', 255);
-            $table->string('documento', 30)->unique()->nullable();
-            $table->string('telefono', 25)->nullable();
-            $table->date('fecha_nacimiento')->nullable();
             $table->boolean('must_change_password')->default(false);
             $table->string('estado', 20)->default('activo');
-            $table->string('genero', 10)->nullable();
-            $table->string('remember_token', 100)->nullable();
-            $table->string('rol', 20)->default('usuario'); 
-            $table->timestampTz('creado_en')->useCurrent();
+            $table->rememberToken();
+            $table->timestamps();
         });
 
         // Tabla para la recuperación de contraseñas.
