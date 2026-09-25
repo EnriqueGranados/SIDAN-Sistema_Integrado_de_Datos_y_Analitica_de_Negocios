@@ -3,15 +3,19 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-// Ruta principal: El "Semáforo"
+// Ruta principal.
 Route::get('/', function () {
-    if (auth()->check()) {
-        if (auth()->user()->rol === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-        return redirect()->route('user.dashboard');
+    if (!auth()->check()) {
+        return view('welcome');
     }
-    return view('welcome');
+
+    $rol = auth()->user()->rol->nombre;
+
+    if (in_array($rol, ['superadmin', 'admin'])) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    return redirect()->route('user.dashboard');
 });
 
 // Rutas de autenticación de Breeze (login, register, logout)
@@ -24,15 +28,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Rutas protegidas SOLO para Administradores
-Route::middleware(['auth', 'role:admin'])->group(function () {
+// Rutas protegidas para administradores.
+Route::middleware(['auth', 'rol:superadmin,admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 });
 
-// Rutas protegidas SOLO para Usuarios normales
-Route::middleware(['auth', 'role:usuario'])->group(function () {
+// Rutas protegidas solo para el usuario normal.
+Route::middleware(['auth', 'rol:usuario'])->group(function () {
     Route::get('/user/dashboard', function () {
         return view('user.dashboard');
     })->name('user.dashboard');
