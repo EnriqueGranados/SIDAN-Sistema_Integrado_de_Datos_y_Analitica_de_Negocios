@@ -27,11 +27,11 @@ class UserSeeder extends Seeder
         );
 
         User::firstOrCreate(
-            ['correo' => 'superadmin@gema.test'],
+            ['correo' => 'superadmin@sidan.test'],
             [
                 'id_informacion_personal' => $personaSuperadmin->id_informacion_personal,
                 'id_rol' => $superadmin->id_rol,
-                'password_hash' => Hash::make('Password123!'),
+                'password_hash' => Hash::make('pass123'),
                 'estado' => 'activo',
                 'must_change_password' => true,
             ]
@@ -49,11 +49,11 @@ class UserSeeder extends Seeder
         );
 
         User::firstOrCreate(
-            ['correo' => 'admin@gema.test'],
+            ['correo' => 'admin@sidan.test'],
             [
                 'id_informacion_personal' => $personaAdmin->id_informacion_personal,
                 'id_rol' => $admin->id_rol,
-                'password_hash' => Hash::make('Password123!'),
+                'password_hash' => Hash::make('pass123'),
                 'estado' => 'activo',
                 'must_change_password' => true,
             ]
