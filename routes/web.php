@@ -20,10 +20,14 @@ Route::middleware('auth')->group(function () {
 });
 
 // Administradores
-Route::middleware(['auth', 'rol:superadmin,admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
+Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admin.')->group(function () {
+    
+    Route::get('/dashboard', function () {
         return view('admin.dashboard');
-    })->name('admin.dashboard');
+    })->name('dashboard');
+
+    // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 });
 
 // Usuario normal
