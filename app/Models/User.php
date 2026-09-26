@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password_hash',
         'must_change_password',
         'estado_activo',
+        'eliminado',
     ];
 
     protected $hidden = [
@@ -33,7 +34,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'must_change_password' => 'boolean',
+            'must_change_password' => 'boolean'
         ];
     }
 

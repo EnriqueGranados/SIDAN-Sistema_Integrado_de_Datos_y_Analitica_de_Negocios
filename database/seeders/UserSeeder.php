@@ -137,6 +137,7 @@ class UserSeeder extends Seeder
                 'password_hash' => Hash::make($userData['password']),
                 'must_change_password' => false,
                 'estado_activo' => true,
+                'eliminado' => false,
                 'remember_token' => Str::random(10),
                 'created_at' => now(),
                 'updated_at' => now(),

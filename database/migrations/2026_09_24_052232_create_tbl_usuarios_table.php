@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('password_hash', 255);
             $table->boolean('must_change_password')->default(false);
             $table->boolean('estado_activo')->default(true);
+            $table->boolean('eliminado')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

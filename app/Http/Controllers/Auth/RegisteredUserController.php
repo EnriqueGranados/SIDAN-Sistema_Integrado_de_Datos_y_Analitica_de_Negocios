@@ -80,6 +80,7 @@ class RegisteredUserController extends Controller
                 'password_hash' => Hash::make($request->password),
                 'must_change_password' => false,
                 'estado_activo' => true,
+                'eliminado' => false,
             ]);
         });
 
