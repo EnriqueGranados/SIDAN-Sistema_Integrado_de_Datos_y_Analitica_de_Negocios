@@ -496,9 +496,9 @@
                                     id="password"
                                     name="password"
                                     type="password"
-                                    x-model="password"
                                     required
-                                    autocomplete="new-password"
+                                    x-model="password"
+                                    @input="validatePasswordMatch()"
                                     class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 >
 
@@ -513,9 +513,9 @@
                                     id="password_confirmation"
                                     name="password_confirmation"
                                     type="password"
-                                    x-model="passwordConfirmation"
                                     required
-                                    autocomplete="new-password"
+                                    x-model="passwordConfirmation"
+                                    @input="validatePasswordMatch()"
                                     class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 >
 
@@ -789,6 +789,30 @@
                     return false;
                 }
 
+                // Validación específica de contraseñas
+                if (this.step === 2) {
+                    const password = document.getElementById('password');
+                    const confirmation = document.getElementById(
+                        'password_confirmation'
+                    );
+
+                    // Primero limpiamos cualquier error anterior
+                    confirmation.setCustomValidity('');
+
+                    // Luego comparamos
+                    if (password.value !== confirmation.value) {
+                        confirmation.setCustomValidity(
+                            'Las contraseñas no coinciden.'
+                        );
+
+                        confirmation.reportValidity();
+                        confirmation.focus();
+
+                        return false;
+                    }
+                }
+
+                // Validación HTML de los demás campos
                 const fields = section.querySelectorAll(
                     'input, select, textarea'
                 );
@@ -802,27 +826,23 @@
                     }
                 }
 
-                if (this.step === 2) {
-                    const password = document.getElementById('password');
-                    const confirmation = document.getElementById(
-                        'password_confirmation'
-                    );
-
-                    confirmation.setCustomValidity('');
-
-                    if (password.value !== confirmation.value) {
-                        confirmation.setCustomValidity(
-                            'Las contraseñas no coinciden.'
-                        );
-
-                        confirmation.reportValidity();
-                        confirmation.focus();
-
-                        return false;
-                    }
-                }
-
                 return true;
+            },
+
+            validatePasswordMatch() {
+                const password = document.getElementById('password');
+                const confirmation = document.getElementById('password_confirmation');
+
+                confirmation.setCustomValidity('');
+
+                if (
+                    confirmation.value &&
+                    password.value !== confirmation.value
+                ) {
+                    confirmation.setCustomValidity(
+                        'Las contraseñas no coinciden.'
+                    );
+                }
             },
 
             submitForm(event) {
@@ -849,5 +869,4 @@
         };
     }
 </script>
-
 @endsection
