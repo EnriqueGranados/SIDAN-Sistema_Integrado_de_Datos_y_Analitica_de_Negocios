@@ -6,7 +6,7 @@
 
 <div
     x-data="registerForm()"
-    class="flex min-h-screen flex-col bg-[#f6f8fb] dark:bg-sidan-950"
+    class="flex min-h-screen w-full flex-col bg-[#f6f8fb] dark:bg-sidan-950"
 >
 
     {{-- Header --}}
@@ -54,7 +54,7 @@
 
 
     {{-- Contenido --}}
-    <main class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <main class="mx-auto max-w-4xl w-full items-center px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
 
         {{-- Encabezado --}}
         <div class="mx-auto max-w-2xl text-center">
@@ -234,7 +234,7 @@
 
         </div>
 
-
+    <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         {{-- Formulario --}}
         <form
             method="POST"
@@ -464,7 +464,7 @@
 
                             <div>
                                 <label for="email" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Correo electrónico
+                                    Correo electrónico *
                                 </label>
 
                                 <input
@@ -489,7 +489,7 @@
                         <div class="grid gap-5 sm:grid-cols-2">
                             <div>
                                 <label for="password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Contraseña
+                                    Contraseña *
                                 </label>
 
                                 <input
@@ -506,7 +506,7 @@
 
                             <div>
                                 <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Confirmar contraseña
+                                    Confirmar contraseña *
                                 </label>
 
                                 <input
@@ -731,7 +731,7 @@
             </div>
 
         </form>
-
+    </main>
 
         <p class="mt-6 text-center text-xs text-slate-400">
             Tus datos serán utilizados únicamente para gestionar tu cuenta y participación en las actividades.
@@ -741,12 +741,10 @@
 
 
     {{-- Footer --}}
-    <footer class="border-t border-slate-200 bg-white dark:border-white/10 dark:bg-sidan-950">
-
+    <footer class="mt-auto w-full border-t border-slate-200 bg-white dark:border-white/10 dark:bg-sidan-950">
         <div class="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-slate-400 sm:px-6 lg:px-8">
             © {{ date('Y') }} SIDAN. Todos los derechos reservados.
         </div>
-
     </footer>
 
 </div>

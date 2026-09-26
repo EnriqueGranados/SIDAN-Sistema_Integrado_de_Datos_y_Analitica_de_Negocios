@@ -2,7 +2,117 @@
 
 @section('title', 'SIDAN | Descubre actividades')
 
+<head>
+    <style>
+        /* ===== LOADER ===== */
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(34, 197, 94, 0.08),
+                    transparent 45%
+                ),
+                #07111f;
+
+            transition:
+                opacity 0.8s ease,
+                visibility 0.8s ease;
+        }
+
+        #loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.05em;
+        }
+
+        .loader-letter {
+            display: inline-block;
+
+            font-family: 'Figtree', sans-serif;
+            font-size: clamp(4rem, 12vw, 10rem);
+            font-weight: 800;
+            letter-spacing: -0.06em;
+
+            opacity: 0;
+            transform: translateY(25px);
+
+            animation:
+                letterIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Azul institucional */
+        .loader-letter:nth-child(1),
+        .loader-letter:nth-child(2),
+        .loader-letter:nth-child(3),
+        .loader-letter:nth-child(4),
+        .loader-letter:nth-child(5) {
+            color: #ffffff;
+            text-shadow:
+                0 0 30px rgba(15, 45, 91, 0.45);
+        }
+
+        .loader-letter:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .loader-letter:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .loader-letter:nth-child(3) {
+            animation-delay: 0.25s;
+        }
+
+        .loader-letter:nth-child(4) {
+            animation-delay: 0.35s;
+        }
+
+        .loader-letter:nth-child(5) {
+            animation-delay: 0.45s;
+        }
+
+        @keyframes letterIn {
+            from {
+                opacity: 0;
+                transform: translateY(25px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+
 @section('content')
+
+{{-- ===== LOADER ===== --}}
+    <div id="loader">
+        <div class="flex gap-2">
+            <span class="loader-letter">S</span>
+            <span class="loader-letter">I</span>
+            <span class="loader-letter">D</span>
+            <span class="loader-letter">A</span>
+            <span class="loader-letter">N</span>
+        </div>
+    </div>
 
 <header x-data="{ mobileMenu: false }" class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-sidan-950/90">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -558,5 +668,15 @@
     </div>
 
 </footer>
+
+<script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                document.querySelector('.main-content').classList.add('visible');
+                initCounters();
+            }, 2200);
+        });
+    </script>
 
 @endsection

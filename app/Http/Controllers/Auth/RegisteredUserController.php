@@ -36,8 +36,8 @@ class RegisteredUserController extends Controller
         $request->validate([
             'nombres' => ['required', 'string', 'max:100'],
             'apellidos' => ['required', 'string', 'max:100'],
-            'documento' => ['nullable', 'string', 'max:30', 'unique:personas,documento'],
-            'telefono' => ['nullable', 'string', 'max:25'],
+            'documento' => ['nullable', 'string', 'max:30', 'unique:informacion_personal,documento'],
+            'telefono' => ['nullable', 'string', 'max:25', 'unique:informacion_personal,telefono'],
             'fecha_nacimiento' => ['nullable', 'date'],
             'genero' => ['nullable', 'string', 'max:10'],
 

@@ -32,8 +32,6 @@
 </head>
 
 <body class="flex min-h-screen flex-col bg-[#f6f8fb] font-sans text-slate-900 antialiased transition-colors duration-300 dark:bg-sidan-950 dark:text-white">
-    <main class="flex-1">
-        @yield('content')
-    </main>
+    @yield('content')
 </body>
 </html>
