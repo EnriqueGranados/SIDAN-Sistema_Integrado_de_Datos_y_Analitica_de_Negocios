@@ -33,7 +33,7 @@ return new class extends Migration
             $table->boolean('activo')->default(true);
 
             $table->foreignId('creado_por')
-                ->constrained('usuarios', 'id_usuario')
+                ->constrained('tbl_usuarios', 'id_usuario')
                 ->restrictOnDelete();
 
             $table->timestampTz('creado_en')->useCurrent();

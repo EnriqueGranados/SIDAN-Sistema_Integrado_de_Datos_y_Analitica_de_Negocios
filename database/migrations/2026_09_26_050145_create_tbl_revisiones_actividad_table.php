@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('numero_revision');
 
             $table->foreignId('id_usuario')
-                ->constrained('usuarios', 'id_usuario')
+                ->constrained('tbl_usuarios', 'id_usuario')
                 ->restrictOnDelete();
 
             $table->string('accion', 30);

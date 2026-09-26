@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         // Tabla de usuarios.
-        Schema::create('usuarios', function (Blueprint $table) {
+        Schema::create('tbl_usuarios', function (Blueprint $table) {
             $table->id('id_usuario');
-            $table->foreignId('id_informacion_personal')->unique()->constrained('informacion_personal', 'id_informacion_personal')->cascadeOnDelete();
-            $table->foreignId('id_rol')->constrained('roles', 'id_rol');
+            $table->foreignId('id_informacion_personal')->unique()->constrained('tbl_informacion_personal', 'id_informacion_personal')->cascadeOnDelete();
+            $table->foreignId('id_rol')->constrained('tbl_roles', 'id_rol');
             $table->string('correo', 150)->unique();
             $table->string('password_hash', 255);
             $table->boolean('must_change_password')->default(false);
@@ -49,7 +49,7 @@ return new class extends Migration
     */
     public function down(): void
     {
-        Schema::dropIfExists('usuarios');
+        Schema::dropIfExists('tbl_usuarios');
         Schema::dropIfExists('codigos_reset');
         Schema::dropIfExists('sessions');
     }

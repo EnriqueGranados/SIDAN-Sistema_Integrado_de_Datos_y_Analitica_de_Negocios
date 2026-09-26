@@ -43,12 +43,12 @@ return new class extends Migration
             $table->timestampTz('visible_hasta')->nullable();
 
             $table->foreignId('creado_por')
-                ->constrained('usuarios', 'id_usuario')
+                ->constrained('tbl_usuarios', 'id_usuario')
                 ->restrictOnDelete();
 
             $table->foreignId('actualizado_por')
                 ->nullable()
-                ->constrained('usuarios', 'id_usuario')
+                ->constrained('tbl_usuarios', 'id_usuario')
                 ->restrictOnDelete();
 
             $table->timestamps();

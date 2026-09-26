@@ -17,7 +17,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->foreignId('id_usuario')
-                ->constrained('usuarios', 'id_usuario')
+                ->constrained('tbl_usuarios', 'id_usuario')
                 ->restrictOnDelete();
 
             $table->string('rol_en_actividad', 50)->default('responsable');

@@ -118,7 +118,7 @@ class UserSeeder extends Seeder
 
         foreach ($usersData as $userData) {
             // 1. Crear información personal (Agregamos 'id_informacion_personal' como segundo parámetro)
-            $infoPersonalId = DB::table('informacion_personal')->insertGetId([
+            $infoPersonalId = DB::table('tbl_informacion_personal')->insertGetId([
                 'nombres' => $userData['nombres'],
                 'apellidos' => $userData['apellidos'],
                 'documento' => $userData['documento'],
@@ -130,7 +130,7 @@ class UserSeeder extends Seeder
             ], 'id_informacion_personal'); 
 
             // 2. Crear usuario con rol ID 3 (usuario)
-            DB::table('usuarios')->insert([
+            DB::table('tbl_usuarios')->insert([
                 'id_informacion_personal' => $infoPersonalId,
                 'id_rol' => $idRolUsuario,
                 'correo' => $userData['correo'],

@@ -45,12 +45,12 @@ class UserController extends Controller
         $validated = $request->validate([
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
-            'correo' => 'required|email|unique:usuarios,correo',
-            'documento' => 'required|string|unique:informacion_personal,documento',
+            'correo' => 'required|email|unique:tbl_usuarios,correo',
+            'documento' => 'required|string|unique:tbl_informacion_personal,documento',
             'telefono' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'nullable|date',
             'genero' => 'nullable|in:M,F,O',
-            'id_rol' => 'required|exists:roles,id_rol',
+            'id_rol' => 'required|exists:tbl_roles,id_rol',
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -96,12 +96,12 @@ class UserController extends Controller
         $validated = $request->validate([
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
-            'correo' => 'required|email|unique:usuarios,correo,' . $user->id_usuario . ',id_usuario',
-            'documento' => 'required|string|unique:informacion_personal,documento,' . $user->id_informacion_personal . ',id_informacion_personal',
+            'correo' => 'required|email|unique:tbl_usuarios,correo,' . $user->id_usuario . ',id_usuario',
+            'documento' => 'required|string|unique:tbl_informacion_personal,documento,' . $user->id_informacion_personal . ',id_informacion_personal',
             'telefono' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'nullable|date',
             'genero' => 'nullable|in:M,F,O',
-            'id_rol' => 'required|exists:roles,id_rol',
+            'id_rol' => 'required|exists:tbl_roles,id_rol',
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 

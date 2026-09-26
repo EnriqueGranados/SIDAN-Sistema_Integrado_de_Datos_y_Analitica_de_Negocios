@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('estado', 20)->default('borrador');
 
             $table->foreignId('creado_por')
-                ->constrained('usuarios', 'id_usuario')
+                ->constrained('tbl_usuarios', 'id_usuario')
                 ->restrictOnDelete();
 
             $table->timestampTz('creado_en')->useCurrent();
