@@ -10,7 +10,7 @@ Route::get('/actividades/{slug}', [WelcomeController::class, 'show'])
     ->name('activities.show');
 
 // Rutas de autenticación
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 // Perfil
 Route::middleware('auth')->group(function () {
@@ -21,21 +21,34 @@ Route::middleware('auth')->group(function () {
 
 // Administradores
 Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admin.')->group(function () {
-    
+
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+
+    // Rutas para la gestión de usuarios baneados y restauración
+    Route::get('/users/banned', [\App\Http\Controllers\Admin\UserController::class, 'banned'])
+        ->name('users.banned');
+
+    // Rutas para la gestión de usuarios eliminados y restauración
+    Route::get('/users/deleted', [\App\Http\Controllers\Admin\UserController::class, 'deleted'])
+    ->name('users.deleted');
+
+    Route::patch('/users/{user}/restore', [\App\Http\Controllers\Admin\UserController::class, 'restore'])
+        ->name('users.restore');
 
     // Ruta para búsqueda en tiempo real (devuelve JSON)
     Route::get('/users/search', [\App\Http\Controllers\Admin\UserController::class, 'search'])
         ->name('users.search');
 
-    // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
-
     // Ruta para cambiar el estado (activo/inactivo)
     Route::patch('/users/{user}/toggle', [\App\Http\Controllers\Admin\UserController::class, 'toggleEstado'])
         ->name('users.toggle');
+
+    // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+
+
 
 });
 

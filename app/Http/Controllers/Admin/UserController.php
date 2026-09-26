@@ -13,12 +13,15 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
-    // 1. Muestra la lista (antes index)
+
+    // Muestra SOLO usuarios activos y no eliminados
     public function index(Request $request)
     {
         $search = $request->input('search');
 
         $users = User::with(['rol', 'informacion_personal'])
+            ->where('eliminado', false)       // <-- No eliminados
+            ->where('estado_activo', true)    // <-- Solo activos
             ->when($search, function ($query, $search) {
                 $query->whereHas('informacion_personal', function ($q) use ($search) {
                     $q->where('nombres', 'like', "%{$search}%")
@@ -135,65 +138,115 @@ class UserController extends Controller
         }
     }
 
-    // Alterna el estado del usuario
+    // Alterna el estado y devuelve JSON para Alpine.js
     public function toggleEstado(User $user)
     {
         try {
-            // Invierte el valor booleano (true -> false, false -> true)
-            $user->update([
-                'estado_activo' => !$user->estado_activo
-            ]);
+            $nuevoEstado = !$user->estado_activo;
+            $user->update(['estado_activo' => $nuevoEstado]);
 
-            $nuevoEstado = $user->estado_activo ? 'activado' : 'desactivado';
-            return back()->with('success', "Usuario {$nuevoEstado} correctamente.");
+            $mensaje = $nuevoEstado ? 'activado' : 'baneado';
+            return response()->json(['success' => true, 'message' => "Usuario {$mensaje} correctamente."]);
         } catch (\Exception $e) {
-            return back()->with('error', 'Error al cambiar el estado del usuario.');
+            return response()->json(['success' => false, 'message' => 'Error.'], 500);
         }
     }
+    // ELIMINAR (Borrado lógico completo - desaparece de todo)
+    public function destroy(User $user)
+    {
+        try {
+            $user->update([
+                'eliminado' => true,
+                'estado_activo' => false,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Usuario eliminado permanentemente del sistema.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error.'], 500);
+        }
+    }
+
+
+    // Búsqueda en tiempo real (también filtra solo activos y no eliminados)
     public function search(Request $request)
-{
-    $search = $request->input('q', '');
+    {
+        $search = $request->input('q', '');
 
-    $users = User::with(['rol', 'informacion_personal'])
-        ->when($search, function ($query, $search) {
+        $users = User::with(['rol', 'informacion_personal'])
+            ->where('eliminado', false)       // <-- No eliminados
+            ->where('estado_activo', true)    // <-- Solo activos
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('correo', 'like', "%{$search}%")
+                        ->orWhereHas('informacion_personal', function ($q) use ($search) {
+                            $q->where('nombres', 'like', "%{$search}%")
+                                ->orWhere('apellidos', 'like', "%{$search}%")
+                                ->orWhere('documento', 'like', "%{$search}%")
+                                ->orWhere('telefono', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('rol', function ($q) use ($search) {
+                            $q->where('nombre', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->orderBy('id_usuario', 'desc')
+            ->get();
 
-            $query->where(function ($q) use ($search) {
+        return response()->json([
+            'users' => $users->map(function ($user) {
+                return [
+                    'id' => $user->id_usuario,
+                    'nombres' => $user->informacion_personal->nombres ?? '',
+                    'apellidos' => $user->informacion_personal->apellidos ?? '',
+                    'documento' => $user->informacion_personal->documento ?? '',
+                    'correo' => $user->correo,
+                    'rol_nombre' => $user->rol->nombre ?? '',
+                    'estado_activo' => $user->estado_activo,
+                    'edit_url' => route('admin.users.edit', $user),
+                    'toggle_url' => route('admin.users.toggle', $user),
+                    'ban_url' => route('admin.users.destroy', $user), // <-- Agregado para que funcione el botón de banear
+                ];
+            })
+        ]);
+    }
+    // BANEADOS: Solo muestra desactivados (NO eliminados)
+    public function banned()
+    {
+        $users = User::with(['rol', 'informacion_personal'])
+            ->where('eliminado', false)          // <-- NO eliminados
+            ->where('estado_activo', false)      // <-- Solo desactivados/baneados
+            ->orderBy('id_usuario', 'desc')
+            ->paginate(10);
 
-                $q->where('correo', 'like', "%{$search}%")
-                    ->orWhereHas('informacion_personal', function ($q) use ($search) {
+        return view('admin.users.banned', compact('users'));
+    }
 
-                        $q->where('nombres', 'like', "%{$search}%")
-                            ->orWhere('apellidos', 'like', "%{$search}%")
-                            ->orWhere('documento', 'like', "%{$search}%")
-                            ->orWhere('telefono', 'like', "%{$search}%");
+    // Restaurar usuario (funciona para baneados Y eliminados)
+    public function restore($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->update([
+                'eliminado' => false,
+                'estado_activo' => true,
+            ]);
 
-                    })
-                    ->orWhereHas('rol', function ($q) use ($search) {
-                        $q->where('nombre', 'like', "%{$search}%");
-                    });
+            return back()->with('success', 'Usuario restaurado y activado correctamente.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al restaurar el usuario.');
+        }
+    }
 
-            });
+    // Ver usuarios ELIMINADOS (solo superadmin)
+    public function deleted()
+    {
+        $users = User::with(['rol', 'informacion_personal'])
+            ->where('eliminado', true)
+            ->orderBy('id_usuario', 'desc')
+            ->paginate(10);
 
-        })
-        ->orderBy('id_usuario', 'desc')
-        ->get();
+        return view('admin.users.deleted', compact('users'));
+    }
 
-    return response()->json([
-        'users' => $users->map(function ($user) {
 
-            return [
-                'id' => $user->id_usuario,
-                'nombres' => $user->informacion_personal->nombres ?? '',
-                'apellidos' => $user->informacion_personal->apellidos ?? '',
-                'documento' => $user->informacion_personal->documento ?? '',
-                'correo' => $user->correo,
-                'rol_nombre' => $user->rol->nombre ?? '',
-                'estado_activo' => $user->estado_activo,
-                'edit_url' => route('admin.users.edit', $user),
-                'toggle_url' => route('admin.users.toggle', $user),
-            ];
-
-        })
-    ]);
-}
 }
