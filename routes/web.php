@@ -26,8 +26,17 @@ Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admi
         return view('admin.dashboard');
     })->name('dashboard');
 
+    // Ruta para búsqueda en tiempo real (devuelve JSON)
+    Route::get('/users/search', [\App\Http\Controllers\Admin\UserController::class, 'search'])
+        ->name('users.search');
+
     // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+
+    // Ruta para cambiar el estado (activo/inactivo)
+    Route::patch('/users/{user}/toggle', [\App\Http\Controllers\Admin\UserController::class, 'toggleEstado'])
+        ->name('users.toggle');
+
 });
 
 // Usuario normal

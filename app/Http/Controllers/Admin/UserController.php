@@ -14,23 +14,32 @@ use Illuminate\Validation\Rules\Password;
 class UserController extends Controller
 {
     // 1. Muestra la lista (antes index)
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
         $users = User::with(['rol', 'informacion_personal'])
+            ->when($search, function ($query, $search) {
+                $query->whereHas('informacion_personal', function ($q) use ($search) {
+                    $q->where('nombres', 'like', "%{$search}%")
+                        ->orWhere('apellidos', 'like', "%{$search}%")
+                        ->orWhere('documento', 'like', "%{$search}%");
+                })->orWhere('correo', 'like', "%{$search}%");
+            })
             ->orderBy('id_usuario', 'desc')
             ->paginate(10);
-            
-        return view('admin.users.listado', compact('users'));
+
+        return view('admin.users.listado', compact('users', 'search'));
     }
 
-    // 2. Muestra el formulario de creación (antes create)
+    // Muestra el formulario de creación (antes create)
     public function create()
     {
         $roles = Rol::all();
         return view('admin.users.crear', compact('roles'));
     }
 
-    // 3. Guarda el nuevo usuario
+    // Guarda el nuevo usuario
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -73,7 +82,7 @@ class UserController extends Controller
         }
     }
 
-    // 4. Muestra el formulario de edición (antes edit)
+    // Muestra el formulario de edición (antes edit)
     public function edit(User $user)
     {
         $user->load('informacion_personal');
@@ -81,7 +90,7 @@ class UserController extends Controller
         return view('admin.users.editar', compact('user', 'roles'));
     }
 
-    // 5. Actualiza el usuario
+    // Actualiza el usuario
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -126,18 +135,65 @@ class UserController extends Controller
         }
     }
 
-    // 6. Elimina el usuario
-    public function destroy(User $user)
+    // Alterna el estado del usuario
+    public function toggleEstado(User $user)
     {
-        DB::beginTransaction();
         try {
-            $user->informacion_personal()->delete();
-            $user->delete();
-            DB::commit();
-            return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado correctamente.');
+            // Invierte el valor booleano (true -> false, false -> true)
+            $user->update([
+                'estado_activo' => !$user->estado_activo
+            ]);
+
+            $nuevoEstado = $user->estado_activo ? 'activado' : 'desactivado';
+            return back()->with('success', "Usuario {$nuevoEstado} correctamente.");
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error al eliminar el usuario.');
+            return back()->with('error', 'Error al cambiar el estado del usuario.');
         }
     }
+    public function search(Request $request)
+{
+    $search = $request->input('q', '');
+
+    $users = User::with(['rol', 'informacion_personal'])
+        ->when($search, function ($query, $search) {
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('correo', 'like', "%{$search}%")
+                    ->orWhereHas('informacion_personal', function ($q) use ($search) {
+
+                        $q->where('nombres', 'like', "%{$search}%")
+                            ->orWhere('apellidos', 'like', "%{$search}%")
+                            ->orWhere('documento', 'like', "%{$search}%")
+                            ->orWhere('telefono', 'like', "%{$search}%");
+
+                    })
+                    ->orWhereHas('rol', function ($q) use ($search) {
+                        $q->where('nombre', 'like', "%{$search}%");
+                    });
+
+            });
+
+        })
+        ->orderBy('id_usuario', 'desc')
+        ->get();
+
+    return response()->json([
+        'users' => $users->map(function ($user) {
+
+            return [
+                'id' => $user->id_usuario,
+                'nombres' => $user->informacion_personal->nombres ?? '',
+                'apellidos' => $user->informacion_personal->apellidos ?? '',
+                'documento' => $user->informacion_personal->documento ?? '',
+                'correo' => $user->correo,
+                'rol_nombre' => $user->rol->nombre ?? '',
+                'estado_activo' => $user->estado_activo,
+                'edit_url' => route('admin.users.edit', $user),
+                'toggle_url' => route('admin.users.toggle', $user),
+            ];
+
+        })
+    ]);
+}
 }
