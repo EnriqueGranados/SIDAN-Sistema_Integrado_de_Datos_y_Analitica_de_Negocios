@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('correo', 150)->unique();
             $table->string('password_hash', 255);
             $table->boolean('must_change_password')->default(false);
-            $table->string('estado', 20)->default('activo');
+            $table->boolean('estado_activo')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

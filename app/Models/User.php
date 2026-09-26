@@ -22,7 +22,7 @@ class User extends Authenticatable
         'correo',
         'password_hash',
         'must_change_password',
-        'estado',
+        'estado_activo',
     ];
 
     protected $hidden = [

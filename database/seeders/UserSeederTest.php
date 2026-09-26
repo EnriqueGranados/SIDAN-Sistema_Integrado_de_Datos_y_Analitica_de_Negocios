@@ -86,7 +86,7 @@ class UserSeederTest extends Seeder
                 'correo' => $userData['correo'],
                 'password_hash' => Hash::make($userData['password']),
                 'must_change_password' => false,
-                'estado' => 'activo',
+                'estado_activo' => true,
                 'remember_token' => Str::random(10),
                 'created_at' => now(),
                 'updated_at' => now(),

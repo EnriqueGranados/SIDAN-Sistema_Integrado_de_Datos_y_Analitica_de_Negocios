@@ -79,7 +79,7 @@ class RegisteredUserController extends Controller
                 'correo' => $request->email,
                 'password_hash' => Hash::make($request->password),
                 'must_change_password' => false,
-                'estado' => 'activo',
+                'estado_activo' => true,
             ]);
         });
 

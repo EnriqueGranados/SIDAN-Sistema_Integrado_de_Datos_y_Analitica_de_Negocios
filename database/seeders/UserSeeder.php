@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
                 'id_informacion_personal' => $personaSuperadmin->id_informacion_personal,
                 'id_rol' => $superadmin->id_rol,
                 'password_hash' => Hash::make('pass1234'),
-                'estado' => 'activo',
+                'estado_activo' => true,
                 'must_change_password' => true,
             ]
         );
@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
                 'id_informacion_personal' => $personaAdmin->id_informacion_personal,
                 'id_rol' => $admin->id_rol,
                 'password_hash' => Hash::make('pass1234'),
-                'estado' => 'activo',
+                'estado_activo' => true,
                 'must_change_password' => true,
             ]
         );
