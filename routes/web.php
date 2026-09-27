@@ -20,7 +20,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Administradores
-Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admi
 });
 
 // Usuario normal
-Route::middleware(['auth', 'rol:usuario'])->group(function () {
+Route::middleware(['auth', 'rol:usuario', 'user.status'])->group(function () {
     Route::get('/user/dashboard', function () {
         return view('user.dashboard');
     })->name('user.dashboard');

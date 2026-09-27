@@ -34,7 +34,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'must_change_password' => 'boolean'
+            'must_change_password' => 'boolean',
+            'estado_activo' => 'boolean',
+            'eliminado' => 'boolean',
         ];
     }
 
