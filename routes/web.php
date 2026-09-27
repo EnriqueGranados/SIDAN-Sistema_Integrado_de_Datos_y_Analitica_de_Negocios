@@ -32,7 +32,7 @@ Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admi
 
     // Rutas para la gestión de usuarios eliminados y restauración
     Route::get('/users/deleted', [\App\Http\Controllers\Admin\UserController::class, 'deleted'])
-    ->name('users.deleted');
+        ->name('users.deleted');
 
     Route::patch('/users/{user}/restore', [\App\Http\Controllers\Admin\UserController::class, 'restore'])
         ->name('users.restore');
@@ -48,7 +48,17 @@ Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admi
     // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 
-
+    // ==========================================
+    // CRUD DE ROLES (Solo Superadmin)
+    // ==========================================
+    Route::middleware('rol:superadmin')->prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\RolController::class, 'index'])->name('index');
+        Route::get('/crear', [\App\Http\Controllers\Admin\RolController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\RolController::class, 'store'])->name('store');
+        Route::get('/{rol}/editar', [\App\Http\Controllers\Admin\RolController::class, 'edit'])->name('edit');
+        Route::put('/{rol}', [\App\Http\Controllers\Admin\RolController::class, 'update'])->name('update');
+        Route::delete('/{rol}', [\App\Http\Controllers\Admin\RolController::class, 'destroy'])->name('destroy');
+    });
 
 });
 
