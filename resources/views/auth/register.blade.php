@@ -335,12 +335,37 @@
                                 x-model="documento"
                                 value="{{ old('documento') }}"
                                 required
+                                maxlength="10"
+                                pattern="[0-9]{8}-[0-9]"
+                                placeholder="00000000-0"
+                                @input="clearError('documento')"
+                                @keydown="
+                                    console.log(
+                                        'KEY:',
+                                        $event.key,
+                                        'LENGTH:',
+                                        $event.target.value.length
+                                    );
+
+                                    if (
+                                        $event.target.value.length >= 10 &&
+                                        $event.key.length === 1
+                                    ) {
+                                        $event.preventDefault();
+                                        shakeDocumento();
+                                    }
+                                "
                                 autocomplete="off"
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
 
                             @error('documento')
-                                <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                <p
+                                    x-show="serverErrors.documento"
+                                    class="mt-2 text-sm font-semibold text-red-600"
+                                >
+                                    {{ $message }}
+                                </p>
                             @enderror
 
                         </div>
@@ -357,15 +382,20 @@
                                 id="telefono"
                                 name="telefono"
                                 type="tel"
-                                x-model="telefono"
                                 value="{{ old('telefono') }}"
                                 required
                                 autocomplete="tel"
+                                @input="clearError('telefono')"
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
 
                             @error('telefono')
-                                <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                <p
+                                    x-show="serverErrors.telefono"
+                                    class="mt-2 text-sm font-semibold text-red-600"
+                                >
+                                    {{ $message }}
+                                </p>
                             @enderror
 
                         </div>
@@ -384,6 +414,7 @@
                                 type="date"
                                 x-model="fechaNacimiento"
                                 value="{{ old('fecha_nacimiento') }}"
+                                max="{{ now()->subYears(10)->format('Y-m-d') }}"
                                 required
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
@@ -474,12 +505,18 @@
                                     x-model="email"
                                     value="{{ old('email') }}"
                                     required
+                                    @input="clearError('email')"
                                     autocomplete="email"
                                     class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 >
 
                                 @error('email')
-                                    <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                    <p
+                                        x-show="serverErrors.email"
+                                        class="mt-2 text-sm font-semibold text-red-600"
+                                    >
+                                        {{ $message }}
+                                    </p>
                                 @enderror
                             </div>
 
@@ -619,7 +656,7 @@
 
                                     <p
                                         class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                        x-text="telefono"
+                                        x-text="telefonoFormateado()"
                                     ></p>
                                 </div>
 
@@ -754,7 +791,21 @@
 <script>
     function registerForm() {
         return {
-            step: 1,
+            step: {{
+                $errors->hasAny(['documento', 'telefono'])
+                    ? 1
+                    : ($errors->hasAny([
+                        'email',
+                        'password',
+                        'password_confirmation'
+                    ]) ? 2 : 1)
+            }},
+
+            serverErrors: {
+                documento: {{ $errors->has('documento') ? 'true' : 'false' }},
+                telefono: {{ $errors->has('telefono') ? 'true' : 'false' }},
+                email: {{ $errors->has('email') ? 'true' : 'false' }},
+            },
 
             nombres: @js(old('nombres', '')),
             apellidos: @js(old('apellidos', '')),
@@ -762,7 +813,6 @@
             telefono: @js(old('telefono', '')),
             fechaNacimiento: @js(old('fecha_nacimiento', '')),
             genero: @js(old('genero', '')),
-
             email: @js(old('email', '')),
 
             password: '',
@@ -796,10 +846,8 @@
                         'password_confirmation'
                     );
 
-                    // Primero limpiamos cualquier error anterior
                     confirmation.setCustomValidity('');
 
-                    // Luego comparamos
                     if (password.value !== confirmation.value) {
                         confirmation.setCustomValidity(
                             'Las contraseñas no coinciden.'
@@ -812,7 +860,6 @@
                     }
                 }
 
-                // Validación HTML de los demás campos
                 const fields = section.querySelectorAll(
                     'input, select, textarea'
                 );
@@ -831,7 +878,9 @@
 
             validatePasswordMatch() {
                 const password = document.getElementById('password');
-                const confirmation = document.getElementById('password_confirmation');
+                const confirmation = document.getElementById(
+                    'password_confirmation'
+                );
 
                 confirmation.setCustomValidity('');
 
@@ -843,6 +892,33 @@
                         'Las contraseñas no coinciden.'
                     );
                 }
+            },
+
+            clearError(field) {
+                this.serverErrors[field] = false;
+            },
+
+            shakeDocumento() {
+                const input = document.getElementById('documento');
+
+                if (!input) {
+                    console.log('NO SE ENCONTRO EL INPUT');
+                    return;
+                }
+
+                input.animate(
+                    [
+                        { transform: 'translateX(-1px)' },
+                        { transform: 'translateX(2px)' },
+                        { transform: 'translateX(-3px)' },
+                        { transform: 'translateX(3px)' },
+                        { transform: 'translateX(0)' }
+                    ],
+                    {
+                        duration: 300,
+                        easing: 'cubic-bezier(0.36, 0.07, 0.19, 0.97)'
+                    }
+                );
             },
 
             submitForm(event) {
@@ -865,7 +941,21 @@
                 }
 
                 return '';
-            }
+            },
+
+            telefonoFormateado() {
+                if (!this.telefono) {
+                    return '';
+                }
+
+                if (!window.telefonoIti) {
+                    return this.telefono;
+                }
+
+                const numero = window.telefonoIti.getNumber();
+
+                return numero || this.telefono;
+            },
         };
     }
 </script>

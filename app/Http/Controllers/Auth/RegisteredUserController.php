@@ -36,9 +36,9 @@ class RegisteredUserController extends Controller
         $request->validate([
             'nombres' => ['required', 'string', 'max:100'],
             'apellidos' => ['required', 'string', 'max:100'],
-            'documento' => ['nullable', 'string', 'max:30', 'unique:tbl_informacion_personal,documento'],
-            'telefono' => ['nullable', 'string', 'max:25', 'unique:tbl_informacion_personal,telefono'],
-            'fecha_nacimiento' => ['nullable', 'date'],
+            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento'],
+            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono'],
+            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
             'genero' => ['nullable', 'string', 'max:10'],
 
             'email' => [
@@ -55,6 +55,21 @@ class RegisteredUserController extends Controller
                 'confirmed',
                 Rules\Password::defaults(),
             ],
+        ],
+        [
+            'documento.required' => 'El DUI es obligatorio.',
+            'documento.unique' => 'Este DUI ya está registrado.',
+            'documento.regex' => 'Ingresa un número de DUI válido.',
+
+            'telefono.required' => 'El número de teléfono es obligatorio.',
+            'telefono.regex' => 'Ingresa un número de teléfono válido.',
+            'telefono.unique' => 'Este número de teléfono ya está registrado.',
+
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingresa un correo electrónico válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+
+            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 18 años para registrarte.',
         ]);
 
         $usuario = DB::transaction(function () use ($request) {

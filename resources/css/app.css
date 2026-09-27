@@ -7,3 +7,23 @@
 @theme {
     --font-serif: 'Playfair Display', serif;
 }
+
+/* Intl Tel Input */
+.iti {
+    width: 100%;
+}
+
+.iti input {
+    width: 100%;
+    height: 48px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.iti .iti__selected-dial-code {
+    font-size: 0.875rem;
+}
+
+.iti .iti__country-list {
+    font-size: 0.875rem;
+}
