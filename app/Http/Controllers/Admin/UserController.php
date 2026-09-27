@@ -221,7 +221,7 @@ class UserController extends Controller
         return view('admin.users.banned', compact('users'));
     }
 
-    // Restaurar usuario (funciona para baneados Y eliminados)
+    // Restaurar usuario (funciona para baneados y eliminados)
     public function restore($id)
     {
         try {
@@ -231,9 +231,15 @@ class UserController extends Controller
                 'estado_activo' => true,
             ]);
 
-            return back()->with('success', 'Usuario restaurado y activado correctamente.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario reactivado correctamente y devuelto al listado principal.'
+            ]);
         } catch (\Exception $e) {
-            return back()->with('error', 'Error al restaurar el usuario.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al reactivar el usuario.'
+            ], 500);
         }
     }
 

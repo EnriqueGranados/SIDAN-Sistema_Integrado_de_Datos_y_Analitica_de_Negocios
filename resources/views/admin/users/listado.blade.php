@@ -140,29 +140,17 @@
                 <table class="w-full">
 
                     <thead class="bg-white/[0.02] border-b border-white/5">
-
                         <tr>
-
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                Usuario
-                            </th>
-
+                                Usuario</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                Correo
+                                Correo</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Rol
                             </th>
-
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                Rol
-                            </th>
-
+                                Estado</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                Bloquear
-                            </th>
-
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                Acciones
-                            </th>
-
+                                Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-white/5">
@@ -176,16 +164,13 @@
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-white"
-                                                x-text="user.nombres + ' ' + user.apellidos">
-                                            </p>
-                                            <p class="text-xs text-gray-500" x-text="user.documento">
-                                            </p>
+                                                x-text="user.nombres + ' ' + user.apellidos"></p>
+                                            <p class="text-xs text-gray-500" x-text="user.documento"></p>
                                         </div>
                                     </div>
                                 </td>
                                 {{-- CORREO --}}
-                                <td class="px-6 py-4 text-sm text-gray-300" x-text="user.correo">
-                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-300" x-text="user.correo"></td>
                                 {{-- ROL --}}
                                 <td class="px-6 py-4">
                                     <span class="px-2.5 py-1 text-xs font-medium rounded-full border"
@@ -200,24 +185,40 @@
                                         x-text="user.rol_nombre.charAt(0).toUpperCase() + user.rol_nombre.slice(1)">
                                     </span>
                                 </td>
-                                {{-- ESTADO --}}
+
+                                {{-- NUEVO BOTÓN DE ESTADO (Reemplaza al Switch) --}}
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" :checked="user.estado_activo"
-                                                @change="toggleStatus(user)">
-                                            <div
-                                                class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
-                                            </div>
-                                        </label>
-                                    </div>
+                                    <button @click="toggleStatus(user)"
+                                        :class="user.estado_activo ?
+                                            'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20' :
+                                            'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2">
+
+                                        {{-- Icono de Ban (si está activo) --}}
+                                        <svg x-show="user.estado_activo" class="w-4 h-4" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                                            </path>
+                                        </svg>
+                                        {{-- Icono de Reactivar (si está inactivo) --}}
+                                        <svg x-show="!user.estado_activo" class="w-4 h-4" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+
+                                        <span x-text="user.estado_activo ? 'Bloquear' : 'Reactivar'"></span>
+                                    </button>
                                 </td>
 
+                                {{-- ACCIONES (Editar y Eliminar) --}}
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
                                         <a :href="user.edit_url"
                                             class="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition"
-                                            title="Editar">
+                                            title="Editar información del usuario">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -228,11 +229,11 @@
 
                                         <button @click="banUser(user)"
                                             class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition"
-                                            title="Eliminar permanentemente">
+                                            title="Eliminar permanentemente (Borrado lógico)">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                                                 </path>
                                             </svg>
                                         </button>
@@ -272,11 +273,91 @@
         return {
             users: usersData,
 
-            toggleStatus(user) {
-                const accion = user.estado_activo ? 'banear' : 'reactivar';
-                if (!confirm(`¿Estás seguro de ${accion} esta cuenta?`)) {
-                    return;
-                }
+            // Modal de confirmación bonito y centrado
+            showConfirm(title, message) {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.className =
+                        'fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300';
+
+                    const modal = document.createElement('div');
+                    modal.className =
+                        'bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 transform scale-95 opacity-0 transition-all duration-300';
+
+                    modal.innerHTML = `
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">${title}</h3>
+                        </div>
+                        
+                        <div class="text-gray-300 mb-6 leading-relaxed text-sm">${message}</div>
+                        
+                        <div class="flex gap-3 justify-end">
+                            <button class="cancel-btn px-4 py-2 text-sm font-medium text-gray-300 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition">
+                                Cancelar
+                            </button>
+                            <button class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Confirmar
+                            </button>
+                        </div>
+                    `;
+
+                    overlay.appendChild(modal);
+                    document.body.appendChild(overlay);
+
+                    requestAnimationFrame(() => {
+                        modal.classList.remove('scale-95', 'opacity-0');
+                        modal.classList.add('scale-100', 'opacity-100');
+                    });
+
+                    const cleanup = () => {
+                        modal.classList.remove('scale-100', 'opacity-100');
+                        modal.classList.add('scale-95', 'opacity-0');
+                        overlay.classList.add('opacity-0');
+                        setTimeout(() => overlay.remove(), 300);
+                    };
+
+                    modal.querySelector('.confirm-btn').addEventListener('click', () => {
+                        cleanup();
+                        resolve(true);
+                    });
+
+                    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                        cleanup();
+                        resolve(false);
+                    });
+
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) {
+                            cleanup();
+                            resolve(false);
+                        }
+                    });
+                });
+            },
+
+            // Acción del Botón de Estado (Banear/Reactivar)
+            async toggleStatus(user) {
+                const willBeBanned = user.estado_activo;
+                const accion = willBeBanned ? 'bloquear' : 'reactivar';
+                const titulo = willBeBanned ? '¿Bloquear usuario?' : '¿Reactivar usuario?';
+                const mensaje = willBeBanned ?
+                    `Estás a punto de <strong>bloquea</strong> a <strong>${user.nombres} ${user.apellidos}</strong>.<br><br>
+           El usuario será movido a la lista de "Bloqueados" y no podrá iniciar sesión.<br>
+           Esta acción puede ser revertida manualmente.` :
+                    `Estás a punto de <strong>reactivar</strong> a <strong>${user.nombres} ${user.apellidos}</strong>.<br><br>
+           El usuario volverá al listado principal y podrá iniciar sesión.`;
+
+                const confirmado = await this.showConfirm(titulo, mensaje);
+
+                if (!confirmado) return; // Si cancela, no pasa nada. El botón no cambió visualmente.
 
                 fetch(user.toggle_url, {
                         method: 'PATCH',
@@ -289,32 +370,49 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Si se baneó, remover de la lista
-                            if (!user.estado_activo) {
-                                this.users = this.users.filter(u => u.id !== user.id);
-                            } else {
-                                user.estado_activo = !user.estado_activo;
+                            // Actualizamos el estado. Alpine redibujará el botón automáticamente (cambiará a verde/rojo)
+                            user.estado_activo = !willBeBanned;
+
+                            if (willBeBanned) {
+                                // Si se baneó, lo quitamos de la lista visualmente al instante
+                                this.users = this.users.filter(u => String(u.id) !== String(user.id));
                             }
-                            this.showNotification('success', data.message || 'Estado actualizado correctamente');
+                            this.showNotification('success', data.message ||
+                            'Estado actualizado correctamente');
                         } else {
                             this.showNotification('error', data.message || 'Error al actualizar el estado');
                         }
                     })
-                    .catch(error => {
+                    .catch(() => {
                         this.showNotification('error', 'Error de conexión');
                     });
             },
 
-            banUser(user) {
-                if (!confirm(
-                        `️ ADVERTENCIA: ¿Estás seguro de BLOQUEAR esta cuenta?\n\nUsuario: ${user.nombres} ${user.apellidos}\n\nEsta acción:\n- Desactivará la cuenta inmediatamente\n- El usuario no podrá iniciar sesión\n- Los datos se mantendrán en la base de datos\n\nEsta acción puede ser revertida manualmente.`
-                    )) {
-                    return;
-                }
+            // Acción del Botón Eliminar
+            async banUser(user) {
+                const titulo = '¿Eliminar permanentemente?';
+                const mensaje =
+                    `Estás a punto de <strong>eliminar</strong> a <strong>${user.nombres} ${user.apellidos}</strong> del sistema.<br><br>
+                    <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3 my-3">
+                        <p class="text-sm text-red-300"><strong>Esta acción:</strong></p>
+                        <ul class="text-sm text-red-300 mt-2 space-y-1 list-disc list-inside">
+                            <li>Eliminará al usuario de TODAS las vistas</li>
+                            <li>Solo será visible en "Usuarios Eliminados"</li>
+                            <li>El usuario no podrá iniciar sesión</li>
+                        </ul>
+                    </div>
+                    <p class="text-sm text-yellow-400">Esta acción puede ser revertida manualmente desde la sección de Eliminados.</p>`;
 
-                if (!confirm('¿CONFIRMAR BLOQUEO? Esta es tu última oportunidad para cancelar.')) {
-                    return;
-                }
+                const confirmado = await this.showConfirm(titulo, mensaje);
+                if (!confirmado) return;
+
+                const confirmacionFinal = await this.showConfirm(
+                    'CONFIRMACIÓN FINAL',
+                    `¿Estás <strong>completamente seguro</strong> de eliminar a <strong>${user.nombres} ${user.apellidos}</strong>?<br><br>
+                    Esta es una acción crítica que requiere confirmación adicional.`
+                );
+
+                if (!confirmacionFinal) return;
 
                 fetch(user.ban_url, {
                         method: 'DELETE',
@@ -327,38 +425,48 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            this.users = this.users.filter(u => u.id !== user.id);
-                            this.showNotification('success', data.message || 'Usuario bloqueado correctamente');
+                            // CORRECCIÓN DEL BUG: Usamos String() para asegurar que la comparación funcione
+                            this.users = this.users.filter(u => String(u.id) !== String(user.id));
+                            this.showNotification('success', data.message || 'Usuario eliminado correctamente');
                         } else {
-                            this.showNotification('error', data.message || 'Error al bloquear el usuario');
+                            this.showNotification('error', data.message || 'Error al eliminar el usuario');
                         }
                     })
-                    .catch(error => {
+                    .catch(() => {
                         this.showNotification('error', 'Error de conexión');
                     });
             },
 
+            // Notificación tipo Toast (Esquina inferior derecha, no invasiva)
             showNotification(type, message) {
                 const div = document.createElement('div');
-                const bgColor = type === 'success' ? 'bg-emerald-500 text-white' :
+                const isSuccess = type === 'success';
+                const bgColor = isSuccess ? 'bg-emerald-500 text-white' :
                     'bg-red-500/10 border border-red-500/20 text-red-400';
-                const iconPath = type === 'success' ? 'M5 13l4 4L19 7' :
-                    'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+                const iconPath = isSuccess ? 'M5 13l4 4L19 7' : 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
 
                 div.className =
-                    `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 transition-opacity duration-500 ${bgColor}`;
+                    `fixed bottom-6 right-6 z-[100] px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 ${bgColor}`;
                 div.innerHTML = `
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path>
                     </svg>
-                    <span>${message}</span>
+                    <span class="font-medium text-sm">${message}</span>
                 `;
 
                 document.body.appendChild(div);
 
+                // Animación de entrada (slide up)
+                requestAnimationFrame(() => {
+                    div.classList.remove('translate-y-10', 'opacity-0');
+                    div.classList.add('translate-y-0', 'opacity-100');
+                });
+
+                // Desaparecer automáticamente
                 setTimeout(() => {
-                    div.style.opacity = '0';
-                    setTimeout(() => div.remove(), 500);
+                    div.classList.remove('translate-y-0', 'opacity-100');
+                    div.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => div.remove(), 300);
                 }, 3000);
             }
         }
