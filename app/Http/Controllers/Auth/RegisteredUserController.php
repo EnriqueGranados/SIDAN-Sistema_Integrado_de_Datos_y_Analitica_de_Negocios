@@ -38,7 +38,7 @@ class RegisteredUserController extends Controller
             'apellidos' => ['required', 'string', 'max:100'],
             'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento'],
             'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono'],
-            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
+            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
             'genero' => ['nullable', 'string', 'max:10'],
 
             'email' => [
@@ -69,7 +69,7 @@ class RegisteredUserController extends Controller
             'email.email' => 'Ingresa un correo electrónico válido.',
             'email.unique' => 'Este correo electrónico ya está registrado.',
 
-            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 18 años para registrarte.',
+            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
         ]);
 
         $usuario = DB::transaction(function () use ($request) {

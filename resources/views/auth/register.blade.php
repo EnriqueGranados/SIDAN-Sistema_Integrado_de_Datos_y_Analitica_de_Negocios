@@ -349,7 +349,8 @@
 
                                     if (
                                         $event.target.value.length >= 10 &&
-                                        $event.key.length === 1
+                                        $event.key.length === 1 &&
+                                        $event.target.selectionStart === $event.target.selectionEnd
                                     ) {
                                         $event.preventDefault();
                                         shakeDocumento();
