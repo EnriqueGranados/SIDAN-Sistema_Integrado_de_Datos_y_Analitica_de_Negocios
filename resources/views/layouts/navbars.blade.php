@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SIDAN - Dashboard')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -40,6 +40,7 @@
 
 <body class="bg-[#0a0f1e] text-white antialiased" x-data="{ sidebarOpen: false, profileOpen: false }" x-cloak>
 
+    <x-toast />
     <div class="min-h-screen flex">
 
         <aside
@@ -75,8 +76,8 @@
                         <p class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Administración
                         </p>
 
-                        <a href="#"
-                            class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                        <a href="{{ route('admin.actividades.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all {{ request()->routeIs('admin.actividades.*') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : '' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">

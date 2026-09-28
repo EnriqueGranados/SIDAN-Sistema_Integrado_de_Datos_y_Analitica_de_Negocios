@@ -39,6 +39,8 @@ class Actividad extends Model
         'inscripcion_hasta',
         'visible_desde',
         'visible_hasta',
+        'realizacion_desde',
+        'realizacion_hasta',
     ];
 
     protected function casts(): array
@@ -55,13 +57,19 @@ class Actividad extends Model
             'inscripcion_hasta' => 'datetime',
             'visible_desde' => 'datetime',
             'visible_hasta' => 'datetime',
+            'realizacion_desde' => 'datetime',
+            'realizacion_hasta' => 'datetime',
             'eliminado_en' => 'datetime',
         ];
     }
 
     public function categoria(): BelongsTo
     {
-        return $this->belongsTo(Categoria::class, 'id_categoria', 'id_categoria');
+        return $this->belongsTo(
+            Categoria::class,
+            'id_categoria',
+            'id_categoria'
+        );
     }
 
     public function etiquetas(): BelongsToMany
@@ -76,57 +84,103 @@ class Actividad extends Model
 
     public function creador(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'creado_por', 'id_usuario');
+        return $this->belongsTo(
+            User::class,
+            'creado_por',
+            'id_usuario'
+        );
     }
 
     public function actualizador(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'actualizado_por', 'id_usuario');
+        return $this->belongsTo(
+            User::class,
+            'actualizado_por',
+            'id_usuario'
+        );
     }
 
     public function responsables(): HasMany
     {
-        return $this->hasMany(ResponsableActividad::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            ResponsableActividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function medios(): HasMany
     {
-        return $this->hasMany(MedioActividad::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            MedioActividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function portada(): HasOne
     {
-        return $this->hasOne(MedioActividad::class, 'id_actividad', 'id_actividad')
-            ->where('es_portada', true);
+        return $this->hasOne(
+            MedioActividad::class,
+            'id_actividad',
+            'id_actividad'
+        )->where(
+            'es_portada',
+            true
+        );
     }
 
     public function formularios(): HasMany
     {
-        return $this->hasMany(FormularioActividad::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            FormularioActividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function sesiones(): HasMany
     {
-        return $this->hasMany(SesionActividad::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            SesionActividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function revisiones(): HasMany
     {
-        return $this->hasMany(RevisionActividad::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            RevisionActividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function items(): HasMany
     {
-        return $this->hasMany(ItemActividad::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            ItemActividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function recursos(): HasMany
     {
-        return $this->hasMany(RecursoActividad::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            RecursoActividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function promociones(): HasMany
     {
-        return $this->hasMany(Promocion::class, 'id_actividad', 'id_actividad');
+        return $this->hasMany(
+            Promocion::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 }

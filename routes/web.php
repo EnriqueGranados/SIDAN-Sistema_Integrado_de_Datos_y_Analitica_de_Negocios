@@ -26,6 +26,37 @@ Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admi
         return view('admin.dashboard');
     })->name('dashboard');
 
+    // CRUD de Actividades
+    Route::resource('actividades', \App\Http\Controllers\Admin\ActividadController::class)
+        ->parameters(['actividades' => 'actividad']);
+
+    Route::get('actividades/{actividad}/configurar', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'show'])
+        ->name('actividades.configurar');
+
+    Route::post('actividades/{actividad}/items', [\App\Http\Controllers\Admin\ActividadController::class, 'guardarItem'])
+        ->name('actividades.items.store');
+
+    Route::put('actividades/{actividad}/items/{item}', [\App\Http\Controllers\Admin\ActividadController::class, 'actualizarItem'])
+        ->name('actividades.items.update');
+
+    Route::delete('actividades/{actividad}/items/{item}', [\App\Http\Controllers\Admin\ActividadController::class, 'eliminarItem'])
+        ->name('actividades.items.destroy');
+    
+    Route::post('/actividades/{actividad}/productos/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
+        ->name('actividades.productos.configuracion');
+
+    // Datos que se solicitarán al comprador
+    Route::post('actividades/{actividad}/items/{item}/datos-pedido', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarDatosPedido'])
+        ->name('actividades.datos-pedido.store');
+
+    // Aumentos de precio y costo según las opciones seleccionadas
+    Route::post('actividades/{actividad}/items/{item}/ajustes-precio', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarAjustesPrecio'])
+        ->name('actividades.ajustes-precio.store');
+
+    // Fechas, horarios y turnos de la actividad
+    Route::post('actividades/{actividad}/sesiones/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarSesiones'])
+        ->name('actividades.sesiones.configuracion');
+
     // Rutas para la gestión de usuarios baneados y restauración
     Route::get('/users/banned', [\App\Http\Controllers\Admin\UserController::class, 'banned'])
         ->name('users.banned');
@@ -59,7 +90,6 @@ Route::middleware(['auth', 'rol:superadmin,admin'])->prefix('admin')->name('admi
         Route::put('/{rol}', [\App\Http\Controllers\Admin\RolController::class, 'update'])->name('update');
         Route::delete('/{rol}', [\App\Http\Controllers\Admin\RolController::class, 'destroy'])->name('destroy');
     });
-
 });
 
 // Usuario normal
