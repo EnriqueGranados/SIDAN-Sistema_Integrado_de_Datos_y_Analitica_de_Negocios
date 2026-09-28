@@ -6,6 +6,7 @@
 
 <div
     x-data="registerForm()"
+    x-init="cargarPaises()"
     class="flex min-h-screen w-full flex-col bg-[#f6f8fb] dark:bg-sidan-950"
 >
 
@@ -284,6 +285,7 @@
                                 type="text"
                                 x-model="nombres"
                                 value="{{ old('nombres') }}"
+                                placeholder="Juan Carlos"
                                 required
                                 autocomplete="given-name"
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
@@ -309,6 +311,7 @@
                                 type="text"
                                 x-model="apellidos"
                                 value="{{ old('apellidos') }}"
+                                placeholder="Pérez García"
                                 required
                                 autocomplete="family-name"
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
@@ -325,7 +328,7 @@
                         <div>
 
                             <label for="documento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                Documento *
+                                Documento de identidad (DUI)
                             </label>
 
                             <input
@@ -334,7 +337,6 @@
                                 type="text"
                                 x-model="documento"
                                 value="{{ old('documento') }}"
-                                required
                                 maxlength="10"
                                 pattern="[0-9]{8}-[0-9]"
                                 placeholder="00000000-0"
@@ -376,7 +378,7 @@
                         <div>
 
                             <label for="telefono" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                Teléfono *
+                                Teléfono 
                             </label>
 
                             <input
@@ -384,7 +386,6 @@
                                 name="telefono"
                                 type="tel"
                                 value="{{ old('telefono') }}"
-                                required
                                 autocomplete="tel"
                                 @input="clearError('telefono')"
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
@@ -406,7 +407,7 @@
                         <div>
 
                             <label for="fecha_nacimiento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                Fecha de nacimiento *
+                                Fecha de nacimiento 
                             </label>
 
                             <input
@@ -416,7 +417,6 @@
                                 x-model="fechaNacimiento"
                                 value="{{ old('fecha_nacimiento') }}"
                                 max="{{ now()->subYears(10)->format('Y-m-d') }}"
-                                required
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
 
@@ -431,14 +431,13 @@
                         <div>
 
                             <label for="genero" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                Género *
+                                Género 
                             </label>
 
                             <select
                                 id="genero"
                                 name="genero"
                                 x-model="genero"
-                                required
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
                                 <option value="">Selecciona una opción</option>
@@ -452,6 +451,65 @@
 
                         </div>
 
+                        
+                    </div>
+
+                    <div class="mt-6">
+                        <!-- Configuramos Alpine y llamamos a la API de países al iniciar -->
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            
+                            <!-- Alpine actualizará automáticamente el 'value' con el formato SV-US-Berlín -->
+                            <input type="hidden" name="ubicacion" :value="ubicacionFormateada">
+
+                            <!-- 1. Selector de País -->
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">País</label>
+                                <select 
+                                    x-model="paisSeleccionado" 
+                                    @change="cargarEstados()"
+                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                >
+                                    <option value="">Selecciona un país...</option>
+                                    <template x-for="pais in paises" :key="pais.iso2">
+                                        <!-- Guardamos el código ISO2 (Ej. SV) como valor -->
+                                        <option :value="pais.iso2" x-text="pais.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <!-- 2. Selector de Estado/Departamento -->
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Departamento</label>
+                                <select 
+                                    x-model="estadoSeleccionado" 
+                                    @change="cargarCiudades()"
+                                    :disabled="!paisSeleccionado"
+                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                >
+                                    <option value="">Selecciona un depto...</option>
+                                    <template x-for="estado in estados" :key="estado.iso2">
+                                        <!-- Guardamos el código ISO2 del estado (Ej. US para Usulután) -->
+                                        <option :value="estado.iso2" x-text="estado.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <!-- 3. Selector de Ciudad -->
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Ciudad</label>
+                                <select 
+                                    x-model="ciudadSeleccionada"
+                                    :disabled="!estadoSeleccionado"
+                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                >
+                                    <option value="">Selecciona una ciudad...</option>
+                                    <template x-for="ciudad in ciudades" :key="ciudad.name">
+                                        <!-- La mayoría de APIs no dan código ISO para ciudades, así que usamos el nombre (Ej. Berlin) -->
+                                        <option :value="ciudad.name" x-text="ciudad.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
 
@@ -505,6 +563,7 @@
                                     type="email"
                                     x-model="email"
                                     value="{{ old('email') }}"
+                                    placeholder="ejemplo@ejemplo.com"
                                     required
                                     @input="clearError('email')"
                                     autocomplete="email"
@@ -609,7 +668,6 @@
                         <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
 
                             <div class="flex items-center justify-between">
-
                                 <h3 class="font-black text-sidan-900 dark:text-white">
                                     Datos personales
                                 </h3>
@@ -621,72 +679,76 @@
                                 >
                                     Editar
                                 </button>
-
                             </div>
 
                             <div class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
 
+                                <!-- El nombre asumo que es obligatorio, por lo que siempre se muestra -->
                                 <div>
                                     <span class="text-slate-400">
                                         Nombre completo
                                     </span>
-
                                     <p
                                         class="mt-1 font-bold text-slate-700 dark:text-slate-200"
                                         x-text="fullName()"
                                     ></p>
                                 </div>
 
-
-                                <div>
+                                <!-- Se oculta si 'documento' está vacío -->
+                                <div x-show="documento">
                                     <span class="text-slate-400">
                                         Documento
                                     </span>
-
                                     <p
                                         class="mt-1 font-bold text-slate-700 dark:text-slate-200"
                                         x-text="documento"
                                     ></p>
                                 </div>
 
-
-                                <div>
+                                <!-- Se oculta si la función no retorna un teléfono válido -->
+                                <div x-show="telefonoFormateado()">
                                     <span class="text-slate-400">
                                         Teléfono
                                     </span>
-
                                     <p
                                         class="mt-1 font-bold text-slate-700 dark:text-slate-200"
                                         x-text="telefonoFormateado()"
                                     ></p>
                                 </div>
 
-
-                                <div>
+                                <!-- Se oculta si 'fechaNacimiento' está vacía -->
+                                <div x-show="fechaNacimiento">
                                     <span class="text-slate-400">
                                         Fecha de nacimiento
                                     </span>
-
                                     <p
                                         class="mt-1 font-bold text-slate-700 dark:text-slate-200"
                                         x-text="fechaNacimiento"
                                     ></p>
                                 </div>
 
-
-                                <div>
+                                <!-- Se oculta si la función no retorna un género válido -->
+                                <div x-show="generoTexto()">
                                     <span class="text-slate-400">
                                         Género
                                     </span>
-
                                     <p
                                         class="mt-1 font-bold text-slate-700 dark:text-slate-200"
                                         x-text="generoTexto()"
                                     ></p>
                                 </div>
 
-                            </div>
+                                <div x-show="ubicacionAmigable">
+                                    <span class="text-slate-400">
+                                        Ubicación
+                                    </span>
 
+                                    <p
+                                        class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                        x-text="ubicacionAmigable"
+                                    ></p>
+                                </div>
+                            </div>
                         </div>
 
 
@@ -769,6 +831,38 @@
             </div>
 
         </form>
+
+        <div class="my-7 flex items-center gap-4">
+
+            <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
+
+            <span class="text-xs font-semibold text-slate-400">
+                O
+            </span>
+
+            <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
+
+        </div>
+
+        <a href="{{ route('google.login') }}"
+            class="flex w-fit mx-auto items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10">
+            
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M12.037 21.998a10.313 10.313 0 0 1-7.168-3.049 9.888 9.888 0 0 1-2.868-7.118 9.947 9.947 0 0 1 3.064-6.949A10.37 10.37 0 0 1 12.212 2h.176a9.935 9.935 0 0 1 6.614 2.564L16.457 6.88a6.187 6.187 0 0 0-4.131-1.566 6.9 6.9 0 0 0-4.794 1.913 6.618 6.618 0 0 0-2.045 4.657 6.608 6.608 0 0 0 1.882 4.723 6.891 6.891 0 0 0 4.725 2.07h.143c1.41.072 2.8-.354 3.917-1.2a5.77 5.77 0 0 0 2.172-3.41l.043-.117H12.22v-3.41h9.678c.075.617.109 1.238.1 1.859-.099 5.741-4.017 9.6-9.746 9.6l-.215-.002Z" clip-rule="evenodd"/>
+            </svg>
+
+           Registrarse con Google
+        </a>
+
+        {{-- Separador --}}
+        <div class="my-7 flex items-center justify-center gap-2 text-sm">
+            <span class="font-semibold text-slate-400">
+                ¿Ya tienes una cuenta?
+            </span>
+            <a href="{{ route('login') }}" class="font-black text-slate-700 transition hover:underline dark:text-slate-200">
+                Inicia sesión aquí
+            </a>
+        </div>
     </main>
 
         <p class="mt-6 text-center text-xs text-slate-400">
@@ -788,7 +882,7 @@
 </div>
 
 
-
+<!--
 <script>
     function registerForm() {
         return {
@@ -957,6 +1051,286 @@
 
                 return numero || this.telefono;
             },
+        };
+    }
+
+    function selectorUbicacion() {
+        return {
+            // Variables de estado
+            paises: [],
+            estados: [],
+            ciudades: [],
+            paisSeleccionado: '',
+            estadoSeleccionado: '',
+            ciudadSeleccionada: '',
+
+            // API Key (Obtén una gratuita en countrystatecity.in)
+            apiKey: 'd94a880db2815eabb6a7a7af69fd5abd19c577d0020386e7b0bb04201f1b761a', 
+            baseUrl: 'https://api.countrystatecity.in/v1/countries',
+
+            // Propiedad computada: Construye "Berlin-US-SV" automáticamente
+            get ubicacionFormateada() {
+                if (this.ciudadSeleccionada && this.estadoSeleccionado && this.paisSeleccionado) {
+                    return `${this.ciudadSeleccionada}-${this.estadoSeleccionado}-${this.paisSeleccionado}`;
+                }
+                return ''; // Si no están los tres, envía vacío
+            },
+
+            get ubicacionAmigable() {
+                if (this.ciudadSeleccionada && this.estadoSeleccionado && this.paisSeleccionado) {
+                    // Buscamos los objetos completos en los arreglos para extraer el 'name'
+                    let paisObj = this.paises.find(p => p.iso2 === this.paisSeleccionado);
+                    let estadoObj = this.estados.find(e => e.iso2 === this.estadoSeleccionado);
+                    
+                    let nombrePais = paisObj ? paisObj.name : '';
+                    let nombreEstado = estadoObj ? estadoObj.name : '';
+                    
+                    // Retornamos el formato exacto: Ciudad, Estado, País
+                    return `${this.ciudadSeleccionada}, ${nombreEstado}, ${nombrePais}`;
+                }
+                return ''; // Si no están los tres, retorna vacío
+            },
+
+            // Funciones de carga (Fetch)
+            cargarPaises() {
+                fetch(this.baseUrl, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
+                    .then(res => res.json())
+                    .then(data => this.paises = data);
+
+                    this.$nextTick(() => {
+                        this.paisSeleccionado = 'SV';
+                        this.cargarEstados();
+                    });
+            },
+
+            cargarEstados() {
+                this.estados = [];
+                this.ciudades = [];
+                this.estadoSeleccionado = '';
+                this.ciudadSeleccionada = '';
+                
+                if (this.paisSeleccionado) {
+                    fetch(`${this.baseUrl}/${this.paisSeleccionado}/states`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
+                        .then(res => res.json())
+                        .then(data => this.estados = data);
+                }
+            },
+
+            cargarCiudades() {
+                this.ciudades = [];
+                this.ciudadSeleccionada = '';
+
+                if (this.paisSeleccionado && this.estadoSeleccionado) {
+                    fetch(`${this.baseUrl}/${this.paisSeleccionado}/states/${this.estadoSeleccionado}/cities`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
+                        .then(res => res.json())
+                        .then(data => this.ciudades = data);
+                }
+            }
+        }
+    }
+</script> -->
+
+<script>
+    function registerForm() {
+        return {
+            // ==========================================
+            // 1. VARIABLES ORIGINALES DEL FORMULARIO
+            // ==========================================
+            step: {{
+                $errors->hasAny(['documento', 'telefono'])
+                    ? 1
+                    : ($errors->hasAny([
+                        'email',
+                        'password',
+                        'password_confirmation'
+                    ]) ? 2 : 1)
+            }},
+
+            serverErrors: {
+                documento: {{ $errors->has('documento') ? 'true' : 'false' }},
+                telefono: {{ $errors->has('telefono') ? 'true' : 'false' }},
+                email: {{ $errors->has('email') ? 'true' : 'false' }},
+            },
+
+            nombres: @js(old('nombres', '')),
+            apellidos: @js(old('apellidos', '')),
+            documento: @js(old('documento', '')),
+            telefono: @js(old('telefono', '')),
+            fechaNacimiento: @js(old('fecha_nacimiento', '')),
+            genero: @js(old('genero', '')),
+            email: @js(old('email', '')),
+
+            password: '',
+            passwordConfirmation: '',
+
+            // ==========================================
+            // 2. VARIABLES DE UBICACIÓN
+            // ==========================================
+            paises: [],
+            estados: [],
+            ciudades: [],
+            paisSeleccionado: '',
+            estadoSeleccionado: '',
+            ciudadSeleccionada: '',
+            apiKey: 'd94a880db2815eabb6a7a7af69fd5abd19c577d0020386e7b0bb04201f1b761a', 
+            baseUrl: 'https://api.countrystatecity.in/v1/countries',
+
+            // ==========================================
+            // 3. PROPIEDADES COMPUTADAS (GETTERS)
+            // ==========================================
+            get ubicacionFormateada() {
+                if (this.ciudadSeleccionada && this.estadoSeleccionado && this.paisSeleccionado) {
+                    return `${this.ciudadSeleccionada}-${this.estadoSeleccionado}-${this.paisSeleccionado}`;
+                }
+                return '';
+            },
+
+            get ubicacionAmigable() {
+                if (this.ciudadSeleccionada && this.estadoSeleccionado && this.paisSeleccionado) {
+                    let paisObj = this.paises.find(p => p.iso2 === this.paisSeleccionado);
+                    let estadoObj = this.estados.find(e => e.iso2 === this.estadoSeleccionado);
+                    
+                    let nombrePais = paisObj ? paisObj.name : '';
+                    let nombreEstado = estadoObj ? estadoObj.name : '';
+                    
+                    return `${this.ciudadSeleccionada}, ${nombreEstado}, ${nombrePais}`;
+                }
+                return '';
+            },
+
+            // ==========================================
+            // 4. MÉTODOS DEL FORMULARIO
+            // ==========================================
+            next() {
+                if (this.validateCurrentStep()) {
+                    this.step++;
+                }
+            },
+
+            previous() {
+                if (this.step > 1) {
+                    this.step--;
+                }
+            },
+
+            validateCurrentStep() {
+                const section = document.getElementById(`register-step-${this.step}`);
+                if (!section) return false;
+
+                if (this.step === 2) {
+                    const password = document.getElementById('password');
+                    const confirmation = document.getElementById('password_confirmation');
+                    confirmation.setCustomValidity('');
+
+                    if (password.value !== confirmation.value) {
+                        confirmation.setCustomValidity('Las contraseñas no coinciden.');
+                        confirmation.reportValidity();
+                        confirmation.focus();
+                        return false;
+                    }
+                }
+
+                const fields = section.querySelectorAll('input, select, textarea');
+                for (const field of fields) {
+                    if (!field.checkValidity()) {
+                        field.reportValidity();
+                        field.focus();
+                        return false;
+                    }
+                }
+                return true;
+            },
+
+            validatePasswordMatch() {
+                const password = document.getElementById('password');
+                const confirmation = document.getElementById('password_confirmation');
+                confirmation.setCustomValidity('');
+
+                if (confirmation.value && password.value !== confirmation.value) {
+                    confirmation.setCustomValidity('Las contraseñas no coinciden.');
+                }
+            },
+
+            clearError(field) {
+                this.serverErrors[field] = false;
+            },
+
+            shakeDocumento() {
+                const input = document.getElementById('documento');
+                if (!input) return;
+
+                input.animate([
+                    { transform: 'translateX(-1px)' },
+                    { transform: 'translateX(2px)' },
+                    { transform: 'translateX(-3px)' },
+                    { transform: 'translateX(3px)' },
+                    { transform: 'translateX(0)' }
+                ], { duration: 300, easing: 'cubic-bezier(0.36, 0.07, 0.19, 0.97)' });
+            },
+
+            submitForm(event) {
+                if (!this.validateCurrentStep()) {
+                    event.preventDefault();
+                }
+            },
+
+            fullName() {
+                return `${this.nombres} ${this.apellidos}`.trim();
+            },
+
+            generoTexto() {
+                if (this.genero === 'M') return 'Masculino';
+                if (this.genero === 'F') return 'Femenino';
+                return '';
+            },
+
+            telefonoFormateado() {
+                if (!this.telefono) return '';
+                if (!window.telefonoIti) return this.telefono;
+                return window.telefonoIti.getNumber() || this.telefono;
+            },
+
+            // ==========================================
+            // 5. MÉTODOS DE UBICACIÓN
+            // ==========================================
+            cargarPaises() {
+                fetch(this.baseUrl, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
+                    .then(res => res.json())
+                    .then(data => {
+                        this.paises = data;
+                        
+                        // CORRECCIÓN: Ahora esto está dentro de la promesa, 
+                        // asegurando que se ejecute SOLO cuando los países ya se descargaron.
+                        this.$nextTick(() => {
+                            this.paisSeleccionado = 'SV';
+                            this.cargarEstados();
+                        });
+                    });
+            },
+
+            cargarEstados() {
+                this.estados = [];
+                this.ciudades = [];
+                this.estadoSeleccionado = '';
+                this.ciudadSeleccionada = '';
+                
+                if (this.paisSeleccionado) {
+                    fetch(`${this.baseUrl}/${this.paisSeleccionado}/states`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
+                        .then(res => res.json())
+                        .then(data => this.estados = data);
+                }
+            },
+
+            cargarCiudades() {
+                this.ciudades = [];
+                this.ciudadSeleccionada = '';
+
+                if (this.paisSeleccionado && this.estadoSeleccionado) {
+                    fetch(`${this.baseUrl}/${this.paisSeleccionado}/states/${this.estadoSeleccionado}/cities`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
+                        .then(res => res.json())
+                        .then(data => this.ciudades = data);
+                }
+            }
         };
     }
 </script>
