@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
@@ -68,3 +69,10 @@ Route::middleware(['auth', 'rol:usuario', 'user.status'])->group(function () {
         return view('user.dashboard');
     })->name('user.dashboard');
 });
+
+// Autenticación con Google
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
+Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])->name('vincular.cuenta');
+Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])->name('vincular.cuenta.procesar');

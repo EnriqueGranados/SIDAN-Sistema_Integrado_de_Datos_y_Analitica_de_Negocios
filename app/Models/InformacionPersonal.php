@@ -17,6 +17,7 @@ class InformacionPersonal extends Model
         'telefono',
         'fecha_nacimiento',
         'genero',
+        'ubicacion',
     ];
 
     public function usuario()

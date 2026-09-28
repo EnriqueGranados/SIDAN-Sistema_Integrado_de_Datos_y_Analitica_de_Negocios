@@ -22,8 +22,10 @@ class User extends Authenticatable
         'correo',
         'password_hash',
         'must_change_password',
+        'google_id',
         'estado_activo',
         'eliminado',
+        'imagen_perfil',
     ];
 
     protected $hidden = [
