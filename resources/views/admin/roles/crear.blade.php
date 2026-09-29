@@ -168,6 +168,8 @@
 
                                 'The nombre has already been taken.' => 'Ya existe un rol con ese nombre.',
 
+                                'The unique constraint failed: roles.nombre' => 'Ya existe un rol con ese nombre.',
+
                                 'The nombre must be a string.' => 'El nombre del rol debe ser un texto válido.',
 
                                 'The nombre may not be greater than 255 characters.' => 'El nombre del rol no puede superar los 255 caracteres.',
