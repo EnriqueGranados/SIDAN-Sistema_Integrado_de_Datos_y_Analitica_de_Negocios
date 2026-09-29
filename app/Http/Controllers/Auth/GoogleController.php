@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules;
 use App\Models\User;
+use App\Models\Rol;
 use App\Models\InformacionPersonal;
 
 class GoogleController extends Controller
@@ -71,19 +73,62 @@ class GoogleController extends Controller
                 
                 $rutaImagen = $nombreArchivo;
             }
+            
+            $rolUsuario = Rol::where('nombre', 'usuario')->firstOrFail();
 
-            $nuevoUsuario = Usuario::create([
+            $nuevoUsuario = User::create([
                 'id_informacion_personal' => $infoPersonal->id_informacion_personal,
-                'id_rol'                  => 2, 
+                'id_rol'                  => $rolUsuario->id_rol,
                 'correo'                  => $googleUser->getEmail(),
                 'password_hash'           => null, 
                 'google_id'               => $googleUser->getId(),
-                'imagen_perfil'             => $rutaImagen, 
+                'imagen_perfil'           => $rutaImagen, 
             ]);
 
             Auth::login($nuevoUsuario);
-            return redirect()->intended('/user/dashboard');
+            return redirect()->route('datos.personales');
         }
+    }
+
+    public function guardarDatosPersonales(Request $request)
+    {
+        $usuario = Auth::user();
+
+        $request->validate([
+            // Validamos excluyendo el ID actual por si en el futuro se usa para editar el perfil
+            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento,' . $usuario->id_informacion_personal . ',id_informacion_personal'],
+            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono,' . $usuario->id_informacion_personal . ',id_informacion_personal'],
+            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
+            'genero' => ['nullable', 'string', 'max:10'],
+            'ubicacion' => ['nullable', 'string', 'max:150'],
+            
+            // La contraseña es opcional, pero si la envían debe estar confirmada
+            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        // 1. Actualizamos la tabla de información personal
+        $infoPersonal = InformacionPersonal::where('id_informacion_personal', $usuario->id_informacion_personal)->first();
+        
+        if ($infoPersonal) {
+            // Solo actualizamos los campos que el usuario decidió llenar
+            $infoPersonal->update([
+                'documento' => $request->documento,
+                'telefono' => $request->telefono,
+                'fecha_nacimiento' => $request->fecha_nacimiento,
+                'genero' => $request->genero,
+                'ubicacion' => $request->ubicacion,
+            ]);
+        }
+
+        // 2. Si el usuario ingresó una contraseña alternativa, la guardamos
+        if ($request->filled('password')) {
+            $usuario->update([
+                'password_hash' => Hash::make($request->password)
+            ]);
+        }
+
+        // 3. Redirigimos al dashboard con un mensaje de éxito
+        return redirect()->route('user.dashboard')->with('success', '¡Perfil actualizado con éxito!');
     }
 
     public function showLinkAccountForm()

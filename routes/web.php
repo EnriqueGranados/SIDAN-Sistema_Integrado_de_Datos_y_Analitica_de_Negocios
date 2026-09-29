@@ -93,16 +93,22 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     });
 });
 
-// Usuario normal
+// Usuario normal (Protegido)
 Route::middleware(['auth', 'rol:usuario', 'user.status'])->group(function () {
     Route::get('/user/dashboard', function () {
         return view('user.dashboard');
     })->name('user.dashboard');
+
+    // Nueva ruta para el formulario de onboarding opcional
+    Route::get('/datos-personales', function () {
+        return view('auth.datos-personales');
+    })->name('datos.personales');
+
+    Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])->name('perfil.guardar');
 });
 
-// Autenticación con Google
+// Autenticación con Google (Público)
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-
 Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])->name('vincular.cuenta');
 Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])->name('vincular.cuenta.procesar');

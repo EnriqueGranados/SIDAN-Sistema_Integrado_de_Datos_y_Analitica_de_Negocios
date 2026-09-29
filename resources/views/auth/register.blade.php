@@ -752,7 +752,7 @@
                         </div>
 
 
-                        <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
+                        <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5 text-sm">
 
                             <div class="flex items-center justify-between">
 
@@ -881,255 +881,6 @@
 
 </div>
 
-
-<!--
-<script>
-    function registerForm() {
-        return {
-            step: {{
-                $errors->hasAny(['documento', 'telefono'])
-                    ? 1
-                    : ($errors->hasAny([
-                        'email',
-                        'password',
-                        'password_confirmation'
-                    ]) ? 2 : 1)
-            }},
-
-            serverErrors: {
-                documento: {{ $errors->has('documento') ? 'true' : 'false' }},
-                telefono: {{ $errors->has('telefono') ? 'true' : 'false' }},
-                email: {{ $errors->has('email') ? 'true' : 'false' }},
-            },
-
-            nombres: @js(old('nombres', '')),
-            apellidos: @js(old('apellidos', '')),
-            documento: @js(old('documento', '')),
-            telefono: @js(old('telefono', '')),
-            fechaNacimiento: @js(old('fecha_nacimiento', '')),
-            genero: @js(old('genero', '')),
-            email: @js(old('email', '')),
-
-            password: '',
-            passwordConfirmation: '',
-
-            next() {
-                if (this.validateCurrentStep()) {
-                    this.step++;
-                }
-            },
-
-            previous() {
-                if (this.step > 1) {
-                    this.step--;
-                }
-            },
-
-            validateCurrentStep() {
-                const section = document.getElementById(
-                    `register-step-${this.step}`
-                );
-
-                if (!section) {
-                    return false;
-                }
-
-                // Validación específica de contraseñas
-                if (this.step === 2) {
-                    const password = document.getElementById('password');
-                    const confirmation = document.getElementById(
-                        'password_confirmation'
-                    );
-
-                    confirmation.setCustomValidity('');
-
-                    if (password.value !== confirmation.value) {
-                        confirmation.setCustomValidity(
-                            'Las contraseñas no coinciden.'
-                        );
-
-                        confirmation.reportValidity();
-                        confirmation.focus();
-
-                        return false;
-                    }
-                }
-
-                const fields = section.querySelectorAll(
-                    'input, select, textarea'
-                );
-
-                for (const field of fields) {
-                    if (!field.checkValidity()) {
-                        field.reportValidity();
-                        field.focus();
-
-                        return false;
-                    }
-                }
-
-                return true;
-            },
-
-            validatePasswordMatch() {
-                const password = document.getElementById('password');
-                const confirmation = document.getElementById(
-                    'password_confirmation'
-                );
-
-                confirmation.setCustomValidity('');
-
-                if (
-                    confirmation.value &&
-                    password.value !== confirmation.value
-                ) {
-                    confirmation.setCustomValidity(
-                        'Las contraseñas no coinciden.'
-                    );
-                }
-            },
-
-            clearError(field) {
-                this.serverErrors[field] = false;
-            },
-
-            shakeDocumento() {
-                const input = document.getElementById('documento');
-
-                if (!input) {
-                    console.log('NO SE ENCONTRO EL INPUT');
-                    return;
-                }
-
-                input.animate(
-                    [
-                        { transform: 'translateX(-1px)' },
-                        { transform: 'translateX(2px)' },
-                        { transform: 'translateX(-3px)' },
-                        { transform: 'translateX(3px)' },
-                        { transform: 'translateX(0)' }
-                    ],
-                    {
-                        duration: 300,
-                        easing: 'cubic-bezier(0.36, 0.07, 0.19, 0.97)'
-                    }
-                );
-            },
-
-            submitForm(event) {
-                if (!this.validateCurrentStep()) {
-                    event.preventDefault();
-                }
-            },
-
-            fullName() {
-                return `${this.nombres} ${this.apellidos}`.trim();
-            },
-
-            generoTexto() {
-                if (this.genero === 'M') {
-                    return 'Masculino';
-                }
-
-                if (this.genero === 'F') {
-                    return 'Femenino';
-                }
-
-                return '';
-            },
-
-            telefonoFormateado() {
-                if (!this.telefono) {
-                    return '';
-                }
-
-                if (!window.telefonoIti) {
-                    return this.telefono;
-                }
-
-                const numero = window.telefonoIti.getNumber();
-
-                return numero || this.telefono;
-            },
-        };
-    }
-
-    function selectorUbicacion() {
-        return {
-            // Variables de estado
-            paises: [],
-            estados: [],
-            ciudades: [],
-            paisSeleccionado: '',
-            estadoSeleccionado: '',
-            ciudadSeleccionada: '',
-
-            // API Key (Obtén una gratuita en countrystatecity.in)
-            apiKey: 'd94a880db2815eabb6a7a7af69fd5abd19c577d0020386e7b0bb04201f1b761a', 
-            baseUrl: 'https://api.countrystatecity.in/v1/countries',
-
-            // Propiedad computada: Construye "Berlin-US-SV" automáticamente
-            get ubicacionFormateada() {
-                if (this.ciudadSeleccionada && this.estadoSeleccionado && this.paisSeleccionado) {
-                    return `${this.ciudadSeleccionada}-${this.estadoSeleccionado}-${this.paisSeleccionado}`;
-                }
-                return ''; // Si no están los tres, envía vacío
-            },
-
-            get ubicacionAmigable() {
-                if (this.ciudadSeleccionada && this.estadoSeleccionado && this.paisSeleccionado) {
-                    // Buscamos los objetos completos en los arreglos para extraer el 'name'
-                    let paisObj = this.paises.find(p => p.iso2 === this.paisSeleccionado);
-                    let estadoObj = this.estados.find(e => e.iso2 === this.estadoSeleccionado);
-                    
-                    let nombrePais = paisObj ? paisObj.name : '';
-                    let nombreEstado = estadoObj ? estadoObj.name : '';
-                    
-                    // Retornamos el formato exacto: Ciudad, Estado, País
-                    return `${this.ciudadSeleccionada}, ${nombreEstado}, ${nombrePais}`;
-                }
-                return ''; // Si no están los tres, retorna vacío
-            },
-
-            // Funciones de carga (Fetch)
-            cargarPaises() {
-                fetch(this.baseUrl, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
-                    .then(res => res.json())
-                    .then(data => this.paises = data);
-
-                    this.$nextTick(() => {
-                        this.paisSeleccionado = 'SV';
-                        this.cargarEstados();
-                    });
-            },
-
-            cargarEstados() {
-                this.estados = [];
-                this.ciudades = [];
-                this.estadoSeleccionado = '';
-                this.ciudadSeleccionada = '';
-                
-                if (this.paisSeleccionado) {
-                    fetch(`${this.baseUrl}/${this.paisSeleccionado}/states`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
-                        .then(res => res.json())
-                        .then(data => this.estados = data);
-                }
-            },
-
-            cargarCiudades() {
-                this.ciudades = [];
-                this.ciudadSeleccionada = '';
-
-                if (this.paisSeleccionado && this.estadoSeleccionado) {
-                    fetch(`${this.baseUrl}/${this.paisSeleccionado}/states/${this.estadoSeleccionado}/cities`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
-                        .then(res => res.json())
-                        .then(data => this.ciudades = data);
-                }
-            }
-        }
-    }
-</script> -->
-
 <script>
     function registerForm() {
         return {
@@ -1166,6 +917,11 @@
             // ==========================================
             // 2. VARIABLES DE UBICACIÓN
             // ==========================================
+            oldUbicacion: @js(old('ubicacion', '')),
+            _oldPais: '',
+            _oldEstado: '',
+            _oldCiudad: '',
+
             paises: [],
             estados: [],
             ciudades: [],
@@ -1294,15 +1050,24 @@
             // 5. MÉTODOS DE UBICACIÓN
             // ==========================================
             cargarPaises() {
+                // Si existe un valor old(), lo dividimos en sus 3 partes (Ciudad-Estado-País)
+                if (this.oldUbicacion) {
+                    const partes = this.oldUbicacion.split('-');
+                    if (partes.length === 3) {
+                        this._oldCiudad = partes[0];
+                        this._oldEstado = partes[1];
+                        this._oldPais = partes[2];
+                    }
+                }
+
                 fetch(this.baseUrl, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
                     .then(res => res.json())
                     .then(data => {
                         this.paises = data;
                         
-                        // CORRECCIÓN: Ahora esto está dentro de la promesa, 
-                        // asegurando que se ejecute SOLO cuando los países ya se descargaron.
                         this.$nextTick(() => {
-                            this.paisSeleccionado = 'SV';
+                            // Asigna el país antiguo si existe, si no, por defecto 'SV'
+                            this.paisSeleccionado = this._oldPais || 'SV';
                             this.cargarEstados();
                         });
                     });
@@ -1317,7 +1082,18 @@
                 if (this.paisSeleccionado) {
                     fetch(`${this.baseUrl}/${this.paisSeleccionado}/states`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
                         .then(res => res.json())
-                        .then(data => this.estados = data);
+                        .then(data => {
+                            this.estados = data;
+                            
+                            // Si hay un estado guardado en old(), lo seleccionamos
+                            if (this._oldEstado) {
+                                this.$nextTick(() => {
+                                    this.estadoSeleccionado = this._oldEstado;
+                                    this._oldEstado = ''; // Limpiamos
+                                    this.cargarCiudades();
+                                });
+                            }
+                        });
                 }
             },
 
@@ -1328,7 +1104,17 @@
                 if (this.paisSeleccionado && this.estadoSeleccionado) {
                     fetch(`${this.baseUrl}/${this.paisSeleccionado}/states/${this.estadoSeleccionado}/cities`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
                         .then(res => res.json())
-                        .then(data => this.ciudades = data);
+                        .then(data => {
+                            this.ciudades = data;
+                            
+                            // Si hay una ciudad guardada en old(), la seleccionamos
+                            if (this._oldCiudad) {
+                                this.$nextTick(() => {
+                                    this.ciudadSeleccionada = this._oldCiudad;
+                                    this._oldCiudad = ''; // Limpiamos
+                                });
+                            }
+                        });
                 }
             }
         };

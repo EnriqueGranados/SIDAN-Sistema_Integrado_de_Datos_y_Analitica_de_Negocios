@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('id_rol')->constrained('tbl_roles', 'id_rol');
             $table->string('correo', 150)->unique();
             $table->string('google_id', 255)->unique()->nullable();
-            $table->string('password_hash', 255);
+            $table->string('password_hash', 255)->nullable();
             $table->boolean('must_change_password')->default(false);
             $table->boolean('estado_activo')->default(true);
             $table->boolean('eliminado')->default(false);

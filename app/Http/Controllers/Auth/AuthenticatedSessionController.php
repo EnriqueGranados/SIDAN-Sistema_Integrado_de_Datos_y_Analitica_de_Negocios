@@ -24,20 +24,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $request->authenticate();
 
-        // Autenticamos usando tu campo 'correo'
-        if (Auth::attempt(['correo' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended('/');
-        }
+        $request->session()->regenerate();
 
-        return back()->withErrors([
-            'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
-        ])->onlyInput('email');
+        return redirect()->intended('/');
     }
 
     /**
