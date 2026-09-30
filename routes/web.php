@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WompiController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -19,6 +20,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::get('/wompi/prueba', [WompiController::class, 'prueba'])
+    ->middleware('auth')
+    ->name('wompi.prueba');
 
 // Administradores
 Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admin')->name('admin.')->group(function () {
@@ -42,7 +47,7 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
 
     Route::delete('actividades/{actividad}/items/{item}', [\App\Http\Controllers\Admin\ActividadController::class, 'eliminarItem'])
         ->name('actividades.items.destroy');
-    
+
     Route::post('/actividades/{actividad}/productos/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
         ->name('actividades.productos.configuracion');
 
