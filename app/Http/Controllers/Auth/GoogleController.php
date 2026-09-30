@@ -36,7 +36,7 @@ class GoogleController extends Controller
             if ($usuarioExistente->google_id !== null) {
                 // Escenario 1: Ya está vinculado, inicia sesión directo
                 Auth::login($usuarioExistente);
-                return redirect()->intended('/user/dashboard');
+                return redirect()->intended('/user/dashboard')->with('success', 'Has iniciado sesión con tu cuenta de Google.');
             } else {
                 // Escenario 2: El correo existe pero no tiene google_id.
                 // Guardamos datos en sesión y pedimos confirmación.
@@ -86,7 +86,7 @@ class GoogleController extends Controller
             ]);
 
             Auth::login($nuevoUsuario);
-            return redirect()->route('datos.personales');
+            return redirect()->route('datos.personales')->with('success', 'Tu cuenta de Google se ha enlazado correctamente. Puedes completar tu perfil a continuación.');
         }
     }
 
@@ -104,6 +104,15 @@ class GoogleController extends Controller
             
             // La contraseña es opcional, pero si la envían debe estar confirmada
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+        ],
+        [
+            'documento.unique' => 'Este DUI ya está registrado.',
+            'documento.regex' => 'Ingresa un número de DUI válido.',
+
+            'telefono.regex' => 'Ingresa un número de teléfono válido.',
+            'telefono.unique' => 'Este número de teléfono ya está registrado.',
+
+            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
         ]);
 
         // 1. Actualizamos la tabla de información personal

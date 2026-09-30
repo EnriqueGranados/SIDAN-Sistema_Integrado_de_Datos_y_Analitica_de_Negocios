@@ -81,9 +81,8 @@
 
         </header>
 
-
+        {{-- Mensaje de error --}}
         @if (session('error'))
-
             <div
                 id="account-status-alert"
                 role="alert"
@@ -163,6 +162,87 @@
 
             </div>
 
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+
+                    const alert = document.getElementById('account-status-alert');
+                    const progress = document.getElementById('account-alert-progress');
+
+                    if (!alert) {
+                        return;
+                    }
+
+                    requestAnimationFrame(() => {
+
+                        requestAnimationFrame(() => {
+
+                            alert.classList.remove(
+                                'opacity-0',
+                                '-translate-y-3'
+                            );
+
+                            alert.classList.add(
+                                'opacity-100',
+                                'translate-y-0'
+                            );
+
+                        });
+
+                    });
+
+                    if (progress) {
+
+                        progress.style.transition = 'transform 5s linear';
+
+                        requestAnimationFrame(() => {
+
+                            requestAnimationFrame(() => {
+                                progress.style.transform = 'scaleX(0)';
+                            });
+
+                        });
+
+                    }
+
+                    window.accountAlertTimeout = setTimeout(() => {
+                        closeAccountAlert();
+                    }, 5000);
+
+                });
+
+
+                function closeAccountAlert() {
+
+                    const alert = document.getElementById('account-status-alert');
+
+                    if (!alert) {
+                        return;
+                    }
+
+                    if (window.accountAlertTimeout) {
+
+                        clearTimeout(window.accountAlertTimeout);
+
+                        window.accountAlertTimeout = null;
+
+                    }
+
+                    alert.classList.remove(
+                        'opacity-100',
+                        'translate-y-0'
+                    );
+
+                    alert.classList.add(
+                        'opacity-0',
+                        '-translate-y-3'
+                    );
+
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 300);
+
+                }
+            </script>
         @endif
 
 
@@ -363,92 +443,4 @@
         </footer>
 
     </div>
-
-
-    @if (session('error'))
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-
-                const alert = document.getElementById('account-status-alert');
-                const progress = document.getElementById('account-alert-progress');
-
-                if (!alert) {
-                    return;
-                }
-
-                requestAnimationFrame(() => {
-
-                    requestAnimationFrame(() => {
-
-                        alert.classList.remove(
-                            'opacity-0',
-                            '-translate-y-3'
-                        );
-
-                        alert.classList.add(
-                            'opacity-100',
-                            'translate-y-0'
-                        );
-
-                    });
-
-                });
-
-                if (progress) {
-
-                    progress.style.transition = 'transform 5s linear';
-
-                    requestAnimationFrame(() => {
-
-                        requestAnimationFrame(() => {
-                            progress.style.transform = 'scaleX(0)';
-                        });
-
-                    });
-
-                }
-
-                window.accountAlertTimeout = setTimeout(() => {
-                    closeAccountAlert();
-                }, 5000);
-
-            });
-
-
-            function closeAccountAlert() {
-
-                const alert = document.getElementById('account-status-alert');
-
-                if (!alert) {
-                    return;
-                }
-
-                if (window.accountAlertTimeout) {
-
-                    clearTimeout(window.accountAlertTimeout);
-
-                    window.accountAlertTimeout = null;
-
-                }
-
-                alert.classList.remove(
-                    'opacity-100',
-                    'translate-y-0'
-                );
-
-                alert.classList.add(
-                    'opacity-0',
-                    '-translate-y-3'
-                );
-
-                setTimeout(() => {
-                    alert.remove();
-                }, 300);
-
-            }
-        </script>
-
-    @endif
-
 @endsection

@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\Rol;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -28,7 +29,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/');
+        $usuario = Auth::user();
+
+        $rol = Rol::find($usuario->id_rol);
+
+        if ($rol && $rol->nombre === 'admin' || $rol->nombre === 'superadmin') {
+            return redirect()->route('admin.dashboard')
+                            ->with('success', 'Se ha iniciado sesión como administrador. Puedes gestionar el sistema desde aquí.');
+        }
+       
+        return redirect()->route('user.dashboard')
+                        ->with('success', 'Se ha iniciado sesión correctamente.');
     }
 
     /**

@@ -9,7 +9,7 @@ use App\Models\InformacionPersonal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
@@ -46,15 +46,43 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombres' => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'correo' => 'required|email|unique:tbl_usuarios,correo',
-            'documento' => 'required|string|unique:tbl_informacion_personal,documento',
-            'telefono' => 'nullable|string|max:20',
-            'fecha_nacimiento' => 'nullable|date',
-            'genero' => 'nullable|in:M,F,O',
-            'id_rol' => 'required|exists:tbl_roles,id_rol',
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'nombres' => ['required', 'string', 'max:100'],
+            'apellidos' => ['required', 'string', 'max:100'],
+            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento'],
+            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono'],
+            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
+            'genero' => ['nullable', 'string', 'max:10'],
+            'ubicacion' => ['nullable', 'string', 'max:150'],
+
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:150',
+                'unique:tbl_usuarios,correo',
+            ],
+
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::defaults(),
+            ],
+
+            'rol' => 'required|exists:tbl_roles,id_rol',
+        ],
+        [
+            'documento.unique' => 'Este DUI ya está registrado.',
+            'documento.regex' => 'Ingresa un número de DUI válido.',
+
+            'telefono.regex' => 'Ingresa un número de teléfono válido.',
+            'telefono.unique' => 'Este número de teléfono ya está registrado.',
+
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingresa un correo electrónico válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+
+            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
         ]);
 
         DB::beginTransaction();
@@ -66,12 +94,13 @@ class UserController extends Controller
                 'telefono' => $validated['telefono'],
                 'fecha_nacimiento' => $validated['fecha_nacimiento'],
                 'genero' => $validated['genero'],
+                'ubicacion' => $validated['ubicacion'],
             ]);
 
             User::create([
                 'id_informacion_personal' => $info->id_informacion_personal,
-                'id_rol' => $validated['id_rol'],
-                'correo' => $validated['correo'],
+                'id_rol' => $validated['rol'],
+                'correo' => $validated['email'],
                 'password_hash' => Hash::make($validated['password']),
                 'estado' => 'activo',
                 'must_change_password' => false,

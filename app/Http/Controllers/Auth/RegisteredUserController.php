@@ -103,6 +103,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($usuario);
 
-        return redirect('/');
+        return redirect()->intended('/user/dashboard')->with('success', 'Cuenta creada exitosamente.');
     }
 }

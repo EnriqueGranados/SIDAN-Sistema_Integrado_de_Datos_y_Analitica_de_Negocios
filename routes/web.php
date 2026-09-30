@@ -104,6 +104,11 @@ Route::middleware(['auth', 'rol:usuario', 'user.status'])->group(function () {
         return view('auth.datos-personales');
     })->name('datos.personales');
 
+    Route::get('/omitir-perfil', function () {
+        return redirect()->route('user.dashboard')
+            ->with('success', 'Has omitido el registro. Puedes completar tus datos más tarde desde tu perfil.');
+    })->name('perfil.omitir');
+
     Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])->name('perfil.guardar');
 });
 

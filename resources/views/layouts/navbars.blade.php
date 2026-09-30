@@ -5,10 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#0F2D5B">
 
     <title>@yield('title', 'SIDAN - Dashboard')</title>
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -40,9 +39,26 @@
             background: #34d399;
         }
     </style>
+
+    <script>
+        (() => {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const useDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+            document.documentElement.classList.toggle('dark', useDark);
+
+            window.toggleTheme = () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            };
+        })();
+    </script>
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-[#0a0f1e] text-white antialiased"
+<body class="flex min-h-screen flex-col bg-[#f6f8fb] font-sans text-slate-900 antialiased transition-colors duration-300 dark:bg-sidan-950 dark:text-white"
     x-data="{ sidebarOpen: false, profileOpen: false }"
     x-cloak>
 
@@ -61,6 +77,43 @@
                 <span class="text-xl font-bold tracking-tight">
                     SIDAN
                 </span>
+
+                <button
+                        type="button"
+                        onclick="toggleTheme()"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:-translate-y-0.5 hover:border-sidan-500 hover:text-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                        aria-label="Cambiar tema">
+
+                        <svg
+                            class="h-5 w-5 dark:hidden"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8">
+
+                            <path
+                                d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
+                                stroke-linecap="round"
+                                stroke-linejoin="round" />
+
+                        </svg>
+
+                        <svg
+                            class="hidden h-5 w-5 dark:block"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8">
+
+                            <circle cx="12" cy="12" r="4" />
+
+                            <path
+                                d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"
+                                stroke-linecap="round" />
+
+                        </svg>
+
+                    </button>
             </div>
 
             <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
@@ -399,9 +452,16 @@
 
             </header>
 
-            <main class="flex-1 p-4 lg:p-8 overflow-y-auto">
+            <main class="flex-1 px-4 pt-4 lg:px-8 lg:pt-8 overflow-y-auto">
                 @yield('content')
             </main>
+
+            {{-- Footer --}}
+            <footer class="mt-auto w-full border-t border-slate-200 bg-white dark:border-white/10 dark:bg-sidan-950">
+                <div class="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-slate-400 sm:px-6 lg:px-8">
+                    © {{ date('Y') }} SIDAN. Todos los derechos reservados.
+                </div>
+            </footer>
 
         </div>
 
