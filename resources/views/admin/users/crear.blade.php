@@ -4,819 +4,831 @@
 
 @section('content')
 
-<div
-    x-data="registerForm()"
-    x-init="cargarPaises()"
-    class="flex w-full flex-col bg-[#f6f8fb] dark:bg-sidan-950"
->
-    {{-- Contenido --}}
-    <main class="mx-auto max-w-4xl w-full items-center px-4 pt-4 lg:px-8 lg:pt-8 py-10 sm:px-6 lg:py-14">
+<div id="edit-profile-container" class="relative min-h-full">
 
-        {{-- Encabezado --}}
-        <div class="mx-auto max-w-2xl text-center">
-            <h1 class="mt-5 text-3xl font-black tracking-tight text-sidan-900 sm:text-4xl dark:text-white">
-                Crear Nuevo Usuario
-            </h1>
+    <div
+        x-data="registerForm()"
+        x-init="cargarPaises()"
+        class="flex w-full flex-col bg-[#f6f8fb] dark:bg-sidan-950"
+    >
+        {{-- Contenido --}}
+        <main class="mx-auto max-w-4xl w-full items-center px-4 pt-4 lg:px-8 lg:pt-8 py-10 sm:px-6 lg:py-14">
 
-            <p class="mt-3 text-slate-600 dark:text-slate-400">
-                Completa la información para registrar un nuevo usuario en el sistema.
-            </p>
+            {{-- Encabezado --}}
+            <div class="mx-auto max-w-2xl text-center">
+                <h1 class="mt-5 text-3xl font-black tracking-tight text-sidan-900 sm:text-4xl dark:text-white">
+                    Crear nuevo usuario
+                </h1>
 
-        </div>
+                <p class="mt-3 text-slate-600 dark:text-slate-400">
+                    Completa la información para registrar un nuevo usuario en el sistema.
+                </p>
 
-
-        {{-- Stepper --}}
-        <div class="mx-auto mt-10 max-w-3xl">
-
-            <ol class="flex items-center w-full">
-      
-                {{-- Paso 1 --}}
-                <li class="flex w-full items-center">
-
-                    <div class="flex items-center">
-
-                        <span
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-black transition"
-                            :class="step >= 1
-                                ? 'border-sidan-500 bg-sidan-500 text-white'
-                                : 'border-slate-300 bg-white text-slate-400 dark:border-white/20 dark:bg-white/5'"
-                        >
-                            {{-- Número mientras está activo --}}
-                            <span x-show="step === 1">1</span>
-
-                            {{-- Check cuando ya fue completado --}}
-                            <svg
-                                x-show="step > 1"
-                                x-cloak
-                                class="h-5 w-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="m5 12 4 4L19 6"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                        </span>
-
-                        {{-- Texto del paso --}}
-                        <span
-                            class="ml-3 hidden text-sm font-bold transition sm:block"
-                            :class="step >= 1
-                                ? 'text-sidan-500'
-                                : 'text-slate-400'"
-                        >
-                            Datos personales
-                        </span>
-
-                    </div>
+            </div>
 
 
-                    {{-- Línea hacia el paso 2 --}}
-                    <div class="mx-4 h-0.5 flex-1 bg-slate-200 dark:bg-white/10">
+            {{-- Stepper --}}
+            <div class="mx-auto mt-10 max-w-3xl">
 
-                        <div
-                            class="h-full bg-sidan-500 transition-all duration-300"
-                            :class="step > 1 ? 'w-full' : 'w-0'"
-                        ></div>
-
-                    </div>
-
-                </li>
-
-
-                {{-- Paso 2 --}}
-                <li class="flex w-full items-center">
-
-                    <div class="flex items-center">
-
-                        <span
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-black transition"
-                            :class="step >= 2
-                                ? 'border-sidan-500 bg-sidan-500 text-white'
-                                : 'border-slate-300 bg-white text-slate-400 dark:border-white/20 dark:bg-white/5'"
-                        >
-
-                            {{-- Número mientras está activo --}}
-                            <span x-show="step <= 2">2</span>
-
-                            <svg
-                                x-show="step > 2"
-                                x-cloak
-                                class="h-5 w-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="m5 12 4 4L19 6"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-
-                        </span>
-
-                        {{-- Texto del paso --}}
-                        <span
-                            class="ml-3 hidden text-sm font-bold transition sm:block"
-                            :class="step >= 2
-                                ? 'text-sidan-500'
-                                : 'text-slate-400'"
-                        >
-                            Credenciales
-                        </span>
-
-                    </div>
-
-
-                    {{-- Línea hacia el paso 3 --}}
-                    <div class="mx-4 h-0.5 flex-1 bg-slate-200 dark:bg-white/10">
-
-                        <div
-                            class="h-full bg-sidan-500 transition-all duration-300"
-                            :class="step > 2 ? 'w-full' : 'w-0'"
-                        ></div>
-
-                    </div>
-
-                </li>
-
-
-                {{-- Paso 3 --}}
-                <li class="flex items-center">
-
-                    <div class="flex items-center">
-
-                        <span
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-black transition"
-                            :class="step >= 3
-                                ? 'border-sidan-500 bg-sidan-500 text-white'
-                                : 'border-slate-300 bg-white text-slate-400 dark:border-white/20 dark:bg-white/5'"
-                        >
-                            3
-                        </span>
-
-                        {{-- Texto del paso --}}
-                        <span
-                            class="ml-3 hidden text-sm font-bold transition sm:block"
-                            :class="step >= 3
-                                ? 'text-sidan-500'
-                                : 'text-slate-400'"
-                        >
-                            Confirmación
-                        </span>
-
-                    </div>
-
-                </li>
-
-            </ol>
-
-        </div>
-
-        <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-            {{-- Formulario --}}
-            <form
-                method="POST"
-                action="{{ route('admin.users.store') }}"
-                class="mx-auto mt-8 max-w-3xl"
-                @submit="submitForm"
-            >
-
-                @csrf
-
-
-                {{-- TARJETA --}}
-                <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
-
+                <ol class="flex items-center w-full">
+        
                     {{-- Paso 1 --}}
-                    <section id="register-step-1" x-show="step === 1" x-cloak class="p-6 sm:p-8">
+                    <li class="flex w-full items-center">
 
-                        <div class="mb-8">
+                        <div class="flex items-center">
 
-                            <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
-                                Paso 01
-                            </p>
-
-                            <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white">
-                                Información del usuario
-                            </h2>
-
-                            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                Ingresa algunos datos personales para crear el perfil.
-                            </p>
-
-                        </div>
-
-
-                        <div class="grid gap-5 sm:grid-cols-2">
-
-                            {{-- Nombres --}}
-                            <div>
-
-                                <label for="nombres" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Nombres *
-                                </label>
-
-                                <input
-                                    id="nombres"
-                                    name="nombres"
-                                    type="text"
-                                    x-model="nombres"
-                                    value="{{ old('nombres') }}"
-                                    placeholder="Juan Carlos"
-                                    required
-                                    autocomplete="given-name"
-                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
-
-                                @error('nombres')
-                                    <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
-                                @enderror
-
-                            </div>
-
-
-                            {{-- Apellidos --}}
-                            <div>
-
-                                <label for="apellidos" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Apellidos *
-                                </label>
-
-                                <input
-                                    id="apellidos"
-                                    name="apellidos"
-                                    type="text"
-                                    x-model="apellidos"
-                                    value="{{ old('apellidos') }}"
-                                    placeholder="Pérez García"
-                                    required
-                                    autocomplete="family-name"
-                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
-
-                                @error('apellidos')
-                                    <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
-                                @enderror
-
-                            </div>
-
-
-                            {{-- Documento --}}
-                            <div>
-
-                                <label for="documento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Documento de identidad (DUI)
-                                </label>
-
-                                <input
-                                    id="documento"
-                                    name="documento"
-                                    type="text"
-                                    x-model="documento"
-                                    value="{{ old('documento') }}"
-                                    maxlength="10"
-                                    pattern="[0-9]{8}-[0-9]"
-                                    placeholder="00000000-0"
-                                    @input="clearError('documento')"
-                                    @keydown="
-                                        console.log(
-                                            'KEY:',
-                                            $event.key,
-                                            'LENGTH:',
-                                            $event.target.value.length
-                                        );
-
-                                        if (
-                                            $event.target.value.length >= 10 &&
-                                            $event.key.length === 1 &&
-                                            $event.target.selectionStart === $event.target.selectionEnd
-                                        ) {
-                                            $event.preventDefault();
-                                            shakeDocumento();
-                                        }
-                                    "
-                                    autocomplete="off"
-                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
-
-                                @error('documento')
-                                    <p
-                                        x-show="serverErrors.documento"
-                                        class="mt-2 text-sm font-semibold text-red-600"
-                                    >
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-
-                            </div>
-
-
-                            {{-- Teléfono --}}
-                            <div>
-
-                                <label for="telefono" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Teléfono 
-                                </label>
-
-                                <input
-                                    id="telefono"
-                                    name="telefono"
-                                    type="tel"
-                                    value="{{ old('telefono') }}"
-                                    autocomplete="tel"
-                                    @input="clearError('telefono')"
-                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
-
-                                @error('telefono')
-                                    <p
-                                        x-show="serverErrors.telefono"
-                                        class="mt-2 text-sm font-semibold text-red-600"
-                                    >
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-
-                            </div>
-
-
-                            {{-- Fecha --}}
-                            <div>
-
-                                <label for="fecha_nacimiento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Fecha de nacimiento 
-                                </label>
-
-                                <input
-                                    id="fecha_nacimiento"
-                                    name="fecha_nacimiento"
-                                    type="date"
-                                    x-model="fechaNacimiento"
-                                    value="{{ old('fecha_nacimiento') }}"
-                                    max="{{ now()->subYears(10)->format('Y-m-d') }}"
-                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
-
-                                @error('fecha_nacimiento')
-                                    <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
-                                @enderror
-
-                            </div>
-
-
-                            {{-- Género --}}
-                            <div>
-
-                                <label for="genero" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                    Género 
-                                </label>
-
-                                <select
-                                    id="genero"
-                                    name="genero"
-                                    x-model="genero"
-                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
-                                    <option value="">Selecciona una opción</option>
-                                    <option value="M" @selected(old('genero') === 'M')>Masculino</option>
-                                    <option value="F" @selected(old('genero') === 'F')>Femenino</option>
-                                </select>
-
-                                @error('genero')
-                                    <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
-                                @enderror
-
-                            </div>
-
-                            
-                        </div>
-
-                        <div class="mt-6">
-                            <!-- Configuramos Alpine y llamamos a la API de países al iniciar -->
-                            <div class="grid gap-4 sm:grid-cols-3">
-                                
-                                <!-- Alpine actualizará automáticamente el 'value' con el formato SV-US-Berlín -->
-                                <input type="hidden" name="ubicacion" :value="ubicacionFormateada">
-
-                                <!-- 1. Selector de País -->
-                                <div>
-                                    <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">País</label>
-                                    <select 
-                                        x-model="paisSeleccionado" 
-                                        @change="cargarEstados()"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                    >
-                                        <option value="">Selecciona un país...</option>
-                                        <template x-for="pais in paises" :key="pais.iso2">
-                                            <!-- Guardamos el código ISO2 (Ej. SV) como valor -->
-                                            <option :value="pais.iso2" x-text="pais.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-
-                                <!-- 2. Selector de Estado/Departamento -->
-                                <div>
-                                    <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Departamento</label>
-                                    <select 
-                                        x-model="estadoSeleccionado" 
-                                        @change="cargarCiudades()"
-                                        :disabled="!paisSeleccionado"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                    >
-                                        <option value="">Selecciona un depto...</option>
-                                        <template x-for="estado in estados" :key="estado.iso2">
-                                            <!-- Guardamos el código ISO2 del estado (Ej. US para Usulután) -->
-                                            <option :value="estado.iso2" x-text="estado.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-
-                                <!-- 3. Selector de Ciudad -->
-                                <div>
-                                    <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Ciudad</label>
-                                    <select 
-                                        x-model="ciudadSeleccionada"
-                                        :disabled="!estadoSeleccionado"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                    >
-                                        <option value="">Selecciona una ciudad...</option>
-                                        <template x-for="ciudad in ciudades" :key="ciudad.name">
-                                            <!-- La mayoría de APIs no dan código ISO para ciudades, así que usamos el nombre (Ej. Berlin) -->
-                                            <option :value="ciudad.name" x-text="ciudad.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div class="mt-8 flex justify-end">
-
-                            <button
-                                type="button"
-                                @click="next()"
-                                class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                            <span
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-black transition"
+                                :class="step >= 1
+                                    ? 'border-sidan-500 bg-sidan-500 text-white'
+                                    : 'border-slate-300 bg-white text-slate-400 dark:border-white/20 dark:bg-white/5'"
                             >
-                                Continuar →
-                            </button>
+                                {{-- Número mientras está activo --}}
+                                <span x-show="step === 1">1</span>
+
+                                {{-- Check cuando ya fue completado --}}
+                                <svg
+                                    x-show="step > 1"
+                                    x-cloak
+                                    class="h-5 w-5"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        d="m5 12 4 4L19 6"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+                                </svg>
+                            </span>
+
+                            {{-- Texto del paso --}}
+                            <span
+                                class="ml-3 hidden text-sm font-bold transition sm:block"
+                                :class="step >= 1
+                                    ? 'text-sidan-500'
+                                    : 'text-slate-400'"
+                            >
+                                Datos personales
+                            </span>
 
                         </div>
 
-                    </section>
+
+                        {{-- Línea hacia el paso 2 --}}
+                        <div class="mx-4 h-0.5 flex-1 bg-slate-200 dark:bg-white/10">
+
+                            <div
+                                class="h-full bg-sidan-500 transition-all duration-300"
+                                :class="step > 1 ? 'w-full' : 'w-0'"
+                            ></div>
+
+                        </div>
+
+                    </li>
 
 
                     {{-- Paso 2 --}}
-                    <section id="register-step-2" x-show="step === 2" x-cloak class="p-6 sm:p-8">
+                    <li class="flex w-full items-center">
 
-                        <div class="mb-8">
+                        <div class="flex items-center">
 
-                            <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
-                                Paso 02
-                            </p>
+                            <span
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-black transition"
+                                :class="step >= 2
+                                    ? 'border-sidan-500 bg-sidan-500 text-white'
+                                    : 'border-slate-300 bg-white text-slate-400 dark:border-white/20 dark:bg-white/5'"
+                            >
 
-                            <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white">
-                                Credenciales y acceso
-                            </h2>
+                                {{-- Número mientras está activo --}}
+                                <span x-show="step <= 2">2</span>
 
-                            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                Datos para iniciar sesión en SIDAN.
-                            </p>
+                                <svg
+                                    x-show="step > 2"
+                                    x-cloak
+                                    class="h-5 w-5"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        d="m5 12 4 4L19 6"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+                                </svg>
+
+                            </span>
+
+                            {{-- Texto del paso --}}
+                            <span
+                                class="ml-3 hidden text-sm font-bold transition sm:block"
+                                :class="step >= 2
+                                    ? 'text-sidan-500'
+                                    : 'text-slate-400'"
+                            >
+                                Credenciales
+                            </span>
 
                         </div>
 
 
-                        <div class="space-y-5">
+                        {{-- Línea hacia el paso 3 --}}
+                        <div class="mx-4 h-0.5 flex-1 bg-slate-200 dark:bg-white/10">
+
+                            <div
+                                class="h-full bg-sidan-500 transition-all duration-300"
+                                :class="step > 2 ? 'w-full' : 'w-0'"
+                            ></div>
+
+                        </div>
+
+                    </li>
+
+
+                    {{-- Paso 3 --}}
+                    <li class="flex items-center">
+
+                        <div class="flex items-center">
+
+                            <span
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-black transition"
+                                :class="step >= 3
+                                    ? 'border-sidan-500 bg-sidan-500 text-white'
+                                    : 'border-slate-300 bg-white text-slate-400 dark:border-white/20 dark:bg-white/5'"
+                            >
+                                3
+                            </span>
+
+                            {{-- Texto del paso --}}
+                            <span
+                                class="ml-3 hidden text-sm font-bold transition sm:block"
+                                :class="step >= 3
+                                    ? 'text-sidan-500'
+                                    : 'text-slate-400'"
+                            >
+                                Confirmación
+                            </span>
+
+                        </div>
+
+                    </li>
+
+                </ol>
+
+            </div>
+
+            <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+                {{-- Formulario --}}
+                <form
+                    method="POST"
+                    action="{{ route('admin.users.store') }}"
+                    class="mx-auto mt-8 max-w-3xl"
+                    @submit="submitForm"
+                >
+
+                    @csrf
+
+
+                    {{-- TARJETA --}}
+                    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+
+                        {{-- Paso 1 --}}
+                        <section id="register-step-1" x-show="step === 1" x-cloak class="p-6 sm:p-8">
+
+                            <div class="mb-8">
+
+                                <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
+                                    Paso 01
+                                </p>
+
+                                <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white">
+                                    Información del usuario
+                                </h2>
+
+                                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                    Ingresa algunos datos personales para crear el perfil.
+                                </p>
+
+                            </div>
+
 
                             <div class="grid gap-5 sm:grid-cols-2">
 
+                                {{-- Nombres --}}
                                 <div>
-                                    <label for="email" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                        Correo electrónico *
+
+                                    <label for="nombres" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Nombres *
                                     </label>
 
                                     <input
-                                        id="email"
-                                        name="email"
-                                        type="email"
-                                        x-model="email"
-                                        value="{{ old('email') }}"
-                                        placeholder="ejemplo@ejemplo.com"
+                                        id="nombres"
+                                        name="nombres"
+                                        type="text"
+                                        x-model="nombres"
+                                        value="{{ old('nombres') }}"
+                                        placeholder="Juan Carlos"
                                         required
-                                        @input="clearError('email')"
-                                        autocomplete="email"
+                                        autocomplete="given-name"
                                         class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
-                                    @error('email')
+                                    @error('nombres')
+                                        <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                    @enderror
+
+                                </div>
+
+
+                                {{-- Apellidos --}}
+                                <div>
+
+                                    <label for="apellidos" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Apellidos *
+                                    </label>
+
+                                    <input
+                                        id="apellidos"
+                                        name="apellidos"
+                                        type="text"
+                                        x-model="apellidos"
+                                        value="{{ old('apellidos') }}"
+                                        placeholder="Pérez García"
+                                        required
+                                        autocomplete="family-name"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                    >
+
+                                    @error('apellidos')
+                                        <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                    @enderror
+
+                                </div>
+
+
+                                {{-- Documento --}}
+                                <div>
+
+                                    <label for="documento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Documento de identidad (DUI)
+                                    </label>
+
+                                    <input
+                                        id="documento"
+                                        name="documento"
+                                        type="text"
+                                        x-model="documento"
+                                        value="{{ old('documento') }}"
+                                        maxlength="10"
+                                        pattern="[0-9]{8}-[0-9]"
+                                        placeholder="00000000-0"
+                                        @input="clearError('documento')"
+                                        @keydown="
+                                            console.log(
+                                                'KEY:',
+                                                $event.key,
+                                                'LENGTH:',
+                                                $event.target.value.length
+                                            );
+
+                                            if (
+                                                $event.target.value.length >= 10 &&
+                                                $event.key.length === 1 &&
+                                                $event.target.selectionStart === $event.target.selectionEnd
+                                            ) {
+                                                $event.preventDefault();
+                                                shakeDocumento();
+                                            }
+                                        "
+                                        autocomplete="off"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                    >
+
+                                    @error('documento')
                                         <p
-                                            x-show="serverErrors.email"
+                                            x-show="serverErrors.documento"
                                             class="mt-2 text-sm font-semibold text-red-600"
                                         >
                                             {{ $message }}
                                         </p>
                                     @enderror
+
                                 </div>
 
-                            </div>
 
-
-                            <div class="grid gap-5 sm:grid-cols-2">
+                                {{-- Teléfono --}}
                                 <div>
-                                    <label for="password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                        Contraseña *
+
+                                    <label for="telefono" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Teléfono 
                                     </label>
 
                                     <input
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        required
-                                        x-model="password"
-                                        @input="validatePasswordMatch()"
+                                        id="telefono"
+                                        name="telefono"
+                                        type="tel"
+                                        value="{{ old('telefono') }}"
+                                        autocomplete="tel"
+                                        @input="clearError('telefono')"
                                         class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
+                                    @error('telefono')
+                                        <p
+                                            x-show="serverErrors.telefono"
+                                            class="mt-2 text-sm font-semibold text-red-600"
+                                        >
+                                            {{ $message }}
+                                        </p>
+                                    @enderror
+
                                 </div>
 
+
+                                {{-- Fecha --}}
                                 <div>
-                                    <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                        Confirmar contraseña *
+
+                                    <label for="fecha_nacimiento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Fecha de nacimiento 
                                     </label>
 
                                     <input
-                                        id="password_confirmation"
-                                        name="password_confirmation"
-                                        type="password"
-                                        required
-                                        x-model="passwordConfirmation"
-                                        @input="validatePasswordMatch()"
+                                        id="fecha_nacimiento"
+                                        name="fecha_nacimiento"
+                                        type="date"
+                                        x-model="fechaNacimiento"
+                                        value="{{ old('fecha_nacimiento') }}"
+                                        max="{{ now()->subYears(10)->format('Y-m-d') }}"
                                         class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
-                                </div>
-                            </div>
+                                    @error('fecha_nacimiento')
+                                        <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                    @enderror
 
-                            {{-- Rol --}}
-                            <div class="grid gap-5 sm:grid-cols-2">
+                                </div>
+
+
+                                {{-- Género --}}
                                 <div>
-                                    <label for="rol" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                        Rol *
+
+                                    <label for="genero" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Género 
                                     </label>
 
                                     <select
-                                        id="rol"
-                                        name="rol"
-                                        x-model="rol"
-                                        required
+                                        id="genero"
+                                        name="genero"
+                                        x-model="genero"
                                         class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
-                                        <option value="">Selecciona un rol...</option>
-                                        @foreach($roles as $r)
-                                            <option value="{{ $r->id_rol }}">
-                                                {{ ucfirst($r->nombre) }} - {{ $r->descripcion }}
-                                            </option>
-                                        @endforeach
+                                        <option value="">Selecciona una opción</option>
+                                        <option value="M" @selected(old('genero') === 'M')>Masculino</option>
+                                        <option value="F" @selected(old('genero') === 'F')>Femenino</option>
                                     </select>
 
-                                    @error('rol')
+                                    @error('genero')
                                         <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                                     @enderror
+
                                 </div>
+
+                                
                             </div>
-                        </div>
 
-                        <div class="mt-8 flex items-center justify-between">
+                            <div class="mt-6">
+                                <!-- Configuramos Alpine y llamamos a la API de países al iniciar -->
+                                <div class="grid gap-4 sm:grid-cols-3">
+                                    
+                                    <!-- Alpine actualizará automáticamente el 'value' con el formato SV-US-Berlín -->
+                                    <input type="hidden" name="ubicacion" :value="ubicacionFormateada">
 
-                            <button
-                                type="button"
-                                @click="previous()"
-                                class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
-                            >
-                                ← Atrás
-                            </button>
-
-                            <button
-                                type="button"
-                                @click="next()"
-                                class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
-                            >
-                                Continuar →
-                            </button>
-
-                        </div>
-
-                    </section>
-
-
-                    {{-- Paso 3 --}}
-                    <section id="register-step-3" x-show="step === 3" x-cloak class="p-6 sm:p-8">
-
-                        <div class="mb-8">
-
-                            <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
-                                Paso 03
-                            </p>
-
-                            <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white">
-                                Revisa la información
-                            </h2>
-
-                            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                Comprueba que todo esté correcto antes de crear el usuario.
-                            </p>
-
-                        </div>
-
-
-                        <div class="space-y-4">
-
-                            <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
-
-                                <div class="flex items-center justify-between">
-                                    <h3 class="font-black text-sidan-900 dark:text-white">
-                                        Datos personales
-                                    </h3>
-
-                                    <button
-                                        type="button"
-                                        @click="step = 1"
-                                        class="text-sm font-bold text-sidan-500 hover:text-green-600"
-                                    >
-                                        Editar
-                                    </button>
-                                </div>
-
-                                <div class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-
-                                    <!-- El nombre asumo que es obligatorio, por lo que siempre se muestra -->
+                                    <!-- 1. Selector de País -->
                                     <div>
-                                        <span class="text-slate-400">
-                                            Nombre completo
-                                        </span>
-                                        <p
-                                            class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                            x-text="fullName()"
-                                        ></p>
+                                        <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">País</label>
+                                        <select 
+                                            x-model="paisSeleccionado" 
+                                            @change="cargarEstados()"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
+                                            <option value="">Selecciona un país...</option>
+                                            <template x-for="pais in paises" :key="pais.iso2">
+                                                <!-- Guardamos el código ISO2 (Ej. SV) como valor -->
+                                                <option :value="pais.iso2" x-text="pais.name"></option>
+                                            </template>
+                                        </select>
                                     </div>
 
-                                    <!-- Se oculta si 'documento' está vacío -->
-                                    <div x-show="documento">
-                                        <span class="text-slate-400">
-                                            Documento
-                                        </span>
-                                        <p
-                                            class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                            x-text="documento"
-                                        ></p>
+                                    <!-- 2. Selector de Estado/Departamento -->
+                                    <div>
+                                        <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Departamento</label>
+                                        <select 
+                                            x-model="estadoSeleccionado" 
+                                            @change="cargarCiudades()"
+                                            :disabled="!paisSeleccionado"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
+                                            <option value="">Selecciona un depto...</option>
+                                            <template x-for="estado in estados" :key="estado.iso2">
+                                                <!-- Guardamos el código ISO2 del estado (Ej. US para Usulután) -->
+                                                <option :value="estado.iso2" x-text="estado.name"></option>
+                                            </template>
+                                        </select>
                                     </div>
 
-                                    <!-- Se oculta si la función no retorna un teléfono válido -->
-                                    <div x-show="telefonoFormateado()">
-                                        <span class="text-slate-400">
-                                            Teléfono
-                                        </span>
-                                        <p
-                                            class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                            x-text="telefonoFormateado()"
-                                        ></p>
-                                    </div>
-
-                                    <!-- Se oculta si 'fechaNacimiento' está vacía -->
-                                    <div x-show="fechaNacimiento">
-                                        <span class="text-slate-400">
-                                            Fecha de nacimiento
-                                        </span>
-                                        <p
-                                            class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                            x-text="fechaNacimiento"
-                                        ></p>
-                                    </div>
-
-                                    <!-- Se oculta si la función no retorna un género válido -->
-                                    <div x-show="generoTexto()">
-                                        <span class="text-slate-400">
-                                            Género
-                                        </span>
-                                        <p
-                                            class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                            x-text="generoTexto()"
-                                        ></p>
-                                    </div>
-
-                                    <div x-show="ubicacionAmigable">
-                                        <span class="text-slate-400">
-                                            Ubicación
-                                        </span>
-
-                                        <p
-                                            class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                            x-text="ubicacionAmigable"
-                                        ></p>
+                                    <!-- 3. Selector de Ciudad -->
+                                    <div>
+                                        <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Ciudad</label>
+                                        <select 
+                                            x-model="ciudadSeleccionada"
+                                            :disabled="!estadoSeleccionado"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
+                                            <option value="">Selecciona una ciudad...</option>
+                                            <template x-for="ciudad in ciudades" :key="ciudad.name">
+                                                <!-- La mayoría de APIs no dan código ISO para ciudades, así que usamos el nombre (Ej. Berlin) -->
+                                                <option :value="ciudad.name" x-text="ciudad.name"></option>
+                                            </template>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
 
 
-                            <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5 text-sm">
+                            <div class="mt-8 flex justify-end">
 
-                                <div class="flex items-center justify-between">
+                                <button
+                                    type="button"
+                                    @click="next()"
+                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                >
+                                    Continuar →
+                                </button>
 
-                                    <h3 class="font-black text-sidan-900 dark:text-white">
-                                        Cuenta
-                                    </h3>
+                            </div>
 
-                                    <button
-                                        type="button"
-                                        @click="step = 2"
-                                        class="text-sm font-bold text-sidan-500 hover:text-green-600"
-                                    >
-                                        Editar
-                                    </button>
+                        </section>
+
+
+                        {{-- Paso 2 --}}
+                        <section id="register-step-2" x-show="step === 2" x-cloak class="p-6 sm:p-8">
+
+                            <div class="mb-8">
+
+                                <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
+                                    Paso 02
+                                </p>
+
+                                <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white">
+                                    Credenciales y acceso
+                                </h2>
+
+                                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                    Datos para iniciar sesión en SIDAN.
+                                </p>
+
+                            </div>
+
+
+                            <div class="space-y-5">
+
+                                <div class="grid gap-5 sm:grid-cols-2">
+
+                                    <div>
+                                        <label for="email" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                            Correo electrónico *
+                                        </label>
+
+                                        <input
+                                            id="email"
+                                            name="email"
+                                            type="email"
+                                            x-model="email"
+                                            value="{{ old('email') }}"
+                                            placeholder="ejemplo@ejemplo.com"
+                                            required
+                                            @input="clearError('email')"
+                                            autocomplete="email"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
+
+                                        @error('email')
+                                            <p
+                                                x-show="serverErrors.email"
+                                                class="mt-2 text-sm font-semibold text-red-600"
+                                            >
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                    </div>
 
                                 </div>
 
-                                <div class="mt-4">
 
-                                    <span class="text-sm text-slate-400">
-                                        Correo electrónico
-                                    </span>
+                                <div class="grid gap-5 sm:grid-cols-2">
+                                    <div>
+                                        <label for="password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                            Contraseña *
+                                        </label>
 
-                                    <p
-                                        class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                        x-text="email"
-                                    ></p>
+                                        <input
+                                            id="password"
+                                            name="password"
+                                            type="password"
+                                            required
+                                            x-model="password"
+                                            @input="validatePasswordMatch()"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
 
+                                    </div>
+
+                                    <div>
+                                        <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                            Confirmar contraseña *
+                                        </label>
+
+                                        <input
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            type="password"
+                                            required
+                                            x-model="passwordConfirmation"
+                                            @input="validatePasswordMatch()"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
+
+                                    </div>
                                 </div>
 
-                                <div class="mt-4">
+                                {{-- Rol --}}
+                                <div class="grid gap-5 sm:grid-cols-2">
+                                    <div>
+                                        <label for="rol" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                            Rol *
+                                        </label>
 
-                                    <span class="text-sm text-slate-400">
-                                        Rol
-                                    </span>
+                                        <select
+                                            id="rol"
+                                            name="rol"
+                                            x-model="rol"
+                                            required
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
+                                            <option value="">Selecciona un rol...</option>
+                                            @foreach($roles as $r)
+                                                <option value="{{ $r->id_rol }}">
+                                                    {{ ucfirst($r->nombre) }} - {{ $r->descripcion }}
+                                                </option>
+                                            @endforeach
+                                        </select>
 
-                                    <p
-                                        class="mt-1 font-bold text-slate-700 dark:text-slate-200"
-                                        x-text="obtenerTextoRol()"
-                                    ></p>
-
+                                        @error('rol')
+                                            <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+
+                            <div class="mt-8 flex items-center justify-between">
+
+                                <button
+                                    type="button"
+                                    @click="previous()"
+                                    class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                                >
+                                    ← Atrás
+                                </button>
+
+                                <button
+                                    type="button"
+                                    @click="next()"
+                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                >
+                                    Continuar →
+                                </button>
+
+                            </div>
+
+                        </section>
 
 
-                        <div class="mt-8 flex items-center justify-between">
+                        {{-- Paso 3 --}}
+                        <section id="register-step-3" x-show="step === 3" x-cloak class="p-6 sm:p-8">
 
-                            <button
-                                type="button"
-                                @click="previous()"
-                                class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
-                            >
-                                ← Atrás
-                            </button>
+                            <div class="mb-8">
 
-                            <button
-                                type="submit"
-                                class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
-                            >
-                                Crear usuario
-                            </button>
+                                <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
+                                    Paso 03
+                                </p>
 
-                        </div>
+                                <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white">
+                                    Revisa la información
+                                </h2>
 
-                    </section>
+                                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                    Comprueba que todo esté correcto antes de crear el usuario.
+                                </p>
+
+                            </div>
+
+
+                            <div class="space-y-4">
+
+                                <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
+
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="font-black text-sidan-900 dark:text-white">
+                                            Datos personales
+                                        </h3>
+
+                                        <button
+                                            type="button"
+                                            @click="step = 1"
+                                            class="text-sm font-bold text-sidan-500 hover:text-green-600"
+                                        >
+                                            Editar
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+
+                                        <!-- El nombre asumo que es obligatorio, por lo que siempre se muestra -->
+                                        <div>
+                                            <span class="text-slate-400">
+                                                Nombre completo
+                                            </span>
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="fullName()"
+                                            ></p>
+                                        </div>
+
+                                        <!-- Se oculta si 'documento' está vacío -->
+                                        <div x-show="documento">
+                                            <span class="text-slate-400">
+                                                Documento
+                                            </span>
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="documento"
+                                            ></p>
+                                        </div>
+
+                                        <!-- Se oculta si la función no retorna un teléfono válido -->
+                                        <div x-show="telefonoFormateado()">
+                                            <span class="text-slate-400">
+                                                Teléfono
+                                            </span>
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="telefonoFormateado()"
+                                            ></p>
+                                        </div>
+
+                                        <!-- Se oculta si 'fechaNacimiento' está vacía -->
+                                        <div x-show="fechaNacimiento">
+                                            <span class="text-slate-400">
+                                                Fecha de nacimiento
+                                            </span>
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="fechaNacimiento"
+                                            ></p>
+                                        </div>
+
+                                        <!-- Se oculta si la función no retorna un género válido -->
+                                        <div x-show="generoTexto()">
+                                            <span class="text-slate-400">
+                                                Género
+                                            </span>
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="generoTexto()"
+                                            ></p>
+                                        </div>
+
+                                        <div x-show="ubicacionAmigable">
+                                            <span class="text-slate-400">
+                                                Ubicación
+                                            </span>
+
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="ubicacionAmigable"
+                                            ></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
+
+                                    <div class="flex items-center justify-between">
+
+                                        <h3 class="font-black text-sidan-900 dark:text-white">
+                                            Cuenta
+                                        </h3>
+
+                                        <button
+                                            type="button"
+                                            @click="step = 2"
+                                            class="text-sm font-bold text-sidan-500 hover:text-green-600"
+                                        >
+                                            Editar
+                                        </button>
+
+                                    </div>
+                                    <div class="text-sm">                                
+                                        <div class="mt-4">
+
+                                            <span class="text-sm text-slate-400">
+                                                Correo electrónico
+                                            </span>
+
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="email"
+                                            ></p>
+
+                                        </div>
+
+                                        <div class="mt-4">
+
+                                            <span class="text-sm text-slate-400">
+                                                Contraseña
+                                            </span>
+                                            
+                                            <p class="mt-1 font-bold text-slate-700 dark:text-slate-200">Establecida</p>
+                                        </div>
+
+                                        <div class="mt-4">
+
+                                            <span class="text-sm text-slate-400">
+                                                Rol
+                                            </span>
+
+                                            <p
+                                                class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                                x-text="obtenerTextoRol()"
+                                            ></p>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="mt-8 flex items-center justify-between">
+
+                                <button
+                                    type="button"
+                                    @click="previous()"
+                                    class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                                >
+                                    ← Atrás
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                >
+                                    Crear usuario
+                                </button>
+
+                            </div>
+
+                        </section>
+
+                    </div>
+
+                </form>
+
+                <div class="my-7 flex items-center gap-4">
+
+                    <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
+
+                    <span class="text-xs font-semibold text-slate-400">
+                        SIDAN
+                    </span>
+
+                    <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
 
                 </div>
 
-            </form>
-
-            <div class="my-7 flex items-center gap-4">
-
-                <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
-
                 <span class="text-xs font-semibold text-slate-400">
-                    SIDAN
+                    <a href="{{ route('admin.users.index') }}" class="flex w-fit mx-auto items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10">
+                        Cancelar
+                    </a>
                 </span>
-
-                <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
-
-            </div>
-
-            <span class="text-xs font-semibold text-slate-400">
-                <a href="{{ route('admin.users.index') }}" class="flex w-fit mx-auto items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10">
-                    Cancelar
-                </a>
-            </span>
+            </main>
         </main>
-    </main>
+    </div>
 </div>
-
 <script>
     function registerForm() {
         return {
@@ -961,10 +973,129 @@
                 ], { duration: 300, easing: 'cubic-bezier(0.36, 0.07, 0.19, 0.97)' });
             },
 
-            submitForm(event) {
+            async submitForm(event) {
                 if (!this.validateCurrentStep()) {
                     event.preventDefault();
+                    return;
                 }
+
+                event.preventDefault();
+
+                const confirmado = await this.showConfirm(
+                    '¿Crear usuario?',
+                    'Verifica que toda la información proporcionada sea correcta antes de crear el usuario.'
+                );
+
+                if (confirmado) {
+                    event.target.submit();
+                }
+            },
+
+            async showConfirm(title, message) {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+
+                    overlay.className =
+                        'fixed inset-0 z-[9999] bg-black/50 p-4 backdrop-blur-sm';
+
+                    overlay.innerHTML = `
+                        <div class="absolute inset-0 flex items-center justify-center lg:left-64">
+                            <div
+                                class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-sidan-900"
+                                role="dialog"
+                                aria-modal="true"
+                            >
+                                <div class="p-6">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-sidan-500 dark:bg-green-500/10">
+                                            <svg
+                                                class="h-6 w-6"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                            >
+                                                <path
+                                                    d="M12 9v4m0 4h.01"
+                                                    stroke-linecap="round"
+                                                />
+                                                <circle cx="12" cy="12" r="9" />
+                                            </svg>
+                                        </div>
+
+                                        <div>
+                                            <h3 class="text-lg font-black text-sidan-900 dark:text-white">
+                                                ${title}
+                                            </h3>
+
+                                            <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                                                ${message}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 flex justify-end gap-3">
+                                        <button
+                                            type="button"
+                                            data-cancel
+                                            class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                                        >
+                                            Cancelar
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            data-confirm
+                                            class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:bg-green-600"
+                                        >
+                                            Crear usuario
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('edit-profile-container').appendChild(overlay);
+
+                    const cancelButton = overlay.querySelector('[data-cancel]');
+                    const confirmButton = overlay.querySelector('[data-confirm]');
+
+                    const close = (value) => {
+                        cancelButton.disabled = true;
+                        confirmButton.disabled = true;
+
+                        overlay.remove();
+
+                        resolve(value);
+                    };
+
+                    cancelButton.addEventListener('click', () => {
+                        close(false);
+                    });
+
+                    confirmButton.addEventListener('click', () => {
+                        close(true);
+                    });
+
+                    overlay.addEventListener('click', (event) => {
+                        if (event.target === overlay) {
+                            close(false);
+                        }
+                    });
+
+                    const handleKeydown = (event) => {
+                        if (event.key === 'Escape') {
+                            close(false);
+                        }
+
+                        if (event.key === 'Enter') {
+                            close(true);
+                        }
+                    };
+
+                    document.addEventListener('keydown', handleKeydown);
+                });
             },
 
             fullName() {

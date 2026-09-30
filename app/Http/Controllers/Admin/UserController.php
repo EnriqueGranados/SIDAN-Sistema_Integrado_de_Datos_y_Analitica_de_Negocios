@@ -128,13 +128,27 @@ class UserController extends Controller
         $validated = $request->validate([
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
-            'correo' => 'required|email|unique:tbl_usuarios,correo,' . $user->id_usuario . ',id_usuario',
-            'documento' => 'required|string|unique:tbl_informacion_personal,documento,' . $user->id_informacion_personal . ',id_informacion_personal',
-            'telefono' => 'nullable|string|max:20',
-            'fecha_nacimiento' => 'nullable|date',
+            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento,' . $user->id_informacion_personal . ',id_informacion_personal'],
+            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono,' . $user->id_informacion_personal . ',id_informacion_personal'],
+            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
             'genero' => 'nullable|in:M,F,O',
-            'id_rol' => 'required|exists:tbl_roles,id_rol',
-            'password' => ['nullable', 'confirmed', Password::defaults()],
+            
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:150',
+                'unique:tbl_usuarios,correo,' . $user->id_usuario . ',id_usuario',
+            ],
+
+            'password' => [
+                'nullable',
+                'confirmed',
+                Rules\Password::defaults(),
+            ],
+
+            'rol' => 'required|exists:tbl_roles,id_rol',
         ]);
 
         DB::beginTransaction();
@@ -149,8 +163,8 @@ class UserController extends Controller
             ]);
 
             $userData = [
-                'correo' => $validated['correo'],
-                'id_rol' => $validated['id_rol'],
+                'correo' => $validated['email'],
+                'id_rol' => $validated['rol'],
             ];
 
             if (!empty($validated['password'])) {

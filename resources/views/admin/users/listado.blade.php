@@ -472,77 +472,77 @@
                             'bg-white border border-slate-200 dark:bg-[#0f172a] dark:border-white/10 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 transform scale-95 opacity-0 transition-all duration-300';
 
                         modal.innerHTML = `
-            <div class="flex items-center gap-3 mb-4">
+                            <div class="flex items-center gap-3 mb-4">
 
-                <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
 
-                    <svg
-                        class="w-6 h-6 text-emerald-600 dark:text-emerald-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
+                                    <svg
+                                        class="w-6 h-6 text-emerald-600 dark:text-emerald-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24">
 
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                        </path>
-                    </svg>
-                </div>
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                        </path>
+                                    </svg>
+                                </div>
 
-                <div>
-                    <h3 class="text-xl font-bold text-sidan-900 dark:text-white">
-                        ${title}
-                    </h3>
+                                <div>
+                                    <h3 class="text-xl font-bold text-sidan-900 dark:text-white">
+                                        ${title}
+                                    </h3>
 
-                    <p class="text-xs text-slate-500 dark:text-gray-500 mt-1">
-                        Confirma antes de continuar
-                    </p>
-                </div>
-            </div>
+                                    <p class="text-xs text-slate-500 dark:text-gray-500 mt-1">
+                                        Confirma antes de continuar
+                                    </p>
+                                </div>
+                            </div>
 
-            <div class="text-slate-600 dark:text-gray-300 mb-6 leading-relaxed text-sm">
-                ${message}
-            </div>
+                            <div class="text-slate-600 dark:text-gray-300 mb-6 leading-relaxed text-sm">
+                                ${message}
+                            </div>
 
-            <div class="bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 rounded-lg p-3 mb-6">
-                <p class="text-sm text-emerald-700 dark:text-emerald-300">
-                    El usuario recuperará el acceso al sistema inmediatamente.
-                </p>
-            </div>
+                            <div class="bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 rounded-lg p-3 mb-6">
+                                <p class="text-sm text-emerald-700 dark:text-emerald-300">
+                                    El usuario recuperará el acceso al sistema inmediatamente.
+                                </p>
+                            </div>
 
-            <div class="flex gap-3 justify-end">
+                            <div class="flex gap-3 justify-end">
 
-                <button
-                    type="button"
-                    class="cancel-btn px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 dark:text-gray-300 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 transition">
+                                <button
+                                    type="button"
+                                    class="cancel-btn px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 dark:text-gray-300 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 transition">
 
-                    Cancelar
-                </button>
+                                    Cancelar
+                                </button>
 
-                <button
-                    type="button"
-                    class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition flex items-center gap-2">
 
-                    <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
+                                    <svg
+                                        class="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24">
 
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7">
-                        </path>
-                    </svg>
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M5 13l4 4L19 7">
+                                        </path>
+                                    </svg>
 
-                    Confirmar
-                </button>
-            </div>
-        `;
+                                    Confirmar
+                                </button>
+                            </div>
+                        `;
 
                         overlay.appendChild(modal);
                         document.body.appendChild(overlay);

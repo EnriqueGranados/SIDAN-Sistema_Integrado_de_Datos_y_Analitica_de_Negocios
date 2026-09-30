@@ -752,7 +752,7 @@
                             </div>
 
 
-                            <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5 text-sm">
+                            <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
 
                                 <div class="flex items-center justify-between">
 
@@ -777,7 +777,7 @@
                                     </span>
 
                                     <p
-                                        class="mt-1 font-bold text-slate-700 dark:text-slate-200"
+                                        class="mt-1 font-bold text-slate-700 dark:text-slate-200 text-sm"
                                         x-text="email"
                                     ></p>
 
@@ -1024,10 +1024,127 @@
                 ], { duration: 300, easing: 'cubic-bezier(0.36, 0.07, 0.19, 0.97)' });
             },
 
-            submitForm(event) {
+            async submitForm(event) {
                 if (!this.validateCurrentStep()) {
                     event.preventDefault();
+                    return;
                 }
+
+                event.preventDefault();
+
+                const confirmado = await this.showConfirm(
+                    '¿Crear cuenta?',
+                    'Verifica que toda la información proporcionada sea correcta antes de crear tu cuenta.'
+                );
+
+                if (confirmado) {
+                    event.target.submit();
+                }
+            },
+
+            async showConfirm(title, message) {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+
+                    overlay.className =
+                        'fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm';
+
+                    overlay.innerHTML = `
+                        <div
+                            class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-sidan-900"
+                            role="dialog"
+                            aria-modal="true"
+                        >
+                            <div class="p-6">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-sidan-500 dark:bg-green-500/10">
+                                        <svg
+                                            class="h-6 w-6"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                d="M12 9v4m0 4h.01"
+                                                stroke-linecap="round"
+                                            />
+                                            <circle cx="12" cy="12" r="9" />
+                                        </svg>
+                                    </div>
+
+                                    <div>
+                                        <h3 class="text-lg font-black text-sidan-900 dark:text-white">
+                                            ${title}
+                                        </h3>
+
+                                        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                                            ${message}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 flex justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        data-cancel
+                                        class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        data-confirm
+                                        class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:bg-green-600"
+                                    >
+                                        Crear mi cuenta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.body.appendChild(overlay);
+
+                    const cancelButton = overlay.querySelector('[data-cancel]');
+                    const confirmButton = overlay.querySelector('[data-confirm]');
+
+                    const close = (value) => {
+                        cancelButton.disabled = true;
+                        confirmButton.disabled = true;
+
+                        overlay.remove();
+
+                        resolve(value);
+                    };
+
+                    cancelButton.addEventListener('click', () => {
+                        close(false);
+                    });
+
+                    confirmButton.addEventListener('click', () => {
+                        close(true);
+                    });
+
+                    overlay.addEventListener('click', (event) => {
+                        if (event.target === overlay) {
+                            close(false);
+                        }
+                    });
+
+                    const handleKeydown = (event) => {
+                        if (event.key === 'Escape') {
+                            close(false);
+                        }
+
+                        if (event.key === 'Enter') {
+                            close(true);
+                        }
+                    };
+
+                    document.addEventListener('keydown', handleKeydown);
+                });
             },
 
             fullName() {
