@@ -74,6 +74,7 @@ class ActividadController extends Controller
             'etiquetas',
             'medios',
             'items.variantes',
+            'items.imagenPrincipal',
             'sesiones',
             'formularios.campos',
             'recursos',
@@ -165,12 +166,28 @@ class ActividadController extends Controller
                 'nullable',
                 'boolean',
             ],
+
+            'item_imagen' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+
+            'eliminar_item_imagen' => [
+                'nullable',
+                'boolean',
+            ],
         ]);
     }
 
     public function guardarItem(Request $request, Actividad $actividad)
     {
-        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'])) {
+        if (!in_array(
+            $actividad->estado_publicacion,
+            ['borrador', 'cambios_solicitados'],
+            true
+        )) {
             return back()->with(
                 'error',
                 'Esta actividad ya no puede modificar su configuración comercial en su estado actual.'
@@ -178,12 +195,18 @@ class ActividadController extends Controller
         }
 
         $validated = $this->validarItem($request);
+        $rutaImagenNueva = null;
 
         try {
-            DB::transaction(function () use ($actividad, $validated) {
+            DB::transaction(function () use (
+                $request,
+                $actividad,
+                $validated,
+                &$rutaImagenNueva
+            ) {
                 $orden = ($actividad->items()->max('orden') ?? -1) + 1;
 
-                $actividad->items()->create([
+                $item = $actividad->items()->create([
                     'nombre' => $validated['item_nombre'],
                     'descripcion' => $validated['item_descripcion'] ?? null,
                     'tipo' => $validated['item_tipo'],
@@ -199,6 +222,29 @@ class ActividadController extends Controller
                     'activo' => true,
                 ]);
 
+                if ($request->hasFile('item_imagen')) {
+                    $rutaImagenNueva = $request->file('item_imagen')->store(
+                        "actividades/{$actividad->id_actividad}/items/{$item->id_item_actividad}",
+                        'public'
+                    );
+
+                    if (!$rutaImagenNueva) {
+                        throw new \RuntimeException(
+                            'No se pudo almacenar la imagen del producto o servicio.'
+                        );
+                    }
+
+                    $item->medios()->create([
+                        'id_actividad' => $actividad->id_actividad,
+                        'id_sesion' => null,
+                        'tipo' => 'imagen',
+                        'url' => $rutaImagenNueva,
+                        'texto_alternativo' => $item->nombre,
+                        'es_portada' => true,
+                        'orden' => 0,
+                    ]);
+                }
+
                 $actividad->actualizado_por = Auth::id();
                 $actividad->save();
             });
@@ -208,6 +254,10 @@ class ActividadController extends Controller
                 'Producto o servicio agregado correctamente.'
             );
         } catch (\Throwable $e) {
+            if ($rutaImagenNueva) {
+                Storage::disk('public')->delete($rutaImagenNueva);
+            }
+
             report($e);
 
             return back()
@@ -218,8 +268,7 @@ class ActividadController extends Controller
                 );
         }
     }
-
-    public function actualizarItem(
+        public function actualizarItem(
         Request $request,
         Actividad $actividad,
         ItemActividad $item
@@ -229,7 +278,11 @@ class ActividadController extends Controller
             404
         );
 
-        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'])) {
+        if (!in_array(
+            $actividad->estado_publicacion,
+            ['borrador', 'cambios_solicitados'],
+            true
+        )) {
             return back()->with(
                 'error',
                 'Esta actividad ya no puede modificar su configuración comercial en su estado actual.'
@@ -237,13 +290,20 @@ class ActividadController extends Controller
         }
 
         $validated = $this->validarItem($request);
+        $rutaImagenNueva = null;
+        $rutaImagenAnterior = null;
 
         try {
             DB::transaction(function () use (
+                $request,
                 $actividad,
                 $item,
-                $validated
+                $validated,
+                &$rutaImagenNueva,
+                &$rutaImagenAnterior
             ) {
+                $imagenAnterior = $item->imagenPrincipal()->first();
+
                 $item->update([
                     'nombre' => $validated['item_nombre'],
                     'descripcion' => $validated['item_descripcion'] ?? null,
@@ -258,15 +318,58 @@ class ActividadController extends Controller
                     'requiere_participante' => (bool) ($validated['item_requiere_participante'] ?? false),
                 ]);
 
+                $debeEliminarImagen = $request->boolean(
+                    'eliminar_item_imagen'
+                ) || $request->hasFile('item_imagen');
+
+                if ($imagenAnterior && $debeEliminarImagen) {
+                    $rutaImagenAnterior = $imagenAnterior->url;
+                    $imagenAnterior->delete();
+                }
+
+                if ($request->hasFile('item_imagen')) {
+                    $rutaImagenNueva = $request->file('item_imagen')->store(
+                        "actividades/{$actividad->id_actividad}/items/{$item->id_item_actividad}",
+                        'public'
+                    );
+
+                    if (!$rutaImagenNueva) {
+                        throw new \RuntimeException(
+                            'No se pudo almacenar la nueva imagen del producto o servicio.'
+                        );
+                    }
+
+                    $item->medios()->create([
+                        'id_actividad' => $actividad->id_actividad,
+                        'id_sesion' => null,
+                        'tipo' => 'imagen',
+                        'url' => $rutaImagenNueva,
+                        'texto_alternativo' => $item->nombre,
+                        'es_portada' => true,
+                        'orden' => 0,
+                    ]);
+                } elseif ($imagenAnterior && !$debeEliminarImagen) {
+                    $imagenAnterior->texto_alternativo = $item->nombre;
+                    $imagenAnterior->save();
+                }
+
                 $actividad->actualizado_por = Auth::id();
                 $actividad->save();
             });
+
+            if ($rutaImagenAnterior) {
+                Storage::disk('public')->delete($rutaImagenAnterior);
+            }
 
             return back()->with(
                 'success',
                 'Producto o servicio actualizado correctamente.'
             );
         } catch (\Throwable $e) {
+            if ($rutaImagenNueva) {
+                Storage::disk('public')->delete($rutaImagenNueva);
+            }
+
             report($e);
 
             return back()
@@ -287,7 +390,11 @@ class ActividadController extends Controller
             404
         );
 
-        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'])) {
+        if (!in_array(
+            $actividad->estado_publicacion,
+            ['borrador', 'cambios_solicitados'],
+            true
+        )) {
             return back()->with(
                 'error',
                 'Esta actividad ya no puede modificar su configuración comercial en su estado actual.'
@@ -301,16 +408,38 @@ class ActividadController extends Controller
             );
         }
 
+        $rutasImagenes = [];
+
         try {
             DB::transaction(function () use (
                 $actividad,
-                $item
+                $item,
+                &$rutasImagenes
             ) {
+                $medios = $item->medios()->get();
+
+                $rutasImagenes = $medios
+                    ->pluck('url')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $item->medios()->delete();
+
                 $item->delete();
 
                 $actividad->actualizado_por = Auth::id();
                 $actividad->save();
             });
+
+            foreach ($rutasImagenes as $rutaImagen) {
+                Storage::disk('public')->delete($rutaImagen);
+            }
+
+            Storage::disk('public')->deleteDirectory(
+                "actividades/{$actividad->id_actividad}/items/{$item->id_item_actividad}"
+            );
 
             return back()->with(
                 'success',
@@ -325,8 +454,7 @@ class ActividadController extends Controller
             );
         }
     }
-
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $validated = $this->validarActividad($request);
         $rutaNueva = null;
@@ -439,6 +567,7 @@ class ActividadController extends Controller
             'sesiones',
             'revisiones.usuario',
             'items.variantes',
+            'items.imagenPrincipal',
             'recursos',
             'promociones.items',
         ]);
@@ -619,8 +748,7 @@ class ActividadController extends Controller
                 );
         }
     }
-
-    public function destroy(Actividad $actividad)
+        public function destroy(Actividad $actividad)
     {
         if (
             $actividad->estado_publicacion

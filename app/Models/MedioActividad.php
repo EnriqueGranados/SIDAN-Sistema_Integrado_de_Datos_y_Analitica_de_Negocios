@@ -15,6 +15,8 @@ class MedioActividad extends Model
 
     protected $fillable = [
         'id_actividad',
+        'id_item_actividad',
+        'id_sesion',
         'tipo',
         'url',
         'texto_alternativo',
@@ -25,6 +27,8 @@ class MedioActividad extends Model
     protected function casts(): array
     {
         return [
+            'id_item_actividad' => 'integer',
+            'id_sesion' => 'integer',
             'es_portada' => 'boolean',
             'orden' => 'integer',
         ];
@@ -32,6 +36,28 @@ class MedioActividad extends Model
 
     public function actividad(): BelongsTo
     {
-        return $this->belongsTo(Actividad::class, 'id_actividad', 'id_actividad');
+        return $this->belongsTo(
+            Actividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
+    }
+
+    public function item(): BelongsTo
+    {
+        return $this->belongsTo(
+            ItemActividad::class,
+            'id_item_actividad',
+            'id_item_actividad'
+        );
+    }
+
+    public function sesion(): BelongsTo
+    {
+        return $this->belongsTo(
+            SesionActividad::class,
+            'id_sesion',
+            'id_sesion'
+        );
     }
 }

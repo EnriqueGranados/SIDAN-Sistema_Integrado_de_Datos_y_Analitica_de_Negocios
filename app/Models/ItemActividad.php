@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ItemActividad extends Model
 {
@@ -52,13 +53,20 @@ class ItemActividad extends Model
 
     public function actividad(): BelongsTo
     {
-        return $this->belongsTo(Actividad::class, 'id_actividad', 'id_actividad');
+        return $this->belongsTo(
+            Actividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
     }
 
     public function variantes(): HasMany
     {
-        return $this->hasMany(VarianteItem::class, 'id_item_actividad', 'id_item_actividad')
-            ->orderBy('orden');
+        return $this->hasMany(
+            VarianteItem::class,
+            'id_item_actividad',
+            'id_item_actividad'
+        )->orderBy('orden');
     }
 
     public function promociones(): BelongsToMany
@@ -69,5 +77,23 @@ class ItemActividad extends Model
             'id_item_actividad',
             'id_promocion'
         );
+    }
+
+    public function medios(): HasMany
+    {
+        return $this->hasMany(
+            MedioActividad::class,
+            'id_item_actividad',
+            'id_item_actividad'
+        )->orderBy('orden');
+    }
+
+    public function imagenPrincipal(): HasOne
+    {
+        return $this->hasOne(
+            MedioActividad::class,
+            'id_item_actividad',
+            'id_item_actividad'
+        )->where('es_portada', true);
     }
 }

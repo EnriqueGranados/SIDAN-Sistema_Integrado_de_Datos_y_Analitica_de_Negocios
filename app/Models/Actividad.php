@@ -115,7 +115,9 @@ class Actividad extends Model
             MedioActividad::class,
             'id_actividad',
             'id_actividad'
-        );
+        )
+            ->whereNull('id_item_actividad')
+            ->whereNull('id_sesion');
     }
 
     public function portada(): HasOne
@@ -124,10 +126,10 @@ class Actividad extends Model
             MedioActividad::class,
             'id_actividad',
             'id_actividad'
-        )->where(
-            'es_portada',
-            true
-        );
+        )
+            ->whereNull('id_item_actividad')
+            ->whereNull('id_sesion')
+            ->where('es_portada', true);
     }
 
     public function formularios(): HasMany
