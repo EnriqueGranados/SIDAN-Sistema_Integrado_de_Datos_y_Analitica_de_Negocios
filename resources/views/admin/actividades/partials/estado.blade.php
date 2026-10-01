@@ -1,8 +1,16 @@
 @if ($actividad->estado_publicacion === 'borrador')
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
-        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"></span>
-        Configuración pendiente
-    </span>
+
+    @if ($actividad->configuracion_completa ?? false)
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"></span>
+            Lista para revisión
+        </span>
+    @else
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"></span>
+            Configuración pendiente
+        </span>
+    @endif
 
 @elseif ($actividad->estado_publicacion === 'pendiente_revision')
     <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-400">

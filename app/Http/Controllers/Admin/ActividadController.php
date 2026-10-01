@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Actividad;
+use App\Models\Mongo\ActivityContent;
 use App\Models\Categoria;
 use App\Models\Etiqueta;
 use App\Models\ItemActividad;
@@ -18,16 +19,26 @@ class ActividadController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Actividad::with(['categoria', 'creador', 'portada'])
-            ->withCount(['sesiones', 'items'])
+        $query = Actividad::query()
+            ->with([
+                'categoria',
+                'creador',
+                'actualizador',
+            ])
             ->orderByDesc('created_at');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Búsqueda
+        |--------------------------------------------------------------------------
+        */
         if ($request->filled('buscar')) {
             $buscar = trim($request->buscar);
 
             $query->where(function ($q) use ($buscar) {
                 $q->where('nombre', 'ILIKE', "%{$buscar}%")
-                    ->orWhere('resumen', 'ILIKE', "%{$buscar}%");
+                    ->orWhere('resumen', 'ILIKE', "%{$buscar}%")
+                    ->orWhere('slug', 'ILIKE', "%{$buscar}%");
             });
         }
 
@@ -35,22 +46,73 @@ class ActividadController extends Controller
             $query->where('estado_publicacion', $request->estado_publicacion);
         }
 
-        if ($request->filled('estado_operativo')) {
-            $query->where('estado_operativo', $request->estado_operativo);
-        }
-
         if ($request->filled('id_categoria')) {
             $query->where('id_categoria', $request->id_categoria);
         }
 
-        $actividades = $query->paginate(10)->withQueryString();
+        /*
+        |--------------------------------------------------------------------------
+        | Obtener actividades
+        |--------------------------------------------------------------------------
+        */
+        $actividades = $query
+            ->paginate(15)
+            ->withQueryString();
 
-        $categorias = Categoria::where('activo', true)
-            ->orderBy('orden')
+        
+        foreach ($actividades as $actividad) {
+
+            $actividad->configuracion_completa = false;
+
+            try {
+
+                $documento = ActivityContent::where(
+                    'id_actividad_pg',
+                    (int) $actividad->id_actividad
+                )->first();
+
+                if ($documento) {
+
+                    $configuracionSesiones =
+                        $documento->session_configuration ?? [];
+
+                    if (is_object($configuracionSesiones)) {
+                        $configuracionSesiones =
+                            (array) $configuracionSesiones;
+                    }
+
+                    $actividad->configuracion_completa =
+                        (bool) (
+                            $configuracionSesiones['configured']
+                            ?? false
+                        );
+                }
+
+            } catch (\Throwable $e) {
+
+                report($e);
+
+                $actividad->configuracion_completa = false;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categorías para filtros
+        |--------------------------------------------------------------------------
+        */
+        $categorias = Categoria::query()
+            ->where('activo', true)
             ->orderBy('nombre')
             ->get();
 
-        return view('admin.actividades.listado', compact('actividades', 'categorias'));
+        return view(
+            'admin.actividades.listado',
+            compact(
+                'actividades',
+                'categorias'
+            )
+        );
     }
 
     public function create()
@@ -268,11 +330,7 @@ class ActividadController extends Controller
                 );
         }
     }
-        public function actualizarItem(
-        Request $request,
-        Actividad $actividad,
-        ItemActividad $item
-    ) {
+        public function actualizarItem(Request $request, Actividad $actividad, ItemActividad $item) {
         abort_unless(
             $item->id_actividad === $actividad->id_actividad,
             404
@@ -580,6 +638,10 @@ class ActividadController extends Controller
 
     public function edit(Actividad $actividad)
     {
+        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'])) return redirect()
+            ->route('admin.actividades.index')
+            ->with('error', 'Esta actividad no puede editarse en su estado actual.');
+
         $categorias = Categoria::where(
             'activo',
             true
@@ -610,10 +672,11 @@ class ActividadController extends Controller
         );
     }
 
-    public function update(
-        Request $request,
-        Actividad $actividad
-    ) {
+    public function update(Request $request, Actividad $actividad) {
+        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'])) return redirect()
+                    ->route('admin.actividades.index')
+                    ->with('error', 'Esta actividad no puede editarse en su estado actual.');
+
         $validated =
             $this->validarActividad($request);
 
@@ -748,36 +811,102 @@ class ActividadController extends Controller
                 );
         }
     }
-        public function destroy(Actividad $actividad)
+
+    public function enviarRevision(Actividad $actividad)
     {
-        if (
-            $actividad->estado_publicacion
-            === 'publicada'
-        ) {
-            return back()->with(
-                'error',
-                'Una actividad publicada no puede eliminarse directamente. Primero debe retirarse.'
+        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'], true)) {
+            return redirect()->route('admin.actividades.index')->with('error', 'Esta actividad no puede enviarse a revisión en su estado actual.');
+        }
+
+        try {
+            $documento = ActivityContent::where(
+                'id_actividad_pg',
+                (int) $actividad->id_actividad
+            )->first();
+
+            $configuracionSesiones = $documento?->session_configuration ?? [];
+
+            if (is_object($configuracionSesiones)) {
+                $configuracionSesiones = (array) $configuracionSesiones;
+            }
+
+            $configuracionCompleta = (bool) (
+                $configuracionSesiones['configured'] ?? false
             );
+
+            if (!$configuracionCompleta) {
+                return redirect()
+                    ->route('admin.actividades.index')
+                    ->with('error', 'Debes completar la configuración antes de enviar la actividad a revisión.');
+            }
+
+            $esReenvio = $actividad->estado_publicacion === 'cambios_solicitados';
+            DB::transaction(function () use ($actividad, $esReenvio) {
+                if ($esReenvio) {
+                    $actividad->revision_actual++;
+                }
+
+                $actividad->estado_publicacion = 'pendiente_revision';
+                $actividad->actualizado_por = Auth::id();
+                $actividad->save();
+
+                DB::table('tbl_revisiones_actividad')->insert([
+                    'id_actividad' => $actividad->id_actividad,
+                    'numero_revision' => $actividad->revision_actual,
+                    'id_usuario' => Auth::id(),
+                    'accion' => $esReenvio ? 'reenviada_revision' : 'enviada_revision',
+                    'observacion' => $esReenvio ? 'Actividad reenviada después de realizar los cambios solicitados.' : 'Actividad enviada a revisión.',
+                    'creado_en' => now(),
+                ]);
+            });
+
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with('success', 'Actividad enviada a revisión correctamente.');
+
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with('error', 'No se pudo enviar la actividad a revisión.');
+        }
+    }
+
+    public function retirarRevision(Actividad $actividad)
+    {
+        if ($actividad->estado_publicacion !== 'pendiente_revision') return redirect()->route('admin.actividades.index')->with('error', 'Esta actividad no está pendiente de revisión.');
+        try {
+            DB::transaction(function () use ($actividad) {
+                $actividad->update(['estado_publicacion' => 'borrador', 'actualizado_por' => Auth::id()]);
+                DB::table('tbl_revisiones_actividad')->insert([
+                    'id_actividad' => $actividad->id_actividad,
+                    'numero_revision' => $actividad->revision_actual,
+                    'id_usuario' => Auth::id(),
+                    'accion' => 'revision_retirada',
+                    'observacion' => 'Solicitud de revisión retirada por el creador.',
+                    'creado_en' => now(),
+                ]);
+            });
+            return redirect()->route('admin.actividades.index')->with('success', 'La actividad fue retirada de revisión y puede modificarse nuevamente.');
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->route('admin.actividades.index')->with('error', 'No se pudo retirar la actividad de revisión.');
+        }
+    }
+
+    public function destroy(Actividad $actividad)
+    {
+        if ($actividad->estado_publicacion !== 'borrador') {
+            return back()->with('error', 'Solo pueden eliminarse actividades en estado borrador.');
         }
 
         try {
             $actividad->delete();
-
-            return redirect()
-                ->route(
-                    'admin.actividades.index'
-                )
-                ->with(
-                    'success',
-                    'Actividad eliminada correctamente.'
-                );
+            return redirect()->route('admin.actividades.index')->with('success', 'Actividad eliminada correctamente.');
         } catch (\Throwable $e) {
             report($e);
-
-            return back()->with(
-                'error',
-                'No se pudo eliminar la actividad.'
-            );
+            return back()->with('error', 'No se pudo eliminar la actividad.');
         }
     }
 

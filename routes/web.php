@@ -4,7 +4,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Route;
+<<<<<<< Updated upstream
 use App\Http\Controllers\WompiController;
+=======
+use App\Http\Controllers\Admin\ActividadController;
+>>>>>>> Stashed changes
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -50,6 +54,12 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
 
     Route::post('/actividades/{actividad}/productos/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
         ->name('actividades.productos.configuracion');
+    
+    Route::post('/actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
+        ->name('actividades.enviar-revision');
+
+    Route::post('/actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
+    ->name('actividades.retirar-revision');
 
     // Datos que se solicitarán al comprador
     Route::post('actividades/{actividad}/items/{item}/datos-pedido', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarDatosPedido'])
