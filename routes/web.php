@@ -111,9 +111,7 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 
-    // ==========================================
-    // CRUD DE ROLES (Solo Superadmin)
-    // ==========================================
+    // CRUD de Roles para superadmin 
     Route::middleware('rol:superadmin')->prefix('roles')->name('roles.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\RolController::class, 'index'])->name('index');
         Route::get('/crear', [\App\Http\Controllers\Admin\RolController::class, 'create'])->name('create');

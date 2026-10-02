@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 class RolController extends Controller
 {
+    // Mostrar el listado de roles junto con la cantidad de usuarios asignados
     public function index()
     {
         $roles = Rol::withCount('usuarios')
@@ -21,17 +22,22 @@ class RolController extends Controller
 
         return view('admin.roles.listado', compact('roles'));
     }
+
+    // Mostrar el formulario para crear un nuevo rol
     public function create()
     {
         return view('admin.roles.crear');
     }
 
+    // Guardar un nuevo rol en el sistema
     public function store(Request $request)
     {
+        // Normalizar el nombre antes de realizar la validación
         $request->merge([
             'nombre' => strtolower(trim($request->nombre))
         ]);
 
+        // Validar los datos enviados y evitar nombres de roles duplicados
         $validated = $request->validate([
             'nombre' => [
                 'required',
@@ -59,10 +65,13 @@ class RolController extends Controller
                 ->route('admin.roles.index')
                 ->with('success', 'El rol fue creado correctamente.');
         } catch (QueryException $e) {
+
+            // Registrar el error de base de datos para facilitar su revisión
             Log::error('Error al crear rol', [
                 'error' => $e->getMessage()
             ]);
 
+            // Controlar posibles duplicados detectados directamente por PostgreSQL
             if (($e->errorInfo[0] ?? null) === '23505') {
                 return back()
                     ->withInput()
@@ -77,17 +86,21 @@ class RolController extends Controller
         }
     }
 
+    // Mostrar el formulario para editar un rol existente
     public function edit(Rol $rol)
     {
         return view('admin.roles.editar', compact('rol'));
     }
 
+    // Actualizar la información de un rol existente
     public function update(Request $request, Rol $rol)
     {
+        // Normalizar el nombre antes de realizar la validación
         $request->merge([
             'nombre' => strtolower(trim($request->nombre))
         ]);
 
+        // Validar los datos ignorando al mismo rol en la regla de nombre único
         $validated = $request->validate([
             'nombre' => [
                 'required',
@@ -116,11 +129,14 @@ class RolController extends Controller
                 ->route('admin.roles.index')
                 ->with('success', 'El rol fue actualizado correctamente.');
         } catch (QueryException $e) {
+
+            // Registrar el error incluyendo el rol que se intentaba actualizar
             Log::error('Error al actualizar rol', [
                 'rol' => $rol->id_rol,
                 'error' => $e->getMessage()
             ]);
 
+            // Controlar posibles duplicados detectados directamente por PostgreSQL
             if (($e->errorInfo[0] ?? null) === '23505') {
                 return back()
                     ->withInput()
@@ -135,19 +151,22 @@ class RolController extends Controller
         }
     }
 
+    // Eliminar un rol del sistema
     public function destroy(Rol $rol)
     {
-
+        // Evitar eliminar roles que todavía tengan usuarios asignados
         if ($rol->usuarios()->count() > 0) {
             return back()->with('error', 'No se puede eliminar el rol porque tiene usuarios asignados.');
         }
 
+        // Proteger los roles base necesarios para el funcionamiento del sistema
         if (in_array($rol->nombre, ['superadmin', 'admin', 'usuario'])) {
             return back()->with('error', 'No se pueden eliminar los roles base del sistema.');
         }
 
         try {
             $rol->delete();
+
             return redirect()->route('admin.roles.index')->with('success', 'Rol eliminado correctamente.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error al eliminar el rol.');

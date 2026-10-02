@@ -14,14 +14,14 @@ use Illuminate\Validation\Rules;
 class UserController extends Controller
 {
 
-    // Muestra SOLO usuarios activos y no eliminados
+    // Muestra solo usuarios activos y no eliminados
     public function index(Request $request)
     {
         $search = $request->input('search');
 
         $users = User::with(['rol', 'informacion_personal'])
-            ->where('eliminado', false)       // <-- No eliminados
-            ->where('estado_activo', true)    // <-- Solo activos
+            ->where('eliminado', false)  
+            ->where('estado_activo', true)   
             ->when($search, function ($query, $search) {
                 $query->whereHas('informacion_personal', function ($q) use ($search) {
                     $q->where('nombres', 'like', "%{$search}%")
@@ -194,7 +194,7 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => 'Error.'], 500);
         }
     }
-    // ELIMINAR (Borrado lógico completo - desaparece de todo)
+    // Eliminar (Borrado lógico completo)
     public function destroy(User $user)
     {
         try {
@@ -210,14 +210,14 @@ class UserController extends Controller
     }
 
 
-    // Búsqueda en tiempo real (también filtra solo activos y no eliminados)
+    // Búsqueda en tiempo real 
     public function search(Request $request)
     {
         $search = $request->input('q', '');
 
         $users = User::with(['rol', 'informacion_personal'])
-            ->where('eliminado', false)       // <-- No eliminados
-            ->where('estado_activo', true)    // <-- Solo activos
+            ->where('eliminado', false)
+            ->where('estado_activo', true)  
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('correo', 'like', "%{$search}%")
@@ -247,17 +247,17 @@ class UserController extends Controller
                     'estado_activo' => $user->estado_activo,
                     'edit_url' => route('admin.users.edit', $user),
                     'toggle_url' => route('admin.users.toggle', $user),
-                    'ban_url' => route('admin.users.destroy', $user), // <-- Agregado para que funcione el botón de banear
+                    'ban_url' => route('admin.users.destroy', $user), 
                 ];
             })
         ]);
     }
-    // BANEADOS: Solo muestra desactivados (NO eliminados)
+    // Bloqueados
     public function banned()
     {
         $users = User::with(['rol', 'informacion_personal'])
-            ->where('eliminado', false)          // <-- NO eliminados
-            ->where('estado_activo', false)      // <-- Solo desactivados/baneados
+            ->where('eliminado', false)         
+            ->where('estado_activo', false)     
             ->orderBy('id_usuario', 'desc')
             ->paginate(10);
 
@@ -286,7 +286,7 @@ class UserController extends Controller
         }
     }
 
-    // Ver usuarios ELIMINADOS (solo superadmin)
+    // Ver usuarios eliminados (solo superadmin)
     public function deleted()
     {
         $users = User::with(['rol', 'informacion_personal'])
@@ -296,6 +296,4 @@ class UserController extends Controller
 
         return view('admin.users.deleted', compact('users'));
     }
-
-
 }

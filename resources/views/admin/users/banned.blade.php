@@ -42,6 +42,7 @@
             </a>
         </div>
 
+        {{-- Listado de usuarios bloqueados y acciones de reactivación --}}
         <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-colors dark:bg-[#0f172a] dark:border-white/5"
             x-data="bannedTable(@js($usersData), '{{ csrf_token() }}')">
 
@@ -82,11 +83,10 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
 
-                                        <img
-                                            :src="user.imagen_perfil ? '{{ asset('storage') }}/' + user.imagen_perfil : '{{ asset('images/usuario.png') }}'"
+                                        <img :src="user.imagen_perfil ? '{{ asset('storage') }}/' + user.imagen_perfil :
+                                            '{{ asset('images/usuario.png') }}'"
                                             alt="Foto de perfil"
-                                            class="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 dark:border-white/10"
-                                        >
+                                            class="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 dark:border-white/10">
 
                                         <div>
                                             <p class="text-sm font-semibold text-sidan-900 dark:text-white"
@@ -163,15 +163,18 @@
             </div>
         </div>
     </div>
-
+    
     <script>
+        // Mostrar una notificación temporal de éxito o error
         function showAppNotification(type, message) {
             const previousNotification = document.getElementById('app-notification');
 
+            // Evitar mostrar varias notificaciones al mismo tiempo
             if (previousNotification) {
                 previousNotification.remove();
             }
 
+            // Definir la apariencia de la notificación según el resultado
             const isSuccess = type === 'success';
             const notification = document.createElement('div');
 
@@ -203,76 +206,72 @@
                 'M5 13l4 4L19 7' :
                 'M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z';
 
+            // Construir el contenido visual de la notificación
             notification.innerHTML = `
-                <div class="relative overflow-hidden rounded-2xl border ${borderColor} bg-white shadow-2xl dark:bg-[#0f172a]">
-
-                    <div class="flex items-start gap-3 p-4 pr-12">
-
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconColor}">
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24">
-
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="${iconPath}">
-                                </path>
-                            </svg>
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-
-                            <p class="text-sm font-black text-sidan-900 dark:text-white">
-                                ${title}
-                            </p>
-
-                            <p
-                                class="notification-message mt-1 text-sm leading-5 text-slate-600 dark:text-gray-400">
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        type="button"
-                        class="notification-close absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
-                        aria-label="Cerrar alerta">
-
+            <div class="relative overflow-hidden rounded-2xl border ${borderColor} bg-white shadow-2xl dark:bg-[#0f172a]">
+                <div class="flex items-start gap-3 p-4 pr-12">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconColor}">
                         <svg
-                            class="h-4 w-4"
-                            viewBox="0 0 24 24"
+                            class="h-5 w-5"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2">
-
+                            viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                d="M6 18 18 6M6 6l12 12">
+                                stroke-width="2"
+                                d="${iconPath}">
                             </path>
                         </svg>
-                    </button>
+                    </div>
 
-                    <div class="h-1 w-full ${progressBackground}">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-black text-sidan-900 dark:text-white">
+                            ${title}
+                        </p>
 
-                        <div
-                            class="notification-progress h-full w-full origin-left ${progressColor}">
-                        </div>
+                        <p
+                            class="notification-message mt-1 text-sm leading-5 text-slate-600 dark:text-gray-400">
+                        </p>
                     </div>
                 </div>
-            `;
+
+                <button
+                    type="button"
+                    class="notification-close absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                    aria-label="Cerrar alerta">
+                    <svg
+                        class="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18 18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+
+                <div class="h-1 w-full ${progressBackground}">
+                    <div
+                        class="notification-progress h-full w-full origin-left ${progressColor}">
+                    </div>
+                </div>
+            </div>
+        `;
 
             notification.querySelector('.notification-message').textContent = message;
+
+            // Agregar la notificación a la página
             document.body.appendChild(notification);
 
             const progress = notification.querySelector('.notification-progress');
             const closeButton = notification.querySelector('.notification-close');
-
             let closeTimeout;
 
+            // Cerrar y eliminar la notificación
             const closeNotification = () => {
                 clearTimeout(closeTimeout);
 
@@ -293,14 +292,15 @@
                 }, 300);
             };
 
+            // Permitir cerrar manualmente la notificación
             closeButton.addEventListener(
                 'click',
                 closeNotification
             );
 
+            // Mostrar la notificación con una animación de entrada
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-
                     notification.classList.remove(
                         'opacity-0',
                         'translate-y-6'
@@ -316,22 +316,29 @@
                 });
             });
 
+            // Cerrar automáticamente la notificación después de 5 segundos
             closeTimeout = setTimeout(
                 closeNotification,
                 5000
             );
         }
 
+        // Gestionar las acciones disponibles sobre los usuarios bloqueados
         function bannedTable(usersData, csrfToken) {
             return {
                 users: usersData,
 
+                // Mostrar una ventana de confirmación antes de realizar una acción
                 showConfirm(title, message) {
+
+                    // Evitar que se abran varias ventanas de confirmación al mismo tiempo
                     if (document.getElementById('app-confirm-overlay')) {
                         return Promise.resolve(false);
                     }
 
                     return new Promise((resolve) => {
+
+                        // Crear dinámicamente el fondo y la ventana de confirmación
                         const overlay = document.createElement('div');
 
                         overlay.id = 'app-confirm-overlay';
@@ -348,86 +355,79 @@
                             'bg-white border border-slate-200 dark:bg-[#0f172a] dark:border-white/10 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 transform scale-95 opacity-0 transition-all duration-300';
 
                         modal.innerHTML = `
-                            <div class="flex items-center gap-3 mb-4">
-
-                                <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-
-                                    <svg
-                                        class="w-6 h-6 text-emerald-600 dark:text-emerald-400"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24">
-
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                                        </path>
-                                    </svg>
-                                </div>
-
-                                <div>
-                                    <h3 class="text-xl font-bold text-sidan-900 dark:text-white">
-                                        ${title}
-                                    </h3>
-
-                                    <p class="text-xs text-slate-500 dark:text-gray-500 mt-1">
-                                        Confirma antes de continuar
-                                    </p>
-                                </div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                <svg
+                                    class="w-6 h-6 text-emerald-600 dark:text-emerald-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                    </path>
+                                </svg>
                             </div>
 
-                            <div class="text-slate-600 dark:text-gray-300 mb-6 leading-relaxed text-sm">
-                                ${message}
-                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-sidan-900 dark:text-white">
+                                    ${title}
+                                </h3>
 
-                            <div class="bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 rounded-lg p-3 mb-6">
-                                <p class="text-sm text-emerald-700 dark:text-emerald-300">
-                                    El usuario recuperará el acceso al sistema inmediatamente.
+                                <p class="text-xs text-slate-500 dark:text-gray-500 mt-1">
+                                    Confirma antes de continuar
                                 </p>
                             </div>
+                        </div>
 
-                            <div class="flex gap-3 justify-end">
+                        <div class="text-slate-600 dark:text-gray-300 mb-6 leading-relaxed text-sm">
+                            ${message}
+                        </div>
 
-                                <button
-                                    type="button"
-                                    class="cancel-btn px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 dark:text-gray-300 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 transition">
+                        <div class="bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 rounded-lg p-3 mb-6">
+                            <p class="text-sm text-emerald-700 dark:text-emerald-300">
+                                El usuario recuperará el acceso al sistema inmediatamente.
+                            </p>
+                        </div>
 
-                                    Cancelar
-                                </button>
+                        <div class="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                class="cancel-btn px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 dark:text-gray-300 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 transition">
+                                Cancelar
+                            </button>
 
-                                <button
-                                    type="button"
-                                    class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition flex items-center gap-2">
+                            <button
+                                type="button"
+                                class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition flex items-center gap-2">
+                                <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M5 13l4 4L19 7">
+                                    </path>
+                                </svg>
 
-                                    <svg
-                                        class="w-4 h-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24">
-
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M5 13l4 4L19 7">
-                                        </path>
-                                    </svg>
-
-                                    Confirmar
-                                </button>
-                            </div>
-                        `;
+                                Confirmar
+                            </button>
+                        </div>
+                    `;
 
                         overlay.appendChild(modal);
                         document.body.appendChild(overlay);
 
                         const confirmButton = modal.querySelector('.confirm-btn');
                         const cancelButton = modal.querySelector('.cancel-btn');
-
                         let resolved = false;
 
+                        // Cerrar el modal y devolver el resultado de la confirmación
                         const close = (value) => {
                             if (resolved) {
                                 return;
@@ -459,6 +459,7 @@
                             }, 300);
                         };
 
+                        // Permitir confirmar con Enter o cancelar con Escape
                         const handleKeydown = (event) => {
                             if (event.key === 'Enter') {
                                 event.preventDefault();
@@ -503,6 +504,7 @@
                             true
                         );
 
+                        // Mostrar la ventana de confirmación con una animación
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
                                 overlay.classList.remove('opacity-0');
@@ -523,22 +525,26 @@
                         });
                     });
                 },
+
+                // Reactivar un usuario bloqueado
                 async restoreUser(user) {
 
+                    // Solicitar confirmación antes de reactivar el usuario
                     const confirmado = await this.showConfirm(
                         '¿Reactivar usuario?',
                         `
-                            Estás a punto de <strong>reactivar</strong> a
-                            <strong>${user.nombres} ${user.apellidos}</strong>.<br><br>
+                        Estás a punto de <strong>reactivar</strong> a
+                        <strong>${user.nombres} ${user.apellidos}</strong>.<br><br>
 
-                            El usuario volverá al listado principal con estado activo y podrá iniciar sesión.
-                        `
+                        El usuario volverá al listado principal con estado activo y podrá iniciar sesión.
+                    `
                     );
 
                     if (!confirmado) {
                         return;
                     }
 
+                    // Enviar la solicitud de reactivación al servidor
                     fetch(user.restore_url, {
                             method: 'PATCH',
                             headers: {
@@ -552,6 +558,7 @@
 
                             if (data.success) {
 
+                                // Quitar de esta vista al usuario que ya fue reactivado
                                 this.users = this.users.filter(
                                     u => String(u.id) !== String(user.id)
                                 );
@@ -584,6 +591,7 @@
             };
         }
 
+        // Mostrar las notificaciones enviadas desde el backend al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
 
             @if (session('success'))
@@ -601,4 +609,5 @@
             @endif
         });
     </script>
+
 @endsection

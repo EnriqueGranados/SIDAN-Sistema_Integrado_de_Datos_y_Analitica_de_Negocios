@@ -4,6 +4,7 @@
 
 @section('content')
     @php
+        // Preparar los datos de los usuarios que serán utilizados por Alpine.js
         $usersData = $users->map(function ($user) {
             return [
                 'id' => $user->id_usuario,
@@ -75,12 +76,12 @@
                 </a>
             </div>
         </div>
-
+        {{--Realizar búsqueda de usuarios sin recargar la página--}}
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm transition-colors dark:bg-[#0f172a] dark:border-white/5"
             x-data="{
                 search: '',
                 loading: false,
-            
+                
                 performSearch() {
                     this.loading = true;
             
@@ -300,7 +301,9 @@
     </div>
 
     <script>
+        // Mostrar una notificación temporal de éxito o error
         function showAppNotification(type, message) {
+            // Eliminar una notificación anterior para evitar mostrar varias al mismo tiempo
             const previousNotification = document.getElementById('app-notification');
 
             if (previousNotification) {
@@ -308,6 +311,7 @@
             }
 
             const isSuccess = type === 'success';
+            // Crear dinámicamente la notificación
             const notification = document.createElement('div');
 
             notification.id = 'app-notification';
@@ -394,6 +398,7 @@
             `;
 
             notification.querySelector('.notification-message').textContent = message;
+            // Agregar la notificación a la página
             document.body.appendChild(notification);
 
             const progress = notification.querySelector('.notification-progress');
@@ -401,6 +406,7 @@
 
             let closeTimeout;
 
+            // Función utilizada para cerrar y eliminar la notificación
             const closeNotification = () => {
                 clearTimeout(closeTimeout);
 
@@ -420,12 +426,13 @@
                     }
                 }, 300);
             };
-
+            // Permitir cerrar manualmente la notificación
             closeButton.addEventListener(
                 'click',
                 closeNotification
             );
 
+            // Mostrar la notificación con animación
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     notification.classList.remove(
@@ -443,22 +450,27 @@
                 });
             });
 
+            // Cerrar automáticamente la notificación después de 5 segundos
             closeTimeout = setTimeout(
                 closeNotification,
                 5000
             );
         }
 
+        // Gestionar las acciones disponibles sobre los usuarios de la tabla
         function userTable(usersData, csrfToken) {
             return {
                 users: usersData,
 
+                // Mostrar una ventana de confirmación antes de realizar una acción
                 showConfirm(title, message) {
+                    // Evitar que se abran varias ventanas de confirmación al mismo tiempo
                     if (document.getElementById('app-confirm-overlay')) {
                         return Promise.resolve(false);
                     }
 
                     return new Promise((resolve) => {
+                        // Crear dinámicamente el fondo y la ventana de confirmación
                         const overlay = document.createElement('div');
 
                         overlay.id = 'app-confirm-overlay';
@@ -555,6 +567,7 @@
 
                         let resolved = false;
 
+                        // Cerrar el modal y devolver el resultado de la confirmación
                         const close = (value) => {
                             if (resolved) {
                                 return;
@@ -585,7 +598,8 @@
                                 resolve(value);
                             }, 300);
                         };
-
+                        
+                        // Permitir confirmar con Enter o cancelar con Escape
                         const handleKeydown = (event) => {
                             if (event.key === 'Enter') {
                                 event.preventDefault();
@@ -651,7 +665,9 @@
                     });
                 },
                 
+                // Bloquear o reactivar un usuario
                 async toggleStatus(user) {
+                    // Determinar la acción según el estado actual del usuario
                     const willBeBanned = user.estado_activo;
 
                     const titulo = willBeBanned ?
@@ -669,6 +685,7 @@
                             El usuario volverá al listado principal y podrá iniciar sesión.
                         `;
 
+                    // Solicitar confirmación antes de modificar el estado
                     const confirmado = await this.showConfirm(
                         titulo,
                         mensaje
@@ -678,6 +695,7 @@
                         return;
                     }
 
+                    // Enviar la solicitud al servidor sin recargar la página
                     fetch(user.toggle_url, {
                             method: 'PATCH',
                             headers: {
@@ -689,8 +707,9 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
+                                // Actualizar el estado del usuario en la interfaz
                                 user.estado_activo = !willBeBanned;
-
+                                // Si fue bloqueado, quitarlo del listado principal
                                 if (willBeBanned) {
                                     this.users = this.users.filter(
                                         u => String(u.id) !== String(user.id)
@@ -716,7 +735,9 @@
                         });
                 },
 
+                // Enviar un usuario a la sección de eliminados
                 async banUser(user) {
+                    // Mostrar una primera advertencia antes de eliminar al usuario
                     const titulo = '¿Eliminar permanentemente?';
 
                     const mensaje = `
@@ -748,7 +769,7 @@
                     if (!confirmado) {
                         return;
                     }
-
+                    // Solicitar una segunda confirmación por tratarse de una acción crítica
                     const confirmacionFinal = await this.showConfirm(
                         'CONFIRMACIÓN FINAL',
                         `
@@ -761,7 +782,7 @@
                     if (!confirmacionFinal) {
                         return;
                     }
-
+                    // Enviar la solicitud de eliminación al servidor
                     fetch(user.ban_url, {
                             method: 'DELETE',
                             headers: {
@@ -773,6 +794,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
+                                // Quitar al usuario del listado actual
                                 this.users = this.users.filter(
                                     u => String(u.id) !== String(user.id)
                                 );
@@ -802,6 +824,7 @@
             };
         }
 
+        // Mostrar las notificaciones enviadas desde el backend al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             @if (session('success'))
                 showAppNotification(

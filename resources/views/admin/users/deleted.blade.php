@@ -4,6 +4,7 @@
 
 @section('content')
     @php
+        // Preparar los datos de los usuarios eliminados para utilizarlos con Alpine.js
         $usersData = $users->map(function ($user) {
             return [
                 'id' => $user->id_usuario,
@@ -45,6 +46,7 @@
             </div>
         </div>
 
+        {{-- Listado de usuarios eliminados y acciones de restauración --}}
         <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-colors dark:bg-[#0f172a] dark:border-white/5"
             x-data="deletedTable(@js($usersData), '{{ csrf_token() }}')">
 
@@ -85,11 +87,10 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
 
-                                        <img
-                                            :src="user.imagen_perfil ? '{{ asset('storage') }}/' + user.imagen_perfil : '{{ asset('images/usuario.png') }}'"
+                                        <img :src="user.imagen_perfil ? '{{ asset('storage') }}/' + user.imagen_perfil :
+                                            '{{ asset('images/usuario.png') }}'"
                                             alt="Foto de perfil"
-                                            class="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 dark:border-white/10"
-                                        >
+                                            class="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 dark:border-white/10">
 
                                         <div>
                                             <p class="text-sm font-semibold text-sidan-900 dark:text-white"
@@ -164,7 +165,12 @@
                     </tbody>
                 </table>
             </div>
-
+            {{-- Paginación --}}
+            @if ($users->hasPages())
+                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/5">
+                    {{ $users->links() }}
+                </div>
+            @endif
             @if ($users->hasPages())
                 <div class="px-6 py-4 border-t border-slate-200 dark:border-white/5">
                     {{ $users->links() }}
@@ -174,7 +180,9 @@
     </div>
 
     <script>
+        // Mostrar una notificación temporal de éxito o error
         function showAppNotification(type, message) {
+            // Eliminar la notificación anterior para evitar mostrar varias al mismo tiempo
             const previousNotification = document.getElementById('app-notification');
 
             if (previousNotification) {
@@ -182,6 +190,7 @@
             }
 
             const isSuccess = type === 'success';
+            // Crear la notificación y definir su apariencia según el resultado
             const notification = document.createElement('div');
 
             notification.id = 'app-notification';
@@ -212,6 +221,7 @@
                 'M5 13l4 4L19 7' :
                 'M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z';
 
+            // Construir el contenido visual de la notificación
             notification.innerHTML = `
                 <div class="relative overflow-hidden rounded-2xl border ${borderColor} bg-white shadow-2xl dark:bg-[#0f172a]">
 
@@ -276,6 +286,7 @@
 
             notification.querySelector('.notification-message').textContent = message;
 
+            // Agregar la notificación a la página
             document.body.appendChild(notification);
 
             const progress = notification.querySelector('.notification-progress');
@@ -283,6 +294,7 @@
 
             let closeTimeout;
 
+            // Cerrar y eliminar la notificación
             const closeNotification = () => {
                 clearTimeout(closeTimeout);
 
@@ -303,11 +315,13 @@
                 }, 300);
             };
 
+            // Permitir cerrar manualmente la notificación
             closeButton.addEventListener(
                 'click',
                 closeNotification
             );
 
+            // Mostrar la notificación con la animación de entrada
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
 
@@ -325,22 +339,26 @@
                     progress.style.transform = 'scaleX(0)';
                 });
             });
-
+            // Cerrar automáticamente la notificación después de 5 segundos
             closeTimeout = setTimeout(
                 closeNotification,
                 5000
             );
         }
 
+        // Gestionar las acciones disponibles sobre los usuarios eliminados
         function deletedTable(usersData, csrfToken) {
             return {
                 users: usersData,
+                // Mostrar una ventana de confirmación antes de realizar una acción
                 showConfirm(title, message) {
+                    // Evitar que se abran varias ventanas de confirmación al mismo tiempo
                     if (document.getElementById('app-confirm-overlay')) {
                         return Promise.resolve(false);
                     }
 
                     return new Promise((resolve) => {
+                        // Crear dinámicamente el fondo y la ventana de confirmación
                         const overlay = document.createElement('div');
 
                         overlay.id = 'app-confirm-overlay';
@@ -437,6 +455,7 @@
 
                         let resolved = false;
 
+                        // Cerrar el modal y devolver el resultado de la confirmación
                         const close = (value) => {
                             if (resolved) {
                                 return;
@@ -468,6 +487,7 @@
                             }, 300);
                         };
 
+                        // Permitir confirmar con Enter o cancelar con Escape
                         const handleKeydown = (event) => {
                             if (event.key === 'Enter') {
                                 event.preventDefault();
@@ -512,6 +532,7 @@
                             true
                         );
 
+                        // Mostrar la ventana de confirmación con una animación
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
                                 overlay.classList.remove('opacity-0');
@@ -532,8 +553,11 @@
                         });
                     });
                 },
+
+                // Restaurar un usuario eliminado
                 async restoreUser(user) {
 
+                    // Solicitar confirmación antes de realizar la restauración
                     const confirmado = await this.showConfirm(
                         '¿Restaurar usuario eliminado?',
                         `
@@ -548,6 +572,7 @@
                         return;
                     }
 
+                    // Enviar la solicitud de restauración al servidor
                     fetch(user.restore_url, {
                             method: 'PATCH',
                             headers: {
@@ -561,6 +586,7 @@
 
                             if (data.success) {
 
+                                // Quitar de esta vista al usuario que ya fue restaurado
                                 this.users = this.users.filter(
                                     u => String(u.id) !== String(user.id)
                                 );
@@ -593,6 +619,7 @@
             };
         }
 
+        // Mostrar las notificaciones enviadas desde el backend al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
 
             @if (session('success'))
