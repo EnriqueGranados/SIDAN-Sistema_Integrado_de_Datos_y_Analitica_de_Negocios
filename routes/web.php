@@ -4,11 +4,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Route;
-<<<<<<< Updated upstream
 use App\Http\Controllers\WompiController;
-=======
 use App\Http\Controllers\Admin\ActividadController;
->>>>>>> Stashed changes
+use App\Http\Controllers\Admin\ActividadRevisionController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -35,6 +33,12 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+
+    Route::get('/revisiones-actividades', [ActividadRevisionController::class, 'index'])->name('actividades.revision.index');
+    Route::get('/revisiones-actividades/{actividad}', [ActividadRevisionController::class, 'show'])->name('actividades.revision.show');
+    Route::post('/revisiones-actividades/{actividad}/aprobar', [ActividadRevisionController::class, 'aprobar'])->name('actividades.revision.aprobar');
+    Route::post('/revisiones-actividades/{actividad}/solicitar-cambios', [ActividadRevisionController::class, 'solicitarCambios'])->name('actividades.revision.solicitar-cambios');
+    Route::post('/revisiones-actividades/{actividad}/rechazar', [ActividadRevisionController::class, 'rechazar'])->name('actividades.revision.rechazar');
 
     // CRUD de Actividades
     Route::resource('actividades', \App\Http\Controllers\Admin\ActividadController::class)
@@ -72,6 +76,18 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     // Fechas, horarios y turnos de la actividad
     Route::post('actividades/{actividad}/sesiones/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarSesiones'])
         ->name('actividades.sesiones.configuracion');
+
+    Route::post('actividades/{actividad}/configuracion/finalizar', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'finalizarConfiguracion'])
+        ->name('actividades.configuracion.finalizar');
+
+    Route::post('actividades/{actividad}/presentacion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarPresentacion'])
+        ->name('actividades.presentacion.store');
+
+    Route::patch('actividades/{actividad}/medios/{medio}/portada', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'establecerPortada'])
+        ->name('actividades.medios.portada');
+
+    Route::delete('actividades/{actividad}/medios/{medio}', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'eliminarMedio'])
+        ->name('actividades.medios.destroy');
 
     // Rutas para la gestión de usuarios baneados y restauración
     Route::get('/users/banned', [\App\Http\Controllers\Admin\UserController::class, 'banned'])

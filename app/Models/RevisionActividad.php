@@ -17,8 +17,10 @@ class RevisionActividad extends Model
     protected $fillable = [
         'id_actividad',
         'numero_revision',
+        'id_usuario',
         'accion',
         'observacion',
+        'creado_en',
     ];
 
     protected function casts(): array

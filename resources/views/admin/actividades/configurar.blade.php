@@ -5,15 +5,19 @@
 @section('content')
 @php
     $pasos = [
-        'productos' => ['numero' => 1, 'titulo' => 'Productos o servicios'],
-        'datos' => ['numero' => 2, 'titulo' => 'Datos de compra'],
-        'precios' => ['numero' => 3, 'titulo' => 'Precios y costos'],
-        'sesiones' => ['numero' => 4, 'titulo' => 'Programación de la actividad'],
+        'presentacion' => ['numero' => 1, 'titulo' => 'Presentación'],
+        'productos' => ['numero' => 2, 'titulo' => 'Productos o servicios'],
+        'datos' => ['numero' => 3, 'titulo' => 'Datos solicitados'],
+        'precios' => ['numero' => 4, 'titulo' => 'Precios y costos'],
+        'sesiones' => ['numero' => 5, 'titulo' => 'Programación'],
+        'resumen' => ['numero' => 6, 'titulo' => 'Resumen'],
     ];
 
-    $pasoActual = $pasos[$paso] ?? $pasos['productos'];
+    $pasoActual = $pasos[$paso] ?? $pasos['presentacion'];
     $numeroPaso = $pasoActual['numero'];
     $tituloPaso = $pasoActual['titulo'];
+    $totalPasos = count($pasos);
+    $porcentaje = (int) round(($numeroPaso / $totalPasos) * 100);
 
     $totalItems = $actividad->items->count();
     $productosConfigurados = (bool) ($configuracionProductos['configured'] ?? false) || $totalItems > 0;
@@ -46,6 +50,20 @@
     $preciosCompletos = !$ofreceProductos || ($totalItems > 0 && $itemsPrecioCompletos === $totalItems);
     $sesionesConfiguradas = (bool) ($configuracionSesiones['configured'] ?? false);
     $modoSesionesActual = $modoSesiones ?? ($configuracionSesiones['mode'] ?? null);
+
+    $presentacionCompleta = $actividad->medios
+        ->whereNull('id_item_actividad')
+        ->whereNull('id_sesion')
+        ->contains(fn ($medio) => (bool) $medio->es_portada);
+
+    $estadoPasos = [
+        'presentacion' => $presentacionCompleta,
+        'productos' => $productosConfigurados,
+        'datos' => $productosConfigurados && $datosCompletos,
+        'precios' => $productosConfigurados && $datosCompletos && $preciosCompletos,
+        'sesiones' => $sesionesConfiguradas,
+        'resumen' => false,
+    ];
 
     $realizacionDesde = $actividad->realizacion_desde
         ? \Carbon\Carbon::parse($actividad->realizacion_desde)->format('Y-m-d\TH:i')
@@ -85,16 +103,13 @@
 
 <div class="w-full min-w-0 max-w-full overflow-x-hidden">
     <div class="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-
-        {{-- ENCABEZADO --}}
-        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
                 <div class="mb-2 flex flex-wrap items-center gap-2">
                     <span class="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
                         Configuración pendiente
                     </span>
-
-                    <span class="text-xs text-gray-500">
+                    <span class="truncate text-xs text-gray-500">
                         {{ $actividad->nombre }}
                     </span>
                 </div>
@@ -109,65 +124,129 @@
             </div>
 
             <a href="{{ route('admin.actividades.index') }}"
-                class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:bg-white/10 hover:text-white">
+                class="inline-flex shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:bg-white/10 hover:text-white">
                 Volver al listado
             </a>
         </div>
 
-        {{-- PROGRESO --}}
-        <div class="mb-7">
-            <div class="mb-3 flex items-center justify-between gap-4">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-emerald-400">
-                        Paso {{ $numeroPaso }} de 4
-                    </p>
+        <div class="sticky top-0 z-[80] -mx-4 mb-7 border-y border-white/10 bg-[#0b1018]/95 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div class="mx-auto max-w-6xl">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <p class="shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-400">
+                                Paso {{ $numeroPaso }} de {{ $totalPasos }}
+                            </p>
+                            <span class="text-xs text-gray-700">•</span>
+                            <p class="truncate text-sm font-semibold text-white">
+                                {{ $tituloPaso }}
+                            </p>
+                        </div>
+                    </div>
 
-                    <p class="mt-1 text-sm font-semibold text-white sm:text-base">
-                        {{ $tituloPaso }}
-                    </p>
+                    <span class="shrink-0 text-xs font-semibold text-gray-500">
+                        {{ $porcentaje }}%
+                    </span>
                 </div>
 
-                <span class="text-sm font-semibold text-gray-500">
-                    {{ $numeroPaso * 25 }}%
-                </span>
-            </div>
+                <div class="mt-3 flex gap-1.5">
+                    @foreach ($pasos as $clave => $info)
+                        @php
+                            $esActual = $clave === $paso;
+                            $estaCompleto = $estadoPasos[$clave] ?? false;
+                        @endphp
 
-            <div class="flex gap-2">
-                @for ($i = 1; $i <= 4; $i++)
-                    <div class="h-1.5 flex-1 rounded-full {{ $i <= $numeroPaso ? 'bg-emerald-500' : 'bg-gray-800' }}"></div>
-                @endfor
+                        <a href="{{ route('admin.actividades.configurar', [
+                            'actividad' => $actividad->id_actividad,
+                            'paso' => $clave
+                        ]) }}"
+                            title="{{ $info['numero'] }}. {{ $info['titulo'] }}"
+                            class="group flex min-w-0 flex-1 flex-col gap-1.5">
+                            <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-800">
+                                <div class="h-full rounded-full transition-all
+                                    {{ $esActual
+                                        ? 'w-full bg-emerald-400'
+                                        : ($estaCompleto ? 'w-full bg-emerald-600' : 'w-0') }}">
+                                </div>
+                            </div>
+
+                            <div class="hidden items-center gap-1.5 lg:flex">
+                                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold
+                                    {{ $esActual
+                                        ? 'bg-emerald-500 text-white'
+                                        : ($estaCompleto
+                                            ? 'bg-emerald-500/15 text-emerald-400'
+                                            : 'bg-white/5 text-gray-600') }}">
+                                    {{ $estaCompleto && !$esActual ? '✓' : $info['numero'] }}
+                                </span>
+
+                                <span class="truncate text-[11px]
+                                    {{ $esActual
+                                        ? 'font-semibold text-white'
+                                        : ($estaCompleto ? 'text-gray-400' : 'text-gray-600') }}">
+                                    {{ $info['titulo'] }}
+                                </span>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+
+                <div class="mt-2 flex items-center justify-between lg:hidden">
+                    <p class="truncate text-[11px] text-gray-500">
+                        {{ $tituloPaso }}
+                    </p>
+                    <p class="shrink-0 text-[11px] text-gray-600">
+                        {{ $numeroPaso }}/{{ $totalPasos }}
+                    </p>
+                </div>
             </div>
         </div>
 
-        {{-- ========================================================= --}}
-        {{-- PASO 1 --}}
-        {{-- ========================================================= --}}
+        @if ($paso === 'presentacion')
+            @include('admin.actividades.partials.configuracion-presentacion')
+        @endif
+
         @if ($paso === 'productos')
             <div class="mb-6 rounded-2xl border border-blue-500/20 bg-blue-500/[0.05] p-4 sm:p-5">
                 <h2 class="font-semibold text-blue-300">
                     ¿Esta actividad ofrece productos, servicios o algo que las personas puedan comprar, reservar o solicitar?
                 </h2>
-
                 <p class="mt-2 text-sm leading-6 text-gray-400">
                     Por ejemplo: camisetas, kits, entradas de pago, cupos de excursión, alimentos, donaciones o servicios. Una actividad gratuita puede continuar sin agregar ningún elemento.
                 </p>
             </div>
 
-            <form action="{{ route('admin.actividades.productos.configuracion', $actividad) }}" method="POST" class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+            <form action="{{ route('admin.actividades.productos.configuracion', $actividad) }}"
+                method="POST"
+                class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
                 @csrf
 
-                <p class="font-semibold text-white">¿Ofrece productos o servicios?</p>
+                <p class="font-semibold text-white">
+                    ¿Ofrece productos o servicios?
+                </p>
 
                 <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <label class="cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03] {{ $productosConfigurados && !$ofreceProductos ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : '' }}">
                         <div class="flex items-start gap-3">
-                            <input type="radio" name="ofrece_productos" value="0" required @checked($productosConfigurados && !$ofreceProductos) @disabled($actividad->items->isNotEmpty())>
+                            <input type="radio"
+                                name="ofrece_productos"
+                                value="0"
+                                required
+                                @checked($productosConfigurados && !$ofreceProductos)
+                                @disabled($actividad->items->isNotEmpty())>
+
                             <div>
-                                <p class="font-semibold text-white">No, no ofrece productos ni servicios</p>
-                                <p class="mt-1 text-xs leading-5 text-gray-500">La actividad puede ser gratuita, informativa o manejar únicamente inscripciones y sesiones.</p>
+                                <p class="font-semibold text-white">
+                                    No, no ofrece productos ni servicios
+                                </p>
+                                <p class="mt-1 text-xs leading-5 text-gray-500">
+                                    La actividad puede ser gratuita, informativa o manejar únicamente inscripciones y sesiones.
+                                </p>
 
                                 @if ($actividad->items->isNotEmpty())
-                                    <p class="mt-2 text-xs text-amber-400">Para elegir esta opción primero debes eliminar los elementos agregados.</p>
+                                    <p class="mt-2 text-xs text-amber-400">
+                                        Para elegir esta opción primero debes eliminar los elementos agregados.
+                                    </p>
                                 @endif
                             </div>
                         </div>
@@ -175,18 +254,27 @@
 
                     <label class="cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
                         <div class="flex items-start gap-3">
-                            <input type="radio" name="ofrece_productos" value="1" required @checked($ofreceProductos)>
+                            <input type="radio"
+                                name="ofrece_productos"
+                                value="1"
+                                required
+                                @checked($ofreceProductos)>
 
                             <div>
-                                <p class="font-semibold text-blue-200">Sí, ofrece productos o servicios</p>
-                                <p class="mt-1 text-xs leading-5 text-gray-500">Después podrás agregar cada producto, servicio, acceso, reserva o donación por separado.</p>
+                                <p class="font-semibold text-blue-200">
+                                    Sí, ofrece productos o servicios
+                                </p>
+                                <p class="mt-1 text-xs leading-5 text-gray-500">
+                                    Después podrás agregar cada producto, servicio, acceso, reserva o donación por separado.
+                                </p>
                             </div>
                         </div>
                     </label>
                 </div>
 
                 <div class="mt-5 flex justify-end">
-                    <button type="submit" class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
+                    <button type="submit"
+                        class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
                         {{ $productosConfigurados ? 'Guardar decisión' : 'Continuar' }}
                     </button>
                 </div>
@@ -196,21 +284,33 @@
                 <div class="mt-5 rounded-2xl border border-white/10 bg-white/[0.03]">
                     <div class="flex flex-col gap-4 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                         <div>
-                            <h2 class="font-semibold text-white">Productos o servicios</h2>
-                            <p class="mt-1 text-sm text-gray-500">Cada elemento puede tener su propio precio, costo, disponibilidad, imagen y datos de compra.</p>
+                            <h2 class="font-semibold text-white">
+                                Productos o servicios
+                            </h2>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Cada elemento puede tener su propio precio, costo, disponibilidad, imagen y datos de compra.
+                            </p>
                         </div>
 
-                        <button type="button" id="btnNuevoItem" class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-400">
+                        <button type="button"
+                            id="btnNuevoItem"
+                            class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-400">
                             + Agregar elemento
                         </button>
                     </div>
 
                     @if ($actividad->items->isEmpty())
                         <div class="px-4 py-12 text-center">
-                            <h3 class="font-semibold text-gray-300">Todavía no has agregado ningún elemento</h3>
-                            <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">Agrega únicamente lo que realmente se vaya a vender, reservar o solicitar. No necesitas crear un producto de $0 para una actividad gratuita.</p>
+                            <h3 class="font-semibold text-gray-300">
+                                Todavía no has agregado ningún elemento
+                            </h3>
+                            <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">
+                                Agrega únicamente lo que realmente se vaya a vender, reservar o solicitar. No necesitas crear un producto de $0 para una actividad gratuita.
+                            </p>
 
-                            <button type="button" id="btnNuevoItemVacio" class="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-400">
+                            <button type="button"
+                                id="btnNuevoItemVacio"
+                                class="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-400">
                                 Agregar primer elemento
                             </button>
                         </div>
@@ -222,7 +322,9 @@
                                         <div class="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row">
                                             <div class="h-28 w-full shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/20 sm:h-24 sm:w-24">
                                                 @if ($item->imagenPrincipal)
-                                                    <img src="{{ asset('storage/' . $item->imagenPrincipal->url) }}" alt="{{ $item->imagenPrincipal->texto_alternativo ?: $item->nombre }}" class="h-full w-full object-cover">
+                                                    <img src="{{ asset('storage/' . $item->imagenPrincipal->url) }}"
+                                                        alt="{{ $item->imagenPrincipal->texto_alternativo ?: $item->nombre }}"
+                                                        class="h-full w-full object-cover">
                                                 @else
                                                     <div class="flex h-full w-full items-center justify-center px-3 text-center text-xs text-gray-600">
                                                         Sin imagen
@@ -232,33 +334,47 @@
 
                                             <div class="min-w-0 flex-1">
                                                 <div class="flex flex-wrap items-center gap-2">
-                                                    <h3 class="font-semibold text-white">{{ $item->nombre }}</h3>
-                                                    <span class="rounded-full bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">{{ $item->tipo }}</span>
+                                                    <h3 class="font-semibold text-white">
+                                                        {{ $item->nombre }}
+                                                    </h3>
+                                                    <span class="rounded-full bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">
+                                                        {{ $item->tipo }}
+                                                    </span>
                                                 </div>
 
                                                 @if ($item->descripcion)
-                                                    <p class="mt-2 text-sm text-gray-500">{{ $item->descripcion }}</p>
+                                                    <p class="mt-2 text-sm text-gray-500">
+                                                        {{ $item->descripcion }}
+                                                    </p>
                                                 @endif
 
                                                 <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                                                     <div class="rounded-xl border border-white/5 bg-black/10 p-3">
                                                         <p class="text-[11px] text-gray-600">Precio</p>
-                                                        <p class="mt-1 font-semibold text-emerald-400">${{ number_format((float) $item->precio, 2) }}</p>
+                                                        <p class="mt-1 font-semibold text-emerald-400">
+                                                            ${{ number_format((float) $item->precio, 2) }}
+                                                        </p>
                                                     </div>
 
                                                     <div class="rounded-xl border border-white/5 bg-black/10 p-3">
                                                         <p class="text-[11px] text-gray-600">Costo</p>
-                                                        <p class="mt-1 font-semibold text-gray-300">${{ number_format((float) $item->costo_referencia, 2) }}</p>
+                                                        <p class="mt-1 font-semibold text-gray-300">
+                                                            ${{ number_format((float) $item->costo_referencia, 2) }}
+                                                        </p>
                                                     </div>
 
                                                     <div class="rounded-xl border border-white/5 bg-black/10 p-3">
                                                         <p class="text-[11px] text-gray-600">Margen</p>
-                                                        <p class="mt-1 font-semibold text-blue-400">${{ number_format((float) $item->precio - (float) $item->costo_referencia, 2) }}</p>
+                                                        <p class="mt-1 font-semibold text-blue-400">
+                                                            ${{ number_format((float) $item->precio - (float) $item->costo_referencia, 2) }}
+                                                        </p>
                                                     </div>
 
                                                     <div class="rounded-xl border border-white/5 bg-black/10 p-3">
                                                         <p class="text-[11px] text-gray-600">Stock</p>
-                                                        <p class="mt-1 font-semibold text-gray-300">{{ is_null($item->stock_total) ? 'Sin límite' : $item->stock_total }}</p>
+                                                        <p class="mt-1 font-semibold text-gray-300">
+                                                            {{ is_null($item->stock_total) ? 'Sin límite' : $item->stock_total }}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -279,13 +395,18 @@
                                                 data-minimo="{{ $item->min_por_inscripcion }}"
                                                 data-maximo="{{ $item->max_por_inscripcion }}"
                                                 data-participante="{{ $item->requiere_participante ? '1' : '0' }}"
-                                                data-imagen="{{ $item->imagenPrincipal ? asset('storage/' . $item->imagenPrincipal->url) : '' }}">✎</button>
+                                                data-imagen="{{ $item->imagenPrincipal ? asset('storage/' . $item->imagenPrincipal->url) : '' }}">
+                                                ✎
+                                            </button>
 
-                                            <form action="{{ route('admin.actividades.items.destroy', [$actividad, $item]) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este elemento?');">
+                                            <form action="{{ route('admin.actividades.items.destroy', [$actividad, $item]) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('¿Seguro que deseas eliminar este elemento?');">
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <button type="submit" class="h-10 w-10 rounded-xl border border-red-500/20 text-red-400 transition hover:bg-red-500/10">
+                                                <button type="submit"
+                                                    class="h-10 w-10 rounded-xl border border-red-500/20 text-red-400 transition hover:bg-red-500/10">
                                                     ×
                                                 </button>
                                             </form>
@@ -299,8 +420,12 @@
 
                 @if ($actividad->items->isNotEmpty())
                     <div class="mt-6 flex justify-end">
-                        <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos']) }}" class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
-                            Continuar con datos de compra
+                        <a href="{{ route('admin.actividades.configurar', [
+                            'actividad' => $actividad->id_actividad,
+                            'paso' => 'datos'
+                        ]) }}"
+                            class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
+                            Continuar con datos solicitados
                         </a>
                     </div>
                 @endif
@@ -309,21 +434,23 @@
                     <p class="font-semibold text-emerald-300">
                         Sin productos ni servicios
                     </p>
-
                     <p class="mt-1 text-sm leading-6 text-gray-500">
-                        Está bien. Puedes continuar directamente con la programación de la actividad, sus sesiones o turnos.
+                        Está bien. Como esta actividad no ofrece productos o servicios, puedes continuar directamente con la programación.
                     </p>
 
                     <div class="mt-4 flex justify-end">
-                        <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'sesiones']) }}" class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
+                        <a href="{{ route('admin.actividades.configurar', [
+                            'actividad' => $actividad->id_actividad,
+                            'paso' => 'sesiones'
+                        ]) }}"
+                                                    class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
                             Continuar con programación
                         </a>
                     </div>
                 </div>
             @endif
         @endif
-                {{-- PASO 2 --}}
-        {{-- ========================================================= --}}
+
         @if ($paso === 'datos')
             @if (!$itemSeleccionado)
                 <div class="mb-6 rounded-2xl border border-blue-500/20 bg-blue-500/[0.05] p-4 sm:p-5">
@@ -366,7 +493,11 @@
                                     </div>
                                 </div>
 
-                                <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos', 'item' => $item->id_item_actividad]) }}"
+                                <a href="{{ route('admin.actividades.configurar', [
+                                    'actividad' => $actividad->id_actividad,
+                                    'paso' => 'datos',
+                                    'item' => $item->id_item_actividad
+                                ]) }}"
                                     class="rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2.5 text-center text-sm font-semibold text-blue-300">
                                     {{ $config ? 'Editar configuración' : 'Configurar' }}
                                 </a>
@@ -376,13 +507,19 @@
                 </div>
 
                 <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                    <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'productos']) }}"
+                    <a href="{{ route('admin.actividades.configurar', [
+                        'actividad' => $actividad->id_actividad,
+                        'paso' => 'productos'
+                    ]) }}"
                         class="rounded-xl border border-white/10 px-5 py-3 text-center text-sm font-semibold text-gray-400">
                         Volver
                     </a>
 
                     @if ($datosCompletos)
-                        <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios']) }}"
+                        <a href="{{ route('admin.actividades.configurar', [
+                            'actividad' => $actividad->id_actividad,
+                            'paso' => 'precios'
+                        ]) }}"
                             class="rounded-xl bg-emerald-500 px-5 py-3 text-center text-sm font-bold text-white">
                             Continuar con precios
                         </a>
@@ -407,13 +544,18 @@
                     </h2>
                 </div>
 
-                <form action="{{ route('admin.actividades.datos-pedido.store', [$actividad, $itemSeleccionado]) }}"
+                <form action="{{ route('admin.actividades.datos-pedido.store', [
+                    $actividad,
+                    $itemSeleccionado
+                ]) }}"
                     method="POST"
                     class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
 
                     @csrf
 
-                    <input type="hidden" id="configDatosActual" value="{{ $configCodificada }}">
+                    <input type="hidden"
+                        id="configDatosActual"
+                        value="{{ $configCodificada }}">
 
                     <p class="mb-4 font-semibold text-white">
                         ¿Necesitas pedirle algún dato al comprador?
@@ -422,11 +564,17 @@
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <label class="cursor-pointer rounded-xl border border-white/10 p-4">
                             <div class="flex gap-3">
-                                <input type="radio" name="requiere_datos" value="0" required
+                                <input type="radio"
+                                    name="requiere_datos"
+                                    value="0"
+                                    required
                                     @checked($configActual && !($configActual['enabled'] ?? false))>
 
                                 <div>
-                                    <p class="font-semibold text-white">No</p>
+                                    <p class="font-semibold text-white">
+                                        No
+                                    </p>
+
                                     <p class="mt-1 text-xs text-gray-500">
                                         Se vende tal como está.
                                     </p>
@@ -436,11 +584,17 @@
 
                         <label class="cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
                             <div class="flex gap-3">
-                                <input type="radio" name="requiere_datos" value="1" required
+                                <input type="radio"
+                                    name="requiere_datos"
+                                    value="1"
+                                    required
                                     @checked($configActual && ($configActual['enabled'] ?? false))>
 
                                 <div>
-                                    <p class="font-semibold text-blue-200">Sí</p>
+                                    <p class="font-semibold text-blue-200">
+                                        Sí
+                                    </p>
+
                                     <p class="mt-1 text-xs text-gray-500">
                                         Necesito solicitar uno o varios datos.
                                     </p>
@@ -463,7 +617,8 @@
                                         </p>
                                     </div>
 
-                                    <button type="button" id="btnAgregarCampo"
+                                    <button type="button"
+                                        id="btnAgregarCampo"
                                         class="rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300">
                                         + Agregar dato
                                     </button>
@@ -473,7 +628,7 @@
                             </div>
 
                             <div>
-                                <div class="rounded-2xl border border-white/10 bg-black/10 p-4 lg:sticky lg:top-6">
+                                <div class="rounded-2xl border border-white/10 bg-black/10 p-4 lg:sticky lg:top-28">
                                     <h3 class="font-semibold text-white">
                                         Vista previa
                                     </h3>
@@ -489,7 +644,10 @@
                     </div>
 
                     <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                        <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos']) }}"
+                        <a href="{{ route('admin.actividades.configurar', [
+                            'actividad' => $actividad->id_actividad,
+                            'paso' => 'datos'
+                        ]) }}"
                             class="rounded-xl border border-white/10 px-5 py-3 text-center text-sm font-semibold text-gray-400">
                             Cancelar
                         </a>
@@ -503,9 +661,6 @@
             @endif
         @endif
 
-        {{-- ========================================================= --}}
-        {{-- PASO 3 --}}
-        {{-- ========================================================= --}}
         @if ($paso === 'precios')
             @if (!$itemSeleccionado)
                 <div class="mb-6 rounded-2xl border border-violet-500/20 bg-violet-500/[0.05] p-4 sm:p-5">
@@ -565,7 +720,11 @@
                                 </div>
 
                                 @if ($camposLista->isNotEmpty())
-                                    <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios', 'item' => $item->id_item_actividad]) }}"
+                                    <a href="{{ route('admin.actividades.configurar', [
+                                        'actividad' => $actividad->id_actividad,
+                                        'paso' => 'precios',
+                                        'item' => $item->id_item_actividad
+                                    ]) }}"
                                         class="rounded-xl border border-violet-500/20 bg-violet-500/10 px-4 py-2.5 text-center text-sm font-semibold text-violet-300">
                                         Configurar
                                     </a>
@@ -576,15 +735,21 @@
                 </div>
 
                 <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos']) }}"
+                    <a href="{{ route('admin.actividades.configurar', [
+                        'actividad' => $actividad->id_actividad,
+                        'paso' => 'datos'
+                    ]) }}"
                         class="rounded-xl border border-white/10 px-5 py-3 text-center text-sm font-semibold text-gray-400">
                         Volver
                     </a>
 
                     @if ($preciosCompletos)
-                        <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'sesiones']) }}"
+                        <a href="{{ route('admin.actividades.configurar', [
+                            'actividad' => $actividad->id_actividad,
+                            'paso' => 'sesiones'
+                        ]) }}"
                             class="rounded-xl bg-emerald-500 px-5 py-3 text-center text-sm font-bold text-white">
-                            Continuar
+                            Continuar con programación
                         </a>
                     @endif
                 </div>
@@ -623,13 +788,18 @@
                 </div>
 
                 <form id="formAjustesPrecio"
-                    action="{{ route('admin.actividades.ajustes-precio.store', [$actividad, $itemSeleccionado]) }}"
+                    action="{{ route('admin.actividades.ajustes-precio.store', [
+                        $actividad,
+                        $itemSeleccionado
+                    ]) }}"
                     method="POST"
                     class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
 
                     @csrf
 
-                    <input type="hidden" id="datosPrecioActual" value="{{ $datosPrecioCodificados }}">
+                    <input type="hidden"
+                        id="datosPrecioActual"
+                        value="{{ $datosPrecioCodificados }}">
 
                     <p class="font-semibold text-white">
                         ¿Alguna opción aumenta el precio o el costo?
@@ -638,11 +808,17 @@
                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <label class="cursor-pointer rounded-xl border border-white/10 p-4">
                             <div class="flex gap-3">
-                                <input type="radio" name="tiene_cambios" value="0" required
+                                <input type="radio"
+                                    name="tiene_cambios"
+                                    value="0"
+                                    required
                                     @checked($configPrecio && !($configPrecio['enabled'] ?? false))>
 
                                 <div>
-                                    <p class="font-semibold text-white">No</p>
+                                    <p class="font-semibold text-white">
+                                        No
+                                    </p>
+
                                     <p class="mt-1 text-xs text-gray-500">
                                         Todas mantienen los valores base.
                                     </p>
@@ -652,11 +828,17 @@
 
                         <label class="cursor-pointer rounded-xl border border-violet-500/20 bg-violet-500/[0.04] p-4">
                             <div class="flex gap-3">
-                                <input type="radio" name="tiene_cambios" value="1" required
+                                <input type="radio"
+                                    name="tiene_cambios"
+                                    value="1"
+                                    required
                                     @checked($configPrecio && ($configPrecio['enabled'] ?? false))>
 
                                 <div>
-                                    <p class="font-semibold text-violet-200">Sí</p>
+                                    <p class="font-semibold text-violet-200">
+                                        Sí
+                                    </p>
+
                                     <p class="mt-1 text-xs text-gray-500">
                                         Algunas opciones tienen un aumento.
                                     </p>
@@ -708,13 +890,16 @@
                                     </p>
                                 </div>
 
-                                <button type="button" id="btnAgregarAjuste"
+                                <button type="button"
+                                    id="btnAgregarAjuste"
                                     class="rounded-xl border border-violet-500/20 bg-violet-500/10 px-4 py-2.5 text-sm font-semibold text-violet-300">
                                     + Agregar opción
                                 </button>
                             </div>
 
-                            <div id="contenedorAjustesPrecio" class="mt-4 space-y-3"></div>
+                            <div id="contenedorAjustesPrecio"
+                                class="mt-4 space-y-3">
+                            </div>
 
                             <p id="mensajeSinOpcionesAjuste"
                                 class="mt-4 hidden rounded-xl border border-emerald-500/15 bg-emerald-500/[0.05] p-3 text-xs leading-5 text-emerald-300">
@@ -728,9 +913,11 @@
                             </p>
                         </div>
                     </div>
-
-                    <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                        <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios']) }}"
+                                        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+                        <a href="{{ route('admin.actividades.configurar', [
+                            'actividad' => $actividad->id_actividad,
+                            'paso' => 'precios'
+                        ]) }}"
                             class="rounded-xl border border-white/10 px-5 py-3 text-center text-sm font-semibold text-gray-400">
                             Cancelar
                         </a>
@@ -744,26 +931,37 @@
             @endif
         @endif
 
-        {{-- ========================================================= --}}
-                {{-- PASO 4 --}}
-        {{-- ========================================================= --}}
         @if ($paso === 'sesiones')
             <div class="mb-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.05] p-4 sm:p-5">
                 <div class="flex items-start gap-3">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">◷</div>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">
+                        ◷
+                    </div>
+
                     <div class="min-w-0">
-                        <h2 class="font-semibold text-cyan-300">¿Cómo se desarrollará esta actividad?</h2>
-                        <p class="mt-2 text-sm leading-6 text-gray-400">Una venta puede no necesitar horarios, una ponencia puede usar una sola sesión y una semana de actividades puede dividirse en muchas ponencias, talleres o turnos.</p>
+                        <h2 class="font-semibold text-cyan-300">
+                            ¿Cómo se desarrollará esta actividad?
+                        </h2>
+
+                        <p class="mt-2 text-sm leading-6 text-gray-400">
+                            Una venta puede no necesitar horarios, una ponencia puede usar una sola sesión y una semana de actividades puede dividirse en muchas ponencias, talleres o turnos.
+                        </p>
 
                         @if ($realizacionDesde && $realizacionHasta)
                             <div class="mt-4 rounded-xl border border-white/5 bg-black/10 p-3">
-                                <p class="text-xs font-semibold text-gray-300">Período de realización definido</p>
+                                <p class="text-xs font-semibold text-gray-300">
+                                    Período de realización definido
+                                </p>
+
                                 <p class="mt-1 text-xs leading-5 text-gray-500">
                                     {{ \Carbon\Carbon::parse($actividad->realizacion_desde)->format('d/m/Y H:i') }}
                                     —
                                     {{ \Carbon\Carbon::parse($actividad->realizacion_hasta)->format('d/m/Y H:i') }}
                                 </p>
-                                <p class="mt-1 text-xs leading-5 text-gray-600">Las sesiones que agregues deberán quedar dentro de este período.</p>
+
+                                <p class="mt-1 text-xs leading-5 text-gray-600">
+                                    Las sesiones que agregues deberán quedar dentro de este período.
+                                </p>
                             </div>
                         @else
                             <div class="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-3 text-xs leading-5 text-amber-300">
@@ -774,59 +972,124 @@
                 </div>
             </div>
 
-            <form id="formSesiones" action="{{ route('admin.actividades.sesiones.configuracion', $actividad) }}" method="POST" class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
+            <form id="formSesiones"
+                action="{{ route('admin.actividades.sesiones.configuracion', $actividad) }}"
+                method="POST"
+                class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
+
                 @csrf
 
-                <input type="hidden" id="sesionesActuales" value="{{ $sesionesCodificadas }}">
-                <input type="hidden" id="realizacionDesde" value="{{ $realizacionDesde }}">
-                <input type="hidden" id="realizacionHasta" value="{{ $realizacionHasta }}">
-                <input type="hidden" id="cupoGeneralActividad" value="{{ is_null($cupoGeneral) ? '' : $cupoGeneral }}">
-                <input type="hidden" name="confirmar_solapamientos" value="0">
+                <input type="hidden"
+                    id="sesionesActuales"
+                    value="{{ $sesionesCodificadas }}">
 
-                <p class="font-semibold text-white">Selecciona la opción que mejor represente la actividad</p>
+                <input type="hidden"
+                    id="realizacionDesde"
+                    value="{{ $realizacionDesde }}">
+
+                <input type="hidden"
+                    id="realizacionHasta"
+                    value="{{ $realizacionHasta }}">
+
+                <input type="hidden"
+                    id="cupoGeneralActividad"
+                    value="{{ is_null($cupoGeneral) ? '' : $cupoGeneral }}">
+
+                <input type="hidden"
+                    name="confirmar_solapamientos"
+                    value="0">
+
+                <p class="font-semibold text-white">
+                    Selecciona la opción que mejor represente la actividad
+                </p>
 
                 <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
                     <label class="cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03]">
                         <div class="flex items-start gap-3">
-                            <input type="radio" name="modo_sesiones" value="ninguna" required @checked($modoSesionesActual === 'ninguna')>
+                            <input type="radio"
+                                name="modo_sesiones"
+                                value="ninguna"
+                                required
+                                @checked($modoSesionesActual === 'ninguna')>
+
                             <div>
-                                <p class="font-semibold text-white">Sin sesiones ni horarios</p>
-                                <p class="mt-1 text-xs leading-5 text-gray-500">Útil para ventas, donaciones o actividades que no necesitan una agenda específica.</p>
+                                <p class="font-semibold text-white">
+                                    Sin sesiones ni horarios
+                                </p>
+
+                                <p class="mt-1 text-xs leading-5 text-gray-500">
+                                    Útil para ventas, donaciones o actividades que no necesitan una agenda específica.
+                                </p>
                             </div>
                         </div>
                     </label>
 
                     <label class="cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
                         <div class="flex items-start gap-3">
-                            <input type="radio" name="modo_sesiones" value="unica" required @checked($modoSesionesActual === 'unica') @disabled(!$realizacionDesde || !$realizacionHasta)>
+                            <input type="radio"
+                                name="modo_sesiones"
+                                value="unica"
+                                required
+                                @checked($modoSesionesActual === 'unica')
+                                @disabled(!$realizacionDesde || !$realizacionHasta)>
+
                             <div>
-                                <p class="font-semibold text-cyan-200">Una sola sesión</p>
-                                <p class="mt-1 text-xs leading-5 text-gray-500">Para una ponencia, excursión o actividad que ocurre como un único bloque. SIDAN usará automáticamente el período de realización.</p>
+                                <p class="font-semibold text-cyan-200">
+                                    Una sola sesión
+                                </p>
+
+                                <p class="mt-1 text-xs leading-5 text-gray-500">
+                                    Para una ponencia, excursión o actividad que ocurre como un único bloque. SIDAN usará automáticamente el período de realización.
+                                </p>
                             </div>
                         </div>
                     </label>
 
                     <label class="cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
                         <div class="flex items-start gap-3">
-                            <input type="radio" name="modo_sesiones" value="multiples" required @checked($modoSesionesActual === 'multiples') @disabled(!$realizacionDesde || !$realizacionHasta)>
+                            <input type="radio"
+                                name="modo_sesiones"
+                                value="multiples"
+                                required
+                                @checked($modoSesionesActual === 'multiples')
+                                @disabled(!$realizacionDesde || !$realizacionHasta)>
+
                             <div>
-                                <p class="font-semibold text-cyan-200">Varias sesiones</p>
-                                <p class="mt-1 text-xs leading-5 text-gray-500">Para semanas, congresos, talleres, turnos o actividades con distintos horarios y cupos.</p>
+                                <p class="font-semibold text-cyan-200">
+                                    Varias sesiones
+                                </p>
+
+                                <p class="mt-1 text-xs leading-5 text-gray-500">
+                                    Para semanas, congresos, talleres, turnos o actividades con distintos horarios y cupos.
+                                </p>
                             </div>
                         </div>
                     </label>
                 </div>
 
-                <div id="panelSesionUnica" class="mt-6 hidden rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4 sm:p-5">
+                <div id="panelSesionUnica"
+                    class="mt-6 hidden rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4 sm:p-5">
+
                     <div class="flex items-start gap-3">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">1</div>
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">
+                            1
+                        </div>
+
                         <div class="min-w-0">
-                            <h3 class="font-semibold text-white">Sesión principal automática</h3>
-                            <p class="mt-1 text-sm leading-6 text-gray-500">No tendrás que volver a escribir fechas ni cupo. SIDAN tomará los datos generales de la actividad.</p>
+                            <h3 class="font-semibold text-white">
+                                Sesión principal automática
+                            </h3>
+
+                            <p class="mt-1 text-sm leading-6 text-gray-500">
+                                No tendrás que volver a escribir fechas ni cupo. SIDAN tomará los datos generales de la actividad.
+                            </p>
 
                             <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <div class="rounded-xl border border-white/5 bg-black/10 p-3">
-                                    <p class="text-[11px] uppercase tracking-wide text-gray-600">Horario</p>
+                                    <p class="text-[11px] uppercase tracking-wide text-gray-600">
+                                        Horario
+                                    </p>
+
                                     <p class="mt-1 text-sm font-medium text-gray-300">
                                         {{ $realizacionDesde ? \Carbon\Carbon::parse($actividad->realizacion_desde)->format('d/m/Y H:i') : 'Sin definir' }}
                                         —
@@ -835,7 +1098,10 @@
                                 </div>
 
                                 <div class="rounded-xl border border-white/5 bg-black/10 p-3">
-                                    <p class="text-[11px] uppercase tracking-wide text-gray-600">Cupo</p>
+                                    <p class="text-[11px] uppercase tracking-wide text-gray-600">
+                                        Cupo
+                                    </p>
+
                                     <p class="mt-1 text-sm font-medium text-gray-300">
                                         {{ is_null($cupoGeneral) ? 'Sin cupo general definido' : $cupoGeneral . ' personas · heredado de la inscripción general' }}
                                     </p>
@@ -850,81 +1116,141 @@
                         <div class="min-w-0">
                             <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <h3 class="font-semibold text-white">Sesiones, ponencias, talleres o turnos</h3>
-                                    <p class="mt-1 text-xs leading-5 text-gray-500">Agrega al menos dos. Cada una puede tener su propio cupo y decidir si necesita reserva.</p>
+                                    <h3 class="font-semibold text-white">
+                                        Sesiones, ponencias, talleres o turnos
+                                    </h3>
+
+                                    <p class="mt-1 text-xs leading-5 text-gray-500">
+                                        Agrega al menos dos. Cada una puede tener su propio cupo y decidir si necesita reserva.
+                                    </p>
                                 </div>
 
-                                <button type="button" id="btnAgregarSesion" class="rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-sm font-semibold text-cyan-300">
+                                <button type="button"
+                                    id="btnAgregarSesion"
+                                    class="rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-sm font-semibold text-cyan-300">
                                     + Agregar sesión
                                 </button>
                             </div>
 
                             @if (!is_null($cupoGeneral))
                                 <div class="mb-4 rounded-xl border border-blue-500/15 bg-blue-500/[0.04] p-3 text-xs leading-5 text-gray-400">
-                                    La inscripción general tiene un máximo de <strong class="text-blue-300">{{ $cupoGeneral }} personas</strong>. Las sesiones heredarán ese valor cuando dejes el cupo vacío y nunca podrán superarlo.
+                                    La inscripción general tiene un máximo de
+                                    <strong class="text-blue-300">
+                                        {{ $cupoGeneral }} personas
+                                    </strong>.
+                                    Las sesiones heredarán ese valor cuando dejes el cupo vacío y nunca podrán superarlo.
                                 </div>
                             @endif
 
-                            <div id="contenedorSesiones" class="space-y-3"></div>
+                            <div id="contenedorSesiones"
+                                class="space-y-3">
+                            </div>
 
-                            <div id="advertenciaSolapamientos" class="mt-4 hidden rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-4">
-                                <p class="font-semibold text-amber-300">Hay sesiones que se realizan al mismo tiempo</p>
-                                <p id="textoSolapamientos" class="mt-1 text-xs leading-5 text-gray-500"></p>
+                            <div id="advertenciaSolapamientos"
+                                class="mt-4 hidden rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-4">
+
+                                <p class="font-semibold text-amber-300">
+                                    Hay sesiones que se realizan al mismo tiempo
+                                </p>
+
+                                <p id="textoSolapamientos"
+                                    class="mt-1 text-xs leading-5 text-gray-500">
+                                </p>
 
                                 <label class="mt-3 flex cursor-pointer items-start gap-3">
-                                    <input type="checkbox" id="confirmarSolapamientos" name="confirmar_solapamientos" value="1" class="mt-1">
-                                    <span class="text-sm text-gray-300">Sí, estas sesiones se realizarán simultáneamente.</span>
+                                    <input type="checkbox"
+                                        id="confirmarSolapamientos"
+                                        name="confirmar_solapamientos"
+                                        value="1"
+                                        class="mt-1">
+
+                                    <span class="text-sm text-gray-300">
+                                        Sí, estas sesiones se realizarán simultáneamente.
+                                    </span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="min-w-0">
-                            <div class="rounded-2xl border border-white/10 bg-black/10 p-4 lg:sticky lg:top-6">
+                            <div class="rounded-2xl border border-white/10 bg-black/10 p-4 lg:sticky lg:top-28">
                                 <div class="flex items-start gap-3">
-                                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">◷</div>
+                                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">
+                                        ◷
+                                    </div>
 
                                     <div>
-                                        <h3 class="font-semibold text-white">Vista previa</h3>
-                                        <p class="mt-1 text-xs leading-5 text-gray-600">Así se resumirá la programación de la actividad.</p>
+                                        <h3 class="font-semibold text-white">
+                                            Vista previa
+                                        </h3>
+
+                                        <p class="mt-1 text-xs leading-5 text-gray-600">
+                                            Así se resumirá la programación de la actividad.
+                                        </p>
                                     </div>
                                 </div>
 
-                                <div id="vistaPreviaSesiones" class="mt-5 space-y-3"></div>
+                                <div id="vistaPreviaSesiones"
+                                    class="mt-5 space-y-3">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                    <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => $ofreceProductos ? 'precios' : 'productos']) }}" class="rounded-xl border border-white/10 px-5 py-3 text-center text-sm font-semibold text-gray-400">
+                    <a href="{{ route('admin.actividades.configurar', [
+                        'actividad' => $actividad->id_actividad,
+                        'paso' => $ofreceProductos ? 'precios' : 'productos'
+                    ]) }}"
+                        class="rounded-xl border border-white/10 px-5 py-3 text-center text-sm font-semibold text-gray-400">
                         Volver
                     </a>
 
-                    <button type="submit" class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
-                        Guardar programación
+                    <button type="submit"
+                        class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
+                        {{ $sesionesConfiguradas ? 'Guardar y revisar resumen' : 'Guardar programación' }}
                     </button>
                 </div>
             </form>
 
             @if ($sesionesConfiguradas)
-                <div class="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-                    ✓ Programación configurada
+                <div class="mt-5 flex flex-col gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-emerald-300">
+                            ✓ Programación configurada
+                        </p>
+
+                        <p class="mt-1 text-xs text-emerald-200/60">
+                            Puedes modificarla o continuar directamente al resumen.
+                        </p>
+                    </div>
+
+                    <a href="{{ route('admin.actividades.configurar', [
+                        'actividad' => $actividad->id_actividad,
+                        'paso' => 'resumen'
+                    ]) }}"
+                        class="shrink-0 rounded-xl bg-emerald-500 px-4 py-2.5 text-center text-sm font-bold text-white transition hover:bg-emerald-400">
+                        Ir al resumen
+                    </a>
                 </div>
             @endif
+        @endif
+
+        @if ($paso === 'resumen')
+            @include('admin.actividades.partials.configuracion-resumen')
         @endif
     </div>
 </div>
 
-{{-- ========================================================= --}}
-{{-- MODAL PRODUCTO --}}
-{{-- ========================================================= --}}
 @if ($paso === 'productos')
-<div id="modalItem" class="fixed inset-0 z-[300] hidden items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6">
-    <div class="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#10151f]">
+<div id="modalItem"
+    class="fixed inset-0 z-[300] hidden items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6">
 
+    <div class="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#10151f]">
         <div class="flex items-center justify-between border-b border-white/10 p-4 sm:px-6">
             <div>
-                <h2 id="modalItemTitulo" class="font-semibold text-white">
+                <h2 id="modalItemTitulo"
+                    class="font-semibold text-white">
                     Agregar producto o servicio
                 </h2>
 
@@ -933,20 +1259,28 @@
                 </p>
             </div>
 
-            <button type="button" id="cerrarModalItem" class="h-9 w-9 rounded-xl text-gray-500 transition hover:bg-white/5 hover:text-white">
+            <button type="button"
+                id="cerrarModalItem"
+                class="h-9 w-9 rounded-xl text-gray-500 transition hover:bg-white/5 hover:text-white">
                 ×
             </button>
         </div>
 
         <form id="formItem"
-            action="{{ route('admin.actividades.items.store', ['actividad' => $actividad->id_actividad]) }}"
+            action="{{ route('admin.actividades.items.store', [
+                'actividad' => $actividad->id_actividad
+            ]) }}"
             method="POST"
             enctype="multipart/form-data"
             class="min-h-0 flex-1 overflow-y-auto">
 
             @csrf
 
-            <input type="hidden" name="_method" id="metodoItem" value="PUT" disabled>
+            <input type="hidden"
+                name="_method"
+                id="metodoItem"
+                value="PUT"
+                disabled>
 
             <div class="space-y-5 p-4 sm:p-6">
                 <div>
@@ -954,7 +1288,11 @@
                         Nombre
                     </label>
 
-                    <input type="text" id="item_nombre" name="item_nombre" maxlength="150" required
+                    <input type="text"
+                        id="item_nombre"
+                        name="item_nombre"
+                        maxlength="150"
+                        required
                         class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
                         placeholder="Ej. Camiseta oficial SDS26">
                 </div>
@@ -964,7 +1302,9 @@
                         Tipo
                     </label>
 
-                    <select id="item_tipo" name="item_tipo" required
+                    <select id="item_tipo"
+                        name="item_tipo"
+                        required
                         class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white">
 
                         <option value="producto">Producto físico</option>
@@ -981,22 +1321,30 @@
                         Descripción
                     </label>
 
-                    <textarea id="item_descripcion" name="item_descripcion" rows="3"
+                    <textarea id="item_descripcion"
+                        name="item_descripcion"
+                        rows="3"
                         class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
                         placeholder="Describe brevemente qué recibirá o podrá solicitar la persona."></textarea>
                 </div>
 
-                {{-- IMAGEN DEL PRODUCTO O SERVICIO --}}
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-300">
                         Imagen
                     </label>
 
                     <div class="overflow-hidden rounded-2xl border border-white/10 bg-black/10">
-                        <div id="contenedorPreviewItemImagen" class="relative flex min-h-48 items-center justify-center overflow-hidden bg-black/20">
-                            <img id="previewItemImagen" src="" alt="Vista previa" class="hidden h-56 w-full object-cover">
+                        <div id="contenedorPreviewItemImagen"
+                            class="relative flex min-h-48 items-center justify-center overflow-hidden bg-black/20">
 
-                            <div id="placeholderItemImagen" class="flex flex-col items-center justify-center px-6 py-10 text-center">
+                            <img id="previewItemImagen"
+                                src=""
+                                alt="Vista previa"
+                                class="hidden h-56 w-full object-cover">
+
+                            <div id="placeholderItemImagen"
+                                class="flex flex-col items-center justify-center px-6 py-10 text-center">
+
                                 <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl text-gray-500">
                                     ◫
                                 </div>
@@ -1012,19 +1360,31 @@
                         </div>
 
                         <div class="border-t border-white/10 p-4">
-                            <label for="item_imagen" class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300 transition hover:bg-blue-500/15">
+                            <label for="item_imagen"
+                                class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300 transition hover:bg-blue-500/15">
                                 Seleccionar imagen
                             </label>
 
-                            <input type="file" id="item_imagen" name="item_imagen" accept="image/jpeg,image/png,image/webp" class="hidden">
+                            <input type="file"
+                                id="item_imagen"
+                                name="item_imagen"
+                                accept="image/jpeg,image/png,image/webp"
+                                class="hidden">
 
-                            <p id="nombreItemImagen" class="mt-2 break-all text-xs text-gray-600">
+                            <p id="nombreItemImagen"
+                                class="mt-2 break-all text-xs text-gray-600">
                                 JPG, JPEG, PNG o WEBP · Máximo 5 MB
                             </p>
 
-                            <div id="contenedorEliminarItemImagen" class="mt-4 hidden rounded-xl border border-red-500/15 bg-red-500/[0.04] p-3">
+                            <div id="contenedorEliminarItemImagen"
+                                class="mt-4 hidden rounded-xl border border-red-500/15 bg-red-500/[0.04] p-3">
+
                                 <label class="flex cursor-pointer items-start gap-3">
-                                    <input type="checkbox" id="eliminar_item_imagen" name="eliminar_item_imagen" value="1" class="mt-1">
+                                    <input type="checkbox"
+                                        id="eliminar_item_imagen"
+                                        name="eliminar_item_imagen"
+                                        value="1"
+                                                                                class="mt-1">
 
                                     <div>
                                         <p class="text-sm font-medium text-red-300">
@@ -1047,7 +1407,13 @@
                             Precio de venta
                         </label>
 
-                        <input type="number" id="item_precio" name="item_precio" value="0.00" min="0" step="0.01" required
+                        <input type="number"
+                            id="item_precio"
+                            name="item_precio"
+                            value="0.00"
+                            min="0"
+                            step="0.01"
+                            required
                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                     </div>
 
@@ -1056,7 +1422,13 @@
                             Costo
                         </label>
 
-                        <input type="number" id="item_costo_referencia" name="item_costo_referencia" value="0.00" min="0" step="0.01" required
+                        <input type="number"
+                            id="item_costo_referencia"
+                            name="item_costo_referencia"
+                            value="0.00"
+                            min="0"
+                            step="0.01"
+                            required
                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                     </div>
                 </div>
@@ -1078,7 +1450,10 @@
                         Cantidad disponible
                     </label>
 
-                    <input type="number" id="item_stock_total" name="item_stock_total" min="0"
+                    <input type="number"
+                        id="item_stock_total"
+                        name="item_stock_total"
+                        min="0"
                         class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
                         placeholder="Vacío = sin límite">
                 </div>
@@ -1089,7 +1464,12 @@
                             Mínimo por compra
                         </label>
 
-                        <input type="number" id="item_min_por_inscripcion" name="item_min_por_inscripcion" value="1" min="1" required
+                        <input type="number"
+                            id="item_min_por_inscripcion"
+                            name="item_min_por_inscripcion"
+                            value="1"
+                            min="1"
+                            required
                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                     </div>
 
@@ -1098,7 +1478,10 @@
                             Máximo por compra
                         </label>
 
-                        <input type="number" id="item_max_por_inscripcion" name="item_max_por_inscripcion" min="1"
+                        <input type="number"
+                            id="item_max_por_inscripcion"
+                            name="item_max_por_inscripcion"
+                            min="1"
                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
                             placeholder="Sin límite">
                     </div>
@@ -1110,7 +1493,9 @@
                             Disponible desde
                         </label>
 
-                        <input type="datetime-local" id="item_venta_desde" name="item_venta_desde"
+                        <input type="datetime-local"
+                            id="item_venta_desde"
+                            name="item_venta_desde"
                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                     </div>
 
@@ -1119,16 +1504,23 @@
                             Disponible hasta
                         </label>
 
-                        <input type="datetime-local" id="item_venta_hasta" name="item_venta_hasta"
+                        <input type="datetime-local"
+                            id="item_venta_hasta"
+                            name="item_venta_hasta"
                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                     </div>
                 </div>
 
                 <div class="rounded-xl border border-white/10 p-4">
-                    <input type="hidden" name="item_requiere_participante" value="0">
+                    <input type="hidden"
+                        name="item_requiere_participante"
+                        value="0">
 
                     <label class="flex gap-3">
-                        <input type="checkbox" id="item_requiere_participante" name="item_requiere_participante" value="1">
+                        <input type="checkbox"
+                            id="item_requiere_participante"
+                            name="item_requiere_participante"
+                            value="1">
 
                         <div>
                             <p class="text-sm font-medium text-gray-300">
@@ -1140,11 +1532,15 @@
             </div>
 
             <div class="flex flex-col-reverse gap-3 border-t border-white/10 p-4 sm:flex-row sm:justify-end">
-                <button type="button" id="cancelarModalItem" class="rounded-xl border border-white/10 px-5 py-3 text-sm text-gray-400">
+                <button type="button"
+                    id="cancelarModalItem"
+                    class="rounded-xl border border-white/10 px-5 py-3 text-sm text-gray-400">
                     Cancelar
                 </button>
 
-                <button type="submit" id="guardarItemTexto" class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
+                <button type="submit"
+                    id="guardarItemTexto"
+                    class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
                     Agregar elemento
                 </button>
             </div>
@@ -1181,13 +1577,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .replaceAll("'", '&#039;');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PRODUCTOS
-    |--------------------------------------------------------------------------
-    */
-
-        const modalItem = document.getElementById('modalItem');
+    const modalItem = document.getElementById('modalItem');
 
     if (modalItem) {
         const formItem = document.getElementById('formItem');
@@ -1213,7 +1603,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function cerrarItem() {
             liberarPreviewTemporal();
-
             modalItem.classList.add('hidden');
             modalItem.classList.remove('flex');
         }
@@ -1466,8 +1855,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         metodoItem.disabled =
                             false;
-
-                        metodoItem.value =
+                                                    metodoItem.value =
                             'PUT';
 
                         tituloItem.textContent =
@@ -1529,12 +1917,6 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | DATOS DEL COMPRADOR
-    |--------------------------------------------------------------------------
-    */
-
     const seccionCampos =
         document.getElementById('seccionCamposPedido');
 
@@ -1592,468 +1974,348 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function actualizarResumen(fila) {
             const nombre =
-                fila.querySelector('.campoNombre')
-                    .value
-                    .trim()
-                || 'Dato sin nombre';
+                fila.querySelector(
+                    '.campoNombre'
+                ).value.trim();
 
             const tipo =
-                fila.querySelector('.campoTipo')
-                    .value;
+                fila.querySelector(
+                    '.campoTipo'
+                ).value;
 
             const requerido =
-                fila.querySelector('.campoRequerido')
-                    .checked;
+                fila.querySelector(
+                    '.campoRequerido'
+                ).checked;
 
-            const opciones =
-                fila.querySelector('.campoOpciones')
-                    .value
-                    .split(/[\n,]+/)
-                    .map(valor => valor.trim())
-                    .filter(Boolean);
+            const resumen =
+                fila.querySelector(
+                    '.campoResumen'
+                );
 
-            fila.querySelector('.resumenNombre')
-                .textContent =
-                nombre;
+            resumen.textContent =
+                `${nombre || 'Dato sin nombre'} · ${tipoBonito(tipo)}${requerido ? ' · obligatorio' : ''}`;
+        }
 
-            let detalle =
-                tipoBonito(tipo);
+        function actualizarOpciones(fila) {
+            const tipo =
+                fila.querySelector(
+                    '.campoTipo'
+                ).value;
+
+            const seccionOpciones =
+                fila.querySelector(
+                    '.seccionOpciones'
+                );
 
             if (tipo === 'lista') {
-                detalle +=
-                    ` · ${opciones.length} opciones`;
+                seccionOpciones.classList.remove(
+                    'hidden'
+                );
+            } else {
+                seccionOpciones.classList.add(
+                    'hidden'
+                );
             }
+        }
 
-            detalle += requerido
-                ? ' · Obligatorio'
-                : ' · Opcional';
+        function expandirFila(fila) {
+            fila.querySelector('.campoCuerpo')
+                ?.classList.remove('hidden');
 
-            fila.querySelector('.resumenDetalle')
-                .textContent =
-                detalle;
+            fila.querySelector('.campoChevron').textContent =
+                '−';
+        }
+
+        function contraerFila(fila) {
+            fila.querySelector('.campoCuerpo')
+                ?.classList.add('hidden');
+
+            fila.querySelector('.campoChevron').textContent =
+                '+';
+
+            actualizarResumen(fila);
         }
 
         function renderPreview() {
+            if (!preview) {
+                return;
+            }
+
             preview.innerHTML = '';
 
             const filas =
-                contenedor.querySelectorAll(
-                    '.campoPedido'
+                Array.from(
+                    contenedor.querySelectorAll('.filaCampo')
                 );
 
             if (filas.length === 0) {
-                preview.innerHTML =
-                    '<p class="text-sm text-gray-600">Agrega un dato para ver la vista previa.</p>';
-
+                preview.innerHTML = `
+                    <div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs leading-5 text-gray-600">
+                        Agrega un dato para visualizar cómo se mostrará al comprador.
+                    </div>
+                `;
                 return;
             }
 
             filas.forEach(fila => {
                 const nombre =
-                    fila.querySelector('.campoNombre')
-                        .value
-                        .trim()
-                    || 'Dato sin nombre';
+                    fila.querySelector('.campoNombre')?.value.trim() || 'Dato sin nombre';
 
                 const tipo =
-                    fila.querySelector('.campoTipo')
-                        .value;
+                    fila.querySelector('.campoTipo')?.value || 'texto';
 
                 const requerido =
-                    fila.querySelector('.campoRequerido')
-                        .checked;
+                    fila.querySelector('.campoRequerido')?.checked;
 
-                const opcionesTexto =
-                    fila.querySelector('.campoOpciones')
-                        .value;
+                const opciones =
+                    (fila.querySelector('.campoOpciones')?.value || '')
+                        .split('\n')
+                        .map(valor => valor.trim())
+                        .filter(Boolean);
 
                 const bloque =
                     document.createElement('div');
 
-                const label =
-                    document.createElement('label');
+                bloque.className =
+                    'rounded-xl border border-white/10 bg-white/[0.02] p-4';
 
-                label.className =
-                    'mb-2 block text-sm font-medium text-gray-300';
-
-                label.textContent =
-                    nombre
-                    + (
-                        requerido
-                            ? ' *'
-                            : ''
-                    );
-
-                bloque.appendChild(label);
+                let control = '';
 
                 if (tipo === 'lista') {
-                    const select =
-                        document.createElement('select');
-
-                    select.disabled = true;
-
-                    select.className =
-                        'block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-gray-400';
-
-                    const placeholder =
-                        document.createElement('option');
-
-                    placeholder.textContent =
-                        'Selecciona una opción';
-
-                    select.appendChild(
-                        placeholder
-                    );
-
-                    opcionesTexto
-                        .split(/[\n,]+/)
-                        .map(
-                            valor =>
-                                valor.trim()
-                        )
-                        .filter(Boolean)
-                        .forEach(opcion => {
-                            const option =
-                                document.createElement(
-                                    'option'
-                                );
-
-                            option.textContent =
-                                opcion;
-
-                            select.appendChild(
-                                option
-                            );
-                        });
-
-                    bloque.appendChild(
-                        select
-                    );
+                    control = `
+                        <select disabled class="mt-2 block w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-gray-500">
+                            <option>Selecciona una opción</option>
+                            ${opciones.map(opcion => `<option>${escaparHtml(opcion)}</option>`).join('')}
+                        </select>
+                    `;
+                } else if (tipo === 'numero') {
+                    control = `
+                        <input type="number" disabled
+                            class="mt-2 block w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-gray-500"
+                            placeholder="Ingresa un número">
+                    `;
                 } else {
-                    const input =
-                        document.createElement('input');
-
-                    input.disabled = true;
-
-                    input.type =
-                        tipo === 'numero'
-                            ? 'number'
-                            : 'text';
-
-                    input.placeholder =
-                        tipo === 'numero'
-                            ? 'Ingresa un número'
-                            : 'Escribe aquí';
-
-                    input.className =
-                        'block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-gray-500';
-
-                    bloque.appendChild(
-                        input
-                    );
+                    control = `
+                        <input type="text" disabled
+                            class="mt-2 block w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-gray-500"
+                            placeholder="Escribe aquí">
+                    `;
                 }
 
-                preview.appendChild(
-                    bloque
-                );
+                bloque.innerHTML = `
+                    <label class="text-sm font-medium text-gray-300">
+                        ${escaparHtml(nombre)}
+                        ${requerido ? '<span class="text-red-400">*</span>' : ''}
+                    </label>
+                    ${control}
+                `;
+
+                preview.appendChild(bloque);
             });
         }
 
-        function contraerFila(fila) {
-            fila.querySelector('.campoCuerpo')
-                .classList.add('hidden');
-
-            fila.querySelector('.iconoExpandir')
-                .textContent =
-                '⌄';
-
-            actualizarResumen(fila);
-        }
-
-        function expandirFila(fila) {
-            contenedor
-                .querySelectorAll('.campoPedido')
-                .forEach(otra => {
-                    if (otra !== fila) {
-                        contraerFila(
-                            otra
-                        );
-                    }
-                });
-
-            fila.querySelector('.campoCuerpo')
-                .classList.remove('hidden');
-
-            fila.querySelector('.iconoExpandir')
-                .textContent =
-                '⌃';
-        }
-
-        function agregarCampo(
-            datos = null,
-            contraido = false
-        ) {
-            const indice =
-                contador++;
+        function agregarCampo(campo = null, contraido = false) {
+            contador++;
 
             const fila =
                 document.createElement('div');
 
             fila.className =
-                'campoPedido overflow-hidden rounded-2xl border border-white/10 bg-black/10';
+                'filaCampo overflow-hidden rounded-xl border border-white/10 bg-black/10';
+
+            const nombre =
+                campo?.label ?? '';
+
+            const tipo =
+                campo?.type ?? 'texto';
+
+            const requerido =
+                Boolean(campo?.required);
+
+            const opciones =
+                Array.isArray(campo?.options)
+                    ? campo.options.join('\n')
+                    : '';
 
             fila.innerHTML = `
-                <button type="button"
-                    class="cabeceraCampo flex w-full items-center justify-between gap-3 p-4 text-left">
-
+                <div class="cabeceraCampo flex cursor-pointer items-center justify-between gap-3 p-4">
                     <div class="min-w-0">
-                        <p class="resumenNombre truncate font-semibold text-white">
-                            Nuevo dato
+                        <p class="font-medium text-white">
+                            Dato ${contador}
                         </p>
-
-                        <p class="resumenDetalle mt-1 truncate text-xs text-gray-500">
-                            Configura este dato
-                        </p>
+                        <p class="campoResumen mt-1 truncate text-xs text-gray-500"></p>
                     </div>
 
-                    <span class="iconoExpandir text-gray-500">
-                        ⌃
-                    </span>
-                </button>
+                    <button type="button"
+                        class="campoChevron flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 text-gray-400">
+                        −
+                    </button>
+                </div>
 
                 <div class="campoCuerpo border-t border-white/10 p-4">
-                    <div class="flex items-start gap-3">
-                        <div class="flex-1">
-                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Nombre
-                            </label>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-gray-300">
+                            Nombre del dato
+                        </label>
 
-                            <input type="text"
-                                name="campos[${indice}][nombre]"
-                                required
-                                class="campoNombre block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
-                                placeholder="Ej. Talla">
-                        </div>
-
-                        <button type="button"
-                            class="btnQuitarCampo mt-6 h-10 w-10 rounded-xl border border-red-500/20 text-red-400">
-                            ×
-                        </button>
+                        <input type="text"
+                            name="campos[${contador}][label]"
+                            value="${escaparHtml(nombre)}"
+                            maxlength="100"
+                            required
+                            class="campoNombre block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
+                            placeholder="Ej. Talla, color, nombre personalizado">
                     </div>
 
                     <div class="mt-4">
-                        <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Tipo de respuesta
+                        <label class="mb-2 block text-sm font-medium text-gray-300">
+                            Tipo de dato
                         </label>
 
-                        <select name="campos[${indice}][tipo]"
+                        <select name="campos[${contador}][type]"
                             class="campoTipo block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white">
-
-                            <option value="lista">Lista de opciones</option>
-                            <option value="texto">Campo de texto</option>
-                            <option value="numero">Campo numérico</option>
+                            <option value="texto" ${tipo === 'texto' ? 'selected' : ''}>Texto</option>
+                            <option value="numero" ${tipo === 'numero' ? 'selected' : ''}>Número</option>
+                            <option value="lista" ${tipo === 'lista' ? 'selected' : ''}>Lista de opciones</option>
                         </select>
                     </div>
 
-                    <div class="campoOpcionesContenedor mt-4">
-                        <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    <div class="seccionOpciones mt-4 hidden">
+                        <label class="mb-2 block text-sm font-medium text-gray-300">
                             Opciones
                         </label>
 
-                        <textarea name="campos[${indice}][opciones]"
-                            rows="3"
+                        <textarea name="campos[${contador}][options]"
+                            rows="5"
                             class="campoOpciones block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
-                            placeholder="S, M, L, XL"></textarea>
+                            placeholder="Una opción por línea">${escaparHtml(opciones)}</textarea>
+
+                        <p class="mt-2 text-xs text-gray-600">
+                            Escribe una opción por línea.
+                        </p>
                     </div>
 
-                    <div class="mt-4">
+                    <div class="mt-4 rounded-xl border border-white/10 p-4">
                         <input type="hidden"
-                            name="campos[${indice}][requerido]"
+                            name="campos[${contador}][required]"
                             value="0">
 
-                        <label class="flex gap-3">
+                        <label class="flex cursor-pointer items-start gap-3">
                             <input type="checkbox"
-                                name="campos[${indice}][requerido]"
+                                name="campos[${contador}][required]"
                                 value="1"
-                                class="campoRequerido">
+                                class="campoRequerido mt-1"
+                                ${requerido ? 'checked' : ''}>
 
-                            <span class="text-sm text-gray-300">
-                                Será obligatorio
-                            </span>
+                            <div>
+                                <p class="text-sm font-medium text-gray-300">
+                                    Dato obligatorio
+                                </p>
+
+                                <p class="mt-1 text-xs text-gray-600">
+                                    La persona deberá completarlo antes de continuar.
+                                </p>
+                            </div>
                         </label>
                     </div>
 
-                    <div class="mt-5 flex justify-end">
+                    <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
                         <button type="button"
-                            class="btnListoCampo rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300">
+                            class="btnQuitarCampo rounded-xl border border-red-500/20 px-4 py-2.5 text-sm font-semibold text-red-400">
+                            Eliminar dato
+                        </button>
+
+                        <button type="button"
+                            class="btnListoCampo rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2.5 text-sm font-semibold text-blue-300">
                             Listo
                         </button>
                     </div>
                 </div>
             `;
 
-            const nombre =
-                fila.querySelector(
-                    '.campoNombre'
-                );
-
-            const tipo =
-                fila.querySelector(
-                    '.campoTipo'
-                );
-
-            const opciones =
-                fila.querySelector(
-                    '.campoOpciones'
-                );
-
-            const opcionesContenedor =
-                fila.querySelector(
-                    '.campoOpcionesContenedor'
-                );
-
-            const requerido =
-                fila.querySelector(
-                    '.campoRequerido'
-                );
-
-            if (datos) {
-                nombre.value =
-                    datos.label ?? '';
-
-                tipo.value =
-                    datos.type ?? 'lista';
-
-                requerido.checked =
-                    datos.required === true;
-
-                if (
-                    Array.isArray(
-                        datos.options
-                    )
-                ) {
-                    opciones.value =
-                        datos.options.join(
-                            ', '
-                        );
-                }
-            }
-
-            function actualizarTipo() {
-                opcionesContenedor
-                    .classList.toggle(
-                        'hidden',
-                        tipo.value
-                            !== 'lista'
-                    );
-
-                actualizarResumen(
-                    fila
-                );
-
+            const actualizarTipo = () => {
+                actualizarOpciones(fila);
+                actualizarResumen(fila);
                 renderPreview();
-            }
+            };
 
-            nombre.addEventListener(
-                'input',
-                function () {
-                    actualizarResumen(
-                        fila
-                    );
-
+            fila.querySelector('.campoNombre')
+                .addEventListener('input', function () {
+                    actualizarResumen(fila);
                     renderPreview();
-                }
-            );
+                });
 
-            tipo.addEventListener(
-                'change',
-                actualizarTipo
-            );
+            fila.querySelector('.campoTipo')
+                .addEventListener('change', actualizarTipo);
 
-            opciones.addEventListener(
-                'input',
-                function () {
-                    actualizarResumen(
-                        fila
-                    );
+            fila.querySelector('.campoOpciones')
+                .addEventListener('input', renderPreview);
 
+            fila.querySelector('.campoRequerido')
+                .addEventListener('change', function () {
+                    actualizarResumen(fila);
                     renderPreview();
-                }
-            );
-
-            requerido.addEventListener(
-                'change',
-                function () {
-                    actualizarResumen(
-                        fila
-                    );
-
-                    renderPreview();
-                }
-            );
-
-            fila.querySelector('.cabeceraCampo')
-                .addEventListener(
-                    'click',
-                    function () {
-                        if (
-                            fila.querySelector('.campoCuerpo')
-                                .classList
-                                .contains('hidden')
-                        ) {
-                            expandirFila(
-                                fila
-                            );
-                        } else {
-                            contraerFila(
-                                fila
-                            );
-                        }
-                    }
-                );
-
-            fila.querySelector('.btnListoCampo')
-                .addEventListener(
-                    'click',
-                    function () {
-                        contraerFila(
-                            fila
-                        );
-                    }
-                );
+                });
 
             fila.querySelector('.btnQuitarCampo')
-                .addEventListener(
-                    'click',
-                    function () {
-                        fila.remove();
-                        renderPreview();
-                    }
-                );
+                .addEventListener('click', function () {
+                    fila.remove();
+                    renderPreview();
+                });
 
-            contenedor.appendChild(
-                fila
-            );
+            fila.querySelector('.btnListoCampo')
+                .addEventListener('click', function () {
+                    contraerFila(fila);
+                    renderPreview();
+                });
+
+            fila.querySelector('.cabeceraCampo')
+                .addEventListener('click', function (event) {
+                    if (event.target.closest('button')) {
+                        return;
+                    }
+
+                    const cuerpo =
+                        fila.querySelector('.campoCuerpo');
+
+                    if (cuerpo.classList.contains('hidden')) {
+                        expandirFila(fila);
+                    } else {
+                        contraerFila(fila);
+                    }
+                });
+
+            fila.querySelector('.campoChevron')
+                .addEventListener('click', function (event) {
+                    event.stopPropagation();
+
+                    const cuerpo =
+                        fila.querySelector('.campoCuerpo');
+
+                    if (cuerpo.classList.contains('hidden')) {
+                        expandirFila(fila);
+                    } else {
+                        contraerFila(fila);
+                    }
+                });
+
+            contenedor.appendChild(fila);
 
             actualizarTipo();
+            actualizarResumen(fila);
 
             if (contraido) {
-                contraerFila(
-                    fila
-                );
+                contraerFila(fila);
             } else {
-                expandirFila(
-                    fila
-                );
+                expandirFila(fila);
             }
 
             renderPreview();
         }
 
         document
-            .querySelectorAll(
-                'input[name="requiere_datos"]'
-            )
+            .querySelectorAll('input[name="requiere_datos"]')
             .forEach(radio => {
                 radio.addEventListener(
                     'change',
@@ -2063,74 +2325,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document
             .getElementById('btnAgregarCampo')
-            .addEventListener(
-                'click',
-                function () {
-                    agregarCampo(
-                        null,
-                        false
-                    );
-                }
-            );
+            ?.addEventListener('click', function () {
+                agregarCampo(null, false);
+            });
 
         if (
-            config?.enabled
-            && Array.isArray(
-                config.fields
-            )
+            config
+            && config.enabled
+            && Array.isArray(config.fields)
         ) {
-            config.fields.forEach(
-                campo => {
-                    agregarCampo(
-                        campo,
-                        true
-                    );
-                }
-            );
+            config.fields.forEach(campo => {
+                agregarCampo(campo, true);
+            });
         }
 
         actualizarVisibilidad();
         renderPreview();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | AUMENTOS DE PRECIO Y COSTO
-    |--------------------------------------------------------------------------
-    */
-
     const seccionAjustes =
-        document.getElementById(
-            'seccionAjustesPrecio'
-        );
+        document.getElementById('seccionAjustesPrecio');
 
     if (seccionAjustes) {
-        const formAjustes =
-            document.getElementById(
-                'formAjustesPrecio'
-            );
-
-        const datos =
+        const datosPrecio =
             decodificarBase64Json(
-                document.getElementById(
-                    'datosPrecioActual'
-                ).value
-            );
+                document.getElementById('datosPrecioActual').value
+            ) || {};
 
-        const contenedor =
-            document.getElementById(
-                'contenedorAjustesPrecio'
-            );
+        const configPrecio =
+            datosPrecio.config || null;
 
-        const btnAgregar =
-            document.getElementById(
-                'btnAgregarAjuste'
-            );
+        const camposDisponibles =
+            Array.isArray(datosPrecio.campos)
+                ? datosPrecio.campos
+                : [];
+
+        const contenedorAjustes =
+            document.getElementById('contenedorAjustesPrecio');
 
         const mensajeSinOpciones =
-            document.getElementById(
-                'mensajeSinOpcionesAjuste'
-            );
+            document.getElementById('mensajeSinOpcionesAjuste');
 
         let contadorAjustes = 0;
 
@@ -2139,67 +2373,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll(
                     '.campoPrecioCheckbox:checked'
                 )
-            ).map(
-                input =>
-                    input.value
+            ).map(input => input.value);
+        }
+
+        function buscarCampo(clave) {
+            return camposDisponibles.find(
+                campo => campo.key === clave
             );
         }
 
-        function obtenerCampo(clave) {
-            return (
-                datos?.campos ?? []
-            ).find(
-                campo =>
-                    campo.key === clave
-            );
-        }
-
-        function actualizarVisibilidad() {
-            const radio =
-                document.querySelector(
-                    'input[name="tiene_cambios"]:checked'
-                );
-
-            seccionAjustes.classList.toggle(
-                'hidden',
-                radio?.value !== '1'
-            );
-        }
-
-        function combinacionesUsadas(
-            filaIgnorada = null
+        function obtenerOpcionesUsadas(
+            ignorarFila = null
         ) {
-            const usados =
-                new Set();
+            const usados = new Set();
 
-            contenedor
-                .querySelectorAll(
-                    '.ajusteFila'
-                )
+            contenedorAjustes
+                .querySelectorAll('.filaAjustePrecio')
                 .forEach(fila => {
-                    if (
-                        fila ===
-                        filaIgnorada
-                    ) {
+                    if (fila === ignorarFila) {
                         return;
                     }
 
                     const campo =
-                        fila.querySelector(
-                            '.ajusteCampo'
-                        )?.value;
+                        fila.querySelector('.ajusteCampo')?.value;
 
                     const opcion =
-                        fila.querySelector(
-                            '.ajusteOpcion'
-                        )?.value;
+                        fila.querySelector('.ajusteOpcion')?.value;
 
-                    if (
-                        campo
-                        && opcion
-                    ) {
+                    if (campo && opcion) {
                         usados.add(
-                            `${campo}|||${opcion}`
+                            `${campo}::${opcion}`
                         );
                     }
                 });
@@ -2207,151 +2410,153 @@ document.addEventListener('DOMContentLoaded', function () {
             return usados;
         }
 
-        function opcionesDisponiblesParaCampo(
-            campoClave,
-            filaActual = null
+        function combinacionesDisponibles(
+            ignorarFila = null
         ) {
-            const campo =
-                obtenerCampo(
-                    campoClave
-                );
-
-            if (!campo) {
-                return [];
-            }
-
-            const usados =
-                combinacionesUsadas(
-                    filaActual
-                );
-
-            return (
-                campo.options ?? []
-            ).filter(opcion => {
-                return !usados.has(
-                    `${campoClave}|||${opcion}`
-                );
-            });
-        }
-
-        function rellenarSelectCampo(
-            fila,
-            campoActual = null
-        ) {
-            const selectCampo =
-                fila.querySelector(
-                    '.ajusteCampo'
-                );
-
             const seleccionados =
                 camposSeleccionados();
 
-            selectCampo.innerHTML = '';
+            const usados =
+                obtenerOpcionesUsadas(
+                    ignorarFila
+                );
 
-            seleccionados.forEach(
-                clave => {
-                    const campo =
-                        obtenerCampo(
-                            clave
-                        );
+            const combinaciones = [];
 
-                    const disponibles =
-                        opcionesDisponiblesParaCampo(
-                            clave,
-                            fila
-                        );
+            seleccionados.forEach(clave => {
+                const campo =
+                    buscarCampo(clave);
 
-                    const seleccionFila =
-                        fila.querySelector(
-                            '.ajusteOpcion'
-                        )?.value;
-
-                    const permitirCampo =
-                        disponibles.length > 0
-                        || (
-                            campoActual === clave
-                            && seleccionFila
-                        );
-
-                    if (!permitirCampo) {
-                        return;
-                    }
-
-                    const option =
-                        document.createElement(
-                            'option'
-                        );
-
-                    option.value =
-                        clave;
-
-                    option.textContent =
-                        campo?.label
-                        ?? clave;
-
-                    selectCampo.appendChild(
-                        option
-                    );
+                if (!campo) {
+                    return;
                 }
+
+                (campo.options || []).forEach(opcion => {
+                    const identificador =
+                        `${clave}::${opcion}`;
+
+                    if (!usados.has(identificador)) {
+                        combinaciones.push({
+                            campo: clave,
+                            opcion: opcion,
+                        });
+                    }
+                });
+            });
+
+            return combinaciones;
+        }
+
+        function actualizarBotonAgregar() {
+            const boton =
+                document.getElementById(
+                    'btnAgregarAjuste'
+                );
+
+            const disponibles =
+                combinacionesDisponibles();
+
+            const hayCampos =
+                camposSeleccionados().length > 0;
+
+            if (boton) {
+                boton.disabled =
+                    !hayCampos
+                    || disponibles.length === 0;
+
+                boton.classList.toggle(
+                    'opacity-40',
+                    boton.disabled
+                );
+
+                boton.classList.toggle(
+                    'cursor-not-allowed',
+                    boton.disabled
+                );
+            }
+
+            mensajeSinOpciones?.classList.toggle(
+                'hidden',
+                !hayCampos
+                    || disponibles.length > 0
             );
+        }
+
+        function llenarSelectCampos(
+            select,
+            valorActual = ''
+        ) {
+            const seleccionados =
+                camposSeleccionados();
+
+            select.innerHTML =
+                '<option value="">Selecciona un dato</option>';
+
+            seleccionados.forEach(clave => {
+                const campo =
+                    buscarCampo(clave);
+
+                if (!campo) {
+                    return;
+                }
+
+                const option =
+                    document.createElement('option');
+
+                option.value =
+                    campo.key;
+
+                option.textContent =
+                    campo.label;
+
+                select.appendChild(option);
+            });
 
             if (
-                campoActual
-                && seleccionados.includes(
-                    campoActual
-                )
+                valorActual
+                && seleccionados.includes(valorActual)
             ) {
-                selectCampo.value =
-                    campoActual;
+                select.value =
+                    valorActual;
             }
         }
 
-        function rellenarOpcionesFila(
+        function llenarSelectOpciones(
             fila,
-            opcionActual = null
+            valorActual = ''
         ) {
-            const campoClave =
-                fila.querySelector(
-                    '.ajusteCampo'
-                ).value;
+            const selectCampo =
+                fila.querySelector('.ajusteCampo');
 
-            const select =
-                fila.querySelector(
-                    '.ajusteOpcion'
-                );
+            const selectOpcion =
+                fila.querySelector('.ajusteOpcion');
 
             const campo =
-                obtenerCampo(
-                    campoClave
-                );
+                buscarCampo(selectCampo.value);
 
             const usados =
-                combinacionesUsadas(
-                    fila
-                );
+                obtenerOpcionesUsadas(fila);
 
-            select.innerHTML = '';
+            selectOpcion.innerHTML =
+                '<option value="">Selecciona una opción</option>';
 
-            (
-                campo?.options ?? []
-            ).forEach(opcion => {
+            if (!campo) {
+                return;
+            }
+
+            (campo.options || []).forEach(opcion => {
                 const identificador =
-                    `${campoClave}|||${opcion}`;
+                    `${campo.key}::${opcion}`;
 
                 if (
-                    usados.has(
-                        identificador
-                    )
-                    && opcion
-                        !== opcionActual
+                    usados.has(identificador)
+                    && opcion !== valorActual
                 ) {
                     return;
                 }
 
                 const option =
-                    document.createElement(
-                        'option'
-                    );
+                    document.createElement('option');
 
                 option.value =
                     opcion;
@@ -2359,356 +2564,245 @@ document.addEventListener('DOMContentLoaded', function () {
                 option.textContent =
                     opcion;
 
-                select.appendChild(
-                    option
-                );
+                selectOpcion.appendChild(option);
             });
 
-            if (
-                opcionActual
-                && Array.from(
-                    select.options
-                ).some(
-                    option =>
-                        option.value
-                        === opcionActual
-                )
-            ) {
-                select.value =
-                    opcionActual;
+            if (valorActual) {
+                selectOpcion.value =
+                    valorActual;
             }
         }
 
-        function hayOpcionesDisponibles() {
-            const seleccionados =
-                camposSeleccionados();
-
-            return seleccionados.some(
-                clave => {
-                    return opcionesDisponiblesParaCampo(
-                        clave
-                    ).length > 0;
-                }
-            );
-        }
-
-        function actualizarEstadoAgregar() {
-            const hay =
-                hayOpcionesDisponibles();
-
-            btnAgregar.disabled =
-                !hay;
-
-            btnAgregar.classList.toggle(
-                'opacity-40',
-                !hay
-            );
-
-            btnAgregar.classList.toggle(
-                'cursor-not-allowed',
-                !hay
-            );
-
-            mensajeSinOpciones.classList.toggle(
-                'hidden',
-                hay
-            );
-        }
-
-        function actualizarTodasLasFilas(
-            filaOrigen = null
-        ) {
-            const filas =
-                Array.from(
-                    contenedor.querySelectorAll(
-                        '.ajusteFila'
-                    )
-                );
-
-            filas.forEach(fila => {
-                if (
-                    fila === filaOrigen
-                ) {
-                    return;
-                }
-
-                const campoActual =
-                    fila.querySelector(
-                        '.ajusteCampo'
-                    ).value;
-
-                const opcionActual =
-                    fila.querySelector(
-                        '.ajusteOpcion'
-                    ).value;
-
-                rellenarSelectCampo(
-                    fila,
-                    campoActual
-                );
-
-                if (
-                    !fila.querySelector(
-                        '.ajusteCampo'
-                    ).value
-                ) {
-                    fila.remove();
-                    return;
-                }
-
-                rellenarOpcionesFila(
-                    fila,
-                    opcionActual
-                );
-
-                const selectOpcion =
-                    fila.querySelector(
-                        '.ajusteOpcion'
-                    );
-
-                if (
-                    selectOpcion
-                        .options
-                        .length === 0
-                ) {
-                    fila.remove();
-                }
-            });
-
-            actualizarEstadoAgregar();
-        }
-
-        function actualizarResumenAjuste(
-            fila
-        ) {
+        function actualizarResumenAjuste(fila) {
             const campoClave =
-                fila.querySelector(
-                    '.ajusteCampo'
-                )?.value;
+                fila.querySelector('.ajusteCampo')?.value;
 
             const opcion =
-                fila.querySelector(
-                    '.ajusteOpcion'
-                )?.value
-                || 'Opción';
+                fila.querySelector('.ajusteOpcion')?.value;
 
-            const campo =
-                obtenerCampo(
-                    campoClave
+            const aumentoPrecio =
+                parseFloat(
+                                        fila.querySelector('.ajustePrecio')?.value || 0
                 );
 
-            const precio =
-                Number(
-                    fila.querySelector(
-                        '.aumentoPrecio'
-                    )?.value || 0
-                ).toFixed(2);
+            const aumentoCosto =
+                parseFloat(
+                    fila.querySelector('.ajusteCosto')?.value || 0
+                );
 
-            const costo =
-                Number(
-                    fila.querySelector(
-                        '.aumentoCosto'
-                    )?.value || 0
-                ).toFixed(2);
+            const campo =
+                buscarCampo(campoClave);
 
-            fila.querySelector(
-                '.resumenAjusteNombre'
-            ).textContent =
-                `${campo?.label ?? 'Dato'} · ${opcion}`;
+            const nombre =
+                fila.querySelector('.resumenAjusteNombre');
 
-            fila.querySelector(
-                '.resumenAjusteDetalle'
-            ).textContent =
-                `+$${precio} precio · +$${costo} costo`;
+            const detalle =
+                fila.querySelector('.resumenAjusteDetalle');
+
+            if (nombre) {
+                nombre.textContent =
+                    campo && opcion
+                        ? `${campo.label}: ${opcion}`
+                        : 'Nueva opción';
+            }
+
+            if (detalle) {
+                detalle.textContent =
+                    `Precio +$${aumentoPrecio.toFixed(2)} · Costo +$${aumentoCosto.toFixed(2)}`;
+            }
         }
 
-        function contraerAjuste(
-            fila
-        ) {
-            fila.querySelector(
-                '.ajusteCuerpo'
-            ).classList.add(
-                'hidden'
-            );
+        function contraerAjuste(fila) {
+            fila.querySelector('.ajusteCuerpo')
+                ?.classList.add('hidden');
 
-            fila.querySelector(
-                '.iconoAjuste'
-            ).textContent =
-                '⌄';
+            const icono =
+                fila.querySelector('.iconoAjuste');
 
-            actualizarResumenAjuste(
-                fila
-            );
+            if (icono) {
+                icono.textContent = '⌄';
+            }
+
+            actualizarResumenAjuste(fila);
         }
 
-        function expandirAjuste(
-            fila
-        ) {
-            fila.querySelector(
-                '.ajusteCuerpo'
-            ).classList.remove(
-                'hidden'
-            );
+        function expandirAjuste(fila) {
+            contenedorAjustes
+                .querySelectorAll('.filaAjustePrecio')
+                .forEach(otra => {
+                    if (otra !== fila) {
+                        contraerAjuste(otra);
+                    }
+                });
 
-            fila.querySelector(
-                '.iconoAjuste'
-            ).textContent =
-                '⌃';
+            fila.querySelector('.ajusteCuerpo')
+                ?.classList.remove('hidden');
+
+            const icono =
+                fila.querySelector('.iconoAjuste');
+
+            if (icono) {
+                icono.textContent = '⌃';
+            }
         }
 
         function agregarAjuste(
-            regla = null
+            datos = null,
+            contraido = false
         ) {
-            const seleccionados =
-                camposSeleccionados();
-
-            if (
-                seleccionados.length
-                === 0
-            ) {
-                alert(
-                    'Selecciona primero al menos un dato que pueda generar un aumento.'
-                );
-
-                return;
-            }
-
-            if (
-                !hayOpcionesDisponibles()
-                && !regla
-            ) {
-                actualizarEstadoAgregar();
-                return;
-            }
-
             const indice =
                 contadorAjustes++;
 
             const fila =
-                document.createElement(
-                    'div'
-                );
+                document.createElement('div');
 
             fila.className =
-                'ajusteFila overflow-hidden rounded-xl border border-white/10 bg-black/10';
+                'filaAjustePrecio overflow-hidden rounded-2xl border border-white/10 bg-black/10';
 
             fila.innerHTML = `
-                <button type="button" class="cabeceraAjuste flex w-full items-center justify-between gap-3 p-3 text-left sm:p-4">
+                <button type="button"
+                    class="cabeceraAjuste flex w-full items-center justify-between gap-3 p-4 text-left">
                     <div class="min-w-0">
-                        <p class="resumenAjusteNombre truncate text-sm font-semibold text-white">Nueva regla</p>
-                        <p class="resumenAjusteDetalle mt-1 truncate text-xs text-gray-500">Configura el aumento</p>
+                        <p class="resumenAjusteNombre truncate font-semibold text-white">
+                            Nueva opción
+                        </p>
+                        <p class="resumenAjusteDetalle mt-1 truncate text-xs text-gray-500">
+                            Precio +$0.00 · Costo +$0.00
+                        </p>
                     </div>
-
-                    <span class="iconoAjuste shrink-0 text-gray-500">⌃</span>
+                    <span class="iconoAjuste text-gray-500">⌃</span>
                 </button>
 
-                <div class="ajusteCuerpo border-t border-white/10 p-3 sm:p-4">
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="ajusteCuerpo border-t border-white/10 p-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="mb-2 block text-xs text-gray-500">Dato</label>
-                            <select name="ajustes[${indice}][campo]" class="ajusteCampo block w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-3 text-white" required></select>
+                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Dato
+                            </label>
+                            <select name="ajustes[${indice}][campo]"
+                                class="ajusteCampo block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white"
+                                required>
+                            </select>
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-xs text-gray-500">Opción</label>
-                            <select name="ajustes[${indice}][opcion]" class="ajusteOpcion block w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-3 text-white" required></select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-xs text-gray-500">Aumenta precio</label>
-
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">+$</span>
-
-                                <input type="number" name="ajustes[${indice}][aumento_precio]" min="0" step="0.01" value="0.00" required class="aumentoPrecio block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-9 pr-3 text-white">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-xs text-gray-500">Aumenta costo</label>
-
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">+$</span>
-
-                                <input type="number" name="ajustes[${indice}][aumento_costo]" min="0" step="0.01" value="0.00" required class="aumentoCosto block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-9 pr-3 text-white">
-                            </div>
+                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Opción
+                            </label>
+                            <select name="ajustes[${indice}][opcion]"
+                                class="ajusteOpcion block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white"
+                                required>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                        <button type="button" class="btnQuitarAjuste rounded-xl border border-red-500/20 px-4 py-2.5 text-sm text-red-400 transition hover:bg-red-500/10">
-                            Eliminar regla
+                    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Aumento de precio
+                            </label>
+                            <input type="number"
+                                name="ajustes[${indice}][aumento_precio]"
+                                value="0.00"
+                                min="0"
+                                step="0.01"
+                                class="ajustePrecio block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
+                                required>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Aumento de costo
+                            </label>
+                            <input type="number"
+                                name="ajustes[${indice}][aumento_costo]"
+                                value="0.00"
+                                min="0"
+                                step="0.01"
+                                class="ajusteCosto block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 flex items-center justify-between gap-3">
+                        <button type="button"
+                            class="btnQuitarAjuste rounded-xl border border-red-500/20 px-4 py-2 text-sm font-semibold text-red-400">
+                            Eliminar
                         </button>
 
-                        <button type="button" class="btnListoAjuste rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300">
+                        <button type="button"
+                            class="btnListoAjuste rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300">
                             Listo
                         </button>
                     </div>
                 </div>
             `;
 
-            contenedor.appendChild(
-                fila
-            );
-
             const selectCampo =
-                fila.querySelector(
-                    '.ajusteCampo'
-                );
+                fila.querySelector('.ajusteCampo');
 
             const selectOpcion =
-                fila.querySelector(
-                    '.ajusteOpcion'
-                );
+                fila.querySelector('.ajusteOpcion');
 
-            rellenarSelectCampo(
-                fila,
-                regla?.field_key
-                    ?? null
-            );
+            const inputPrecio =
+                fila.querySelector('.ajustePrecio');
 
-            if (!selectCampo.value) {
-                fila.remove();
-                actualizarEstadoAgregar();
-                return;
-            }
+            const inputCosto =
+                fila.querySelector('.ajusteCosto');
 
-            rellenarOpcionesFila(
-                fila,
-                regla?.option
-                    ?? null
+            contenedorAjustes.appendChild(fila);
+
+            llenarSelectCampos(
+                selectCampo,
+                datos?.field_key || ''
             );
 
             if (
-                selectOpcion
-                    .options
-                    .length === 0
+                !selectCampo.value
+                && camposSeleccionados().length > 0
             ) {
-                fila.remove();
-                actualizarEstadoAgregar();
-                return;
+                const disponibles =
+                    combinacionesDisponibles(fila);
+
+                if (disponibles.length > 0) {
+                    selectCampo.value =
+                        disponibles[0].campo;
+                }
             }
 
-            fila.querySelector(
-                '.aumentoPrecio'
-            ).value =
-                Number(
-                    regla?.price_increment
-                    ?? 0
-                ).toFixed(2);
+            llenarSelectOpciones(
+                fila,
+                datos?.option || ''
+            );
 
-            fila.querySelector(
-                '.aumentoCosto'
-            ).value =
-                Number(
-                    regla?.cost_increment
-                    ?? 0
-                ).toFixed(2);
+            if (
+                !selectOpcion.value
+                && selectCampo.value
+            ) {
+                const disponibles =
+                    combinacionesDisponibles(fila)
+                        .filter(
+                            combinacion =>
+                                combinacion.campo
+                                === selectCampo.value
+                        );
+
+                if (disponibles.length > 0) {
+                    selectOpcion.value =
+                        disponibles[0].opcion;
+                }
+            }
+
+            inputPrecio.value =
+                datos?.price_delta ?? '0.00';
+
+            inputCosto.value =
+                datos?.cost_delta ?? '0.00';
 
             selectCampo.addEventListener(
                 'change',
                 function () {
-                    rellenarOpcionesFila(
+                    llenarSelectOpciones(
                         fila
                     );
 
@@ -2716,9 +2810,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         fila
                     );
 
-                    actualizarTodasLasFilas(
-                        fila
-                    );
+                    actualizarBotonAgregar();
                 }
             );
 
@@ -2729,72 +2821,79 @@ document.addEventListener('DOMContentLoaded', function () {
                         fila
                     );
 
-                    actualizarTodasLasFilas(
+                    actualizarBotonAgregar();
+                }
+            );
+
+            inputPrecio.addEventListener(
+                'input',
+                function () {
+                    actualizarResumenAjuste(
                         fila
                     );
                 }
             );
 
-            fila.querySelectorAll(
-                '.aumentoPrecio, .aumentoCosto'
-            ).forEach(input => {
-                input.addEventListener(
-                    'input',
-                    () =>
-                        actualizarResumenAjuste(
-                            fila
-                        )
-                );
-            });
-
-            fila.querySelector(
-                '.cabeceraAjuste'
-            ).addEventListener(
-                'click',
+            inputCosto.addEventListener(
+                'input',
                 function () {
-                    const cuerpo =
-                        fila.querySelector(
-                            '.ajusteCuerpo'
-                        );
-
-                    cuerpo.classList.contains(
-                        'hidden'
-                    )
-                        ? expandirAjuste(
-                            fila
-                        )
-                        : contraerAjuste(
-                            fila
-                        );
-                }
-            );
-
-            fila.querySelector(
-                '.btnListoAjuste'
-            ).addEventListener(
-                'click',
-                () =>
-                    contraerAjuste(
+                    actualizarResumenAjuste(
                         fila
-                    )
-            );
-
-            fila.querySelector(
-                '.btnQuitarAjuste'
-            ).addEventListener(
-                'click',
-                function () {
-                    fila.remove();
-
-                    actualizarTodasLasFilas();
+                    );
                 }
             );
+
+            fila.querySelector('.btnQuitarAjuste')
+                .addEventListener(
+                    'click',
+                    function () {
+                        fila.remove();
+                        actualizarBotonAgregar();
+                    }
+                );
+
+            fila.querySelector('.btnListoAjuste')
+                .addEventListener(
+                    'click',
+                    function () {
+                        contraerAjuste(
+                            fila
+                        );
+
+                        actualizarBotonAgregar();
+                    }
+                );
+
+            fila.querySelector('.cabeceraAjuste')
+                .addEventListener(
+                    'click',
+                    function () {
+                        const cuerpo =
+                            fila.querySelector(
+                                '.ajusteCuerpo'
+                            );
+
+                        if (
+                            cuerpo.classList.contains(
+                                'hidden'
+                            )
+                        ) {
+                            expandirAjuste(
+                                fila
+                            );
+                        } else {
+                            contraerAjuste(
+                                fila
+                            );
+                        }
+                    }
+                );
 
             actualizarResumenAjuste(
                 fila
             );
 
-            if (regla) {
+            if (contraido) {
                 contraerAjuste(
                     fila
                 );
@@ -2804,9 +2903,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             }
 
-            actualizarTodasLasFilas(
-                fila
-            );
+            actualizarBotonAgregar();
+        }
+
+        function actualizarVisibilidadPrecios() {
+            const seleccionado =
+                document.querySelector(
+                    'input[name="tiene_cambios"]:checked'
+                );
+
+            if (seleccionado?.value === '1') {
+                seccionAjustes.classList.remove(
+                    'hidden'
+                );
+            } else {
+                seccionAjustes.classList.add(
+                    'hidden'
+                );
+            }
+
+            actualizarBotonAgregar();
         }
 
         document
@@ -2816,7 +2932,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .forEach(radio => {
                 radio.addEventListener(
                     'change',
-                    actualizarVisibilidad
+                    actualizarVisibilidadPrecios
                 );
             });
 
@@ -2828,188 +2944,135 @@ document.addEventListener('DOMContentLoaded', function () {
                 checkbox.addEventListener(
                     'change',
                     function () {
-                        const activos =
+                        const seleccionados =
                             camposSeleccionados();
 
-                        contenedor
+                        contenedorAjustes
                             .querySelectorAll(
-                                '.ajusteFila'
+                                '.filaAjustePrecio'
                             )
                             .forEach(fila => {
-                                const campo =
+                                const select =
                                     fila.querySelector(
                                         '.ajusteCampo'
-                                    ).value;
+                                    );
 
                                 if (
-                                    campo
-                                    && !activos.includes(
-                                        campo
+                                    select.value
+                                    && !seleccionados.includes(
+                                        select.value
                                     )
                                 ) {
                                     fila.remove();
+                                    return;
                                 }
+
+                                const valorActual =
+                                    select.value;
+
+                                llenarSelectCampos(
+                                    select,
+                                    valorActual
+                                );
+
+                                llenarSelectOpciones(
+                                    fila,
+                                    fila.querySelector(
+                                        '.ajusteOpcion'
+                                    ).value
+                                );
                             });
 
-                        actualizarTodasLasFilas();
+                        actualizarBotonAgregar();
                     }
                 );
             });
 
-        btnAgregar.addEventListener(
-            'click',
-            function () {
-                agregarAjuste();
-            }
-        );
+        document
+            .getElementById('btnAgregarAjuste')
+            ?.addEventListener(
+                'click',
+                function () {
+                    if (
+                        combinacionesDisponibles()
+                            .length === 0
+                    ) {
+                        actualizarBotonAgregar();
+                        return;
+                    }
 
-        const reglasExistentes =
-            datos?.config?.rules
-            ?? [];
-
-        reglasExistentes.forEach(
-            regla => {
-                agregarAjuste(
-                    regla
-                );
-            }
-        );
-
-        formAjustes?.addEventListener(
-            'submit',
-            function (event) {
-                const usados =
-                    new Set();
-
-                let duplicado =
-                    false;
-
-                contenedor
-                    .querySelectorAll(
-                        '.ajusteFila'
-                    )
-                    .forEach(fila => {
-                        const campo =
-                            fila.querySelector(
-                                '.ajusteCampo'
-                            ).value;
-
-                        const opcion =
-                            fila.querySelector(
-                                '.ajusteOpcion'
-                            ).value;
-
-                        const clave =
-                            `${campo}|||${opcion}`;
-
-                        if (
-                            usados.has(
-                                clave
-                            )
-                        ) {
-                            duplicado =
-                                true;
-                        }
-
-                        usados.add(
-                            clave
-                        );
-                    });
-
-                if (duplicado) {
-                    event.preventDefault();
-
-                    alert(
-                        'Una misma opción no puede configurarse dos veces.'
+                    agregarAjuste(
+                        null,
+                        false
                     );
                 }
-            }
-        );
+            );
 
-        actualizarVisibilidad();
-        actualizarEstadoAgregar();
+        if (
+            configPrecio
+            && configPrecio.enabled
+            && Array.isArray(
+                configPrecio.adjustments
+            )
+        ) {
+            configPrecio.adjustments
+                .forEach(ajuste => {
+                    agregarAjuste(
+                        ajuste,
+                        true
+                    );
+                });
+        }
+
+        actualizarVisibilidadPrecios();
+        actualizarBotonAgregar();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SESIONES
-    |--------------------------------------------------------------------------
-    */
-
     const formSesiones =
-        document.getElementById(
-            'formSesiones'
-        );
+        document.getElementById('formSesiones');
 
     if (formSesiones) {
-        const seccionSesiones =
-            document.getElementById(
-                'seccionSesiones'
-            );
-
-        const panelSesionUnica =
-            document.getElementById(
-                'panelSesionUnica'
-            );
-
         const contenedor =
-            document.getElementById(
-                'contenedorSesiones'
-            );
+            document.getElementById('contenedorSesiones');
 
         const preview =
-            document.getElementById(
-                'vistaPreviaSesiones'
-            );
+            document.getElementById('vistaPreviaSesiones');
+
+        const panelSesionUnica =
+            document.getElementById('panelSesionUnica');
+
+        const seccionSesiones =
+            document.getElementById('seccionSesiones');
 
         const btnAgregar =
-            document.getElementById(
-                'btnAgregarSesion'
-            );
+            document.getElementById('btnAgregarSesion');
 
         const advertenciaSolapamientos =
-            document.getElementById(
-                'advertenciaSolapamientos'
-            );
+            document.getElementById('advertenciaSolapamientos');
 
         const textoSolapamientos =
-            document.getElementById(
-                'textoSolapamientos'
-            );
-
-        const confirmarSolapamientos =
-            document.getElementById(
-                'confirmarSolapamientos'
-            );
+            document.getElementById('textoSolapamientos');
+                    const confirmarSolapamientos =
+            document.getElementById('confirmarSolapamientos');
 
         const realizacionDesde =
-            document.getElementById(
-                'realizacionDesde'
-            )?.value || '';
+            document.getElementById('realizacionDesde').value;
 
         const realizacionHasta =
-            document.getElementById(
-                'realizacionHasta'
-            )?.value || '';
+            document.getElementById('realizacionHasta').value;
 
         const cupoGeneralValor =
-            document.getElementById(
-                'cupoGeneralActividad'
-            )?.value ?? '';
+            document.getElementById('cupoGeneralActividad').value;
 
         const cupoGeneral =
             cupoGeneralValor === ''
                 ? null
-                : Number(
-                    cupoGeneralValor
-                );
+                : parseInt(cupoGeneralValor, 10);
 
         const existentes =
             decodificarBase64Json(
-                document.getElementById(
-                    'sesionesActuales'
-                ).value
-            ) ?? [];
+                document.getElementById('sesionesActuales').value
+            ) || [];
 
         let contadorSesiones = 0;
 
@@ -3040,9 +3103,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 : ahora;
         }
 
-        function formatearFecha(
-            valor
-        ) {
+        function formatearFecha(valor) {
             if (!valor) {
                 return 'Fecha pendiente';
             }
@@ -3076,9 +3137,7 @@ document.addEventListener('DOMContentLoaded', function () {
             )?.value ?? null;
         }
 
-        function resumenSesion(
-            card
-        ) {
+        function resumenSesion(card) {
             const nombre =
                 card.querySelector(
                     '.sesionNombre'
@@ -3156,9 +3215,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            if (
-                modo === 'unica'
-            ) {
+            if (modo === 'unica') {
                 preview.innerHTML =
                     `<div class="rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4"><p class="font-semibold text-white">Sesión principal</p><p class="mt-1 text-xs text-gray-500">${escaparHtml(formatearFecha(realizacionDesde))}</p>${cupoGeneral !== null ? `<p class="mt-2 text-xs text-gray-400">Cupo: ${cupoGeneral}</p>` : ''}</div>`;
 
@@ -3172,9 +3229,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     )
                 );
 
-            if (
-                cards.length === 0
-            ) {
+            if (cards.length === 0) {
                 preview.innerHTML =
                     '<p class="text-sm text-gray-600">Agrega sesiones para ver la vista previa.</p>';
 
@@ -3232,9 +3287,7 @@ document.addEventListener('DOMContentLoaded', function () {
             );
         }
 
-        function contraerSesion(
-            card
-        ) {
+        function contraerSesion(card) {
             card.querySelector(
                 '.sesionCuerpo'
             ).classList.add(
@@ -3251,17 +3304,13 @@ document.addEventListener('DOMContentLoaded', function () {
             );
         }
 
-        function expandirSesion(
-            card
-        ) {
+        function expandirSesion(card) {
             contenedor
                 .querySelectorAll(
                     '.sesionCard'
                 )
                 .forEach(otra => {
-                    if (
-                        otra !== card
-                    ) {
+                    if (otra !== card) {
                         contraerSesion(
                             otra
                         );
@@ -3440,9 +3489,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? `Coinciden: ${unicos.join('; ')}.`
                     : '';
 
-            if (
-                unicos.length === 0
-            ) {
+            if (unicos.length === 0) {
                 confirmarSolapamientos.checked =
                     false;
             }
@@ -3474,14 +3521,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             card.className =
                 'sesionCard overflow-hidden rounded-2xl border border-white/10 bg-black/10';
-
-            card.innerHTML = `
+                            card.innerHTML = `
                 <button type="button" class="cabeceraSesion flex w-full items-center justify-between gap-3 p-4 text-left">
                     <div class="min-w-0">
                         <p class="resumenSesionNombre truncate font-semibold text-white">Nueva sesión</p>
                         <p class="resumenSesionDetalle mt-1 truncate text-xs text-gray-500">Configura fecha y horario</p>
                     </div>
-
                     <span class="iconoSesion text-gray-500">⌃</span>
                 </button>
 
@@ -3493,7 +3538,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             <label class="mb-2 block text-sm font-medium text-gray-300">Nombre de la sesión</label>
                             <input type="text" name="sesiones[${indice}][nombre]" class="sesionNombre block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white" placeholder="Ej. Ponencia inaugural, Taller IoT" required>
                         </div>
-
                         <button type="button" class="btnQuitarSesion mt-7 h-10 w-10 rounded-xl border border-red-500/20 text-red-400">×</button>
                     </div>
 
@@ -3502,7 +3546,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             <label class="mb-2 block text-sm font-medium text-gray-300">Inicio</label>
                             <input type="datetime-local" name="sesiones[${indice}][fecha_inicio]" class="sesionInicio block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white" required>
                         </div>
-
                         <div>
                             <label class="mb-2 block text-sm font-medium text-gray-300">Finalización</label>
                             <input type="datetime-local" name="sesiones[${indice}][fecha_fin]" class="sesionFin block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
@@ -3514,7 +3557,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             <label class="mb-2 block text-sm font-medium text-gray-300">Lugar</label>
                             <input type="text" name="sesiones[${indice}][ubicacion]" class="sesionUbicacion block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white" placeholder="Ej. Auditorio, salón, punto de salida">
                         </div>
-
                         <div>
                             <label class="mb-2 block text-sm font-medium text-gray-300">Cupo de esta sesión</label>
                             <input type="number" name="sesiones[${indice}][cupo]" min="0" ${cupoGeneral !== null ? `max="${cupoGeneral}"` : ''} class="sesionCupo block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white" placeholder="${cupoGeneral !== null ? `Vacío = hereda ${cupoGeneral}` : 'Vacío = sin límite propio'}">
@@ -3529,10 +3571,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div class="rounded-xl border border-white/10 p-4">
                             <input type="hidden" name="sesiones[${indice}][requiere_reserva]" value="0">
-
                             <label class="flex cursor-pointer items-start gap-3">
                                 <input type="checkbox" name="sesiones[${indice}][requiere_reserva]" value="1" class="sesionReserva mt-1">
-
                                 <div>
                                     <p class="text-sm font-medium text-gray-300">Requiere reserva</p>
                                     <p class="mt-1 text-xs leading-5 text-gray-600">La persona deberá elegir esta sesión específicamente.</p>
@@ -3542,10 +3582,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         <div class="rounded-xl border border-white/10 p-4">
                             <input type="hidden" name="sesiones[${indice}][obligatoria]" value="0">
-
                             <label class="flex cursor-pointer items-start gap-3">
                                 <input type="checkbox" name="sesiones[${indice}][obligatoria]" value="1" class="sesionObligatoria mt-1">
-
                                 <div>
                                     <p class="text-sm font-medium text-gray-300">Sesión obligatoria</p>
                                     <p class="mt-1 text-xs leading-5 text-gray-600">Úsalo cuando forme parte obligatoria de la actividad.</p>
@@ -3555,7 +3593,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
 
                     <div class="mt-5 flex justify-end">
-                        <button type="button" class="btnListoSesion rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300">Listo</button>
+                        <button type="button" class="btnListoSesion rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300">
+                            Listo
+                        </button>
                     </div>
                 </div>
             `;
@@ -3773,9 +3813,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     modo !== 'multiples'
                 );
 
-            if (
-                modo === 'multiples'
-            ) {
+            if (modo === 'multiples') {
                 while (
                     contenedor
                         .querySelectorAll(
@@ -3856,10 +3894,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         advertenciaSolapamientos
                             .scrollIntoView({
-                                behavior:
-                                    'smooth',
-                                block:
-                                    'center',
+                                behavior: 'smooth',
+                                block: 'center',
                             });
 
                         return;
@@ -3872,4 +3908,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
 @endsection

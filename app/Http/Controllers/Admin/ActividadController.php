@@ -27,11 +27,6 @@ class ActividadController extends Controller
             ])
             ->orderByDesc('created_at');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Búsqueda
-        |--------------------------------------------------------------------------
-        */
         if ($request->filled('buscar')) {
             $buscar = trim($request->buscar);
 
@@ -50,57 +45,55 @@ class ActividadController extends Controller
             $query->where('id_categoria', $request->id_categoria);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Obtener actividades
-        |--------------------------------------------------------------------------
-        */
         $actividades = $query
             ->paginate(15)
             ->withQueryString();
 
-        
-        foreach ($actividades as $actividad) {
+        $idsActividades = $actividades
+            ->getCollection()
+            ->pluck('id_actividad')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
 
-            $actividad->configuracion_completa = false;
+        $configuraciones = collect();
 
+        if (!empty($idsActividades)) {
             try {
-
-                $documento = ActivityContent::where(
+                $configuraciones = ActivityContent::whereIn(
                     'id_actividad_pg',
-                    (int) $actividad->id_actividad
-                )->first();
-
-                if ($documento) {
-
-                    $configuracionSesiones =
-                        $documento->session_configuration ?? [];
-
-                    if (is_object($configuracionSesiones)) {
-                        $configuracionSesiones =
-                            (array) $configuracionSesiones;
-                    }
-
-                    $actividad->configuracion_completa =
-                        (bool) (
-                            $configuracionSesiones['configured']
-                            ?? false
-                        );
-                }
-
+                    $idsActividades
+                )
+                    ->get()
+                    ->keyBy(
+                        fn ($documento) =>
+                            (int) $documento->id_actividad_pg
+                    );
             } catch (\Throwable $e) {
-
                 report($e);
-
-                $actividad->configuracion_completa = false;
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Categorías para filtros
-        |--------------------------------------------------------------------------
-        */
+        foreach ($actividades as $actividad) {
+            $actividad->configuracion_completa = false;
+
+            $documento = $configuraciones->get(
+                (int) $actividad->id_actividad
+            );
+
+            if (!$documento) {
+                continue;
+            }
+
+            $configuracion = $this->normalizarMongo(
+                $documento->configuration ?? []
+            );
+
+            $actividad->configuracion_completa = (bool) (
+                $configuracion['configured'] ?? false
+            );
+        }
+
         $categorias = Categoria::query()
             ->where('activo', true)
             ->orderBy('nombre')
@@ -126,7 +119,13 @@ class ActividadController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('admin.actividades.crear', compact('categorias', 'etiquetas'));
+        return view(
+            'admin.actividades.crear',
+            compact(
+                'categorias',
+                'etiquetas'
+            )
+        );
     }
 
     public function configurar(Actividad $actividad)
@@ -143,15 +142,18 @@ class ActividadController extends Controller
             'promociones.items',
         ]);
 
-        $contenidoFlexible = \App\Models\Mongo\ActivityContent::where(
+        $contenidoFlexible = ActivityContent::where(
             'id_actividad_pg',
             $actividad->id_actividad
         )->first();
 
-        return view('admin.actividades.configurar', compact(
-            'actividad',
-            'contenidoFlexible'
-        ));
+        return view(
+            'admin.actividades.configurar',
+            compact(
+                'actividad',
+                'contenidoFlexible'
+            )
+        );
     }
 
     private function validarItem(Request $request): array
@@ -162,12 +164,10 @@ class ActividadController extends Controller
                 'string',
                 'max:150',
             ],
-
             'item_descripcion' => [
                 'nullable',
                 'string',
             ],
-
             'item_tipo' => [
                 'required',
                 Rule::in([
@@ -179,71 +179,60 @@ class ActividadController extends Controller
                     'otro',
                 ]),
             ],
-
             'item_precio' => [
                 'required',
                 'numeric',
                 'min:0',
                 'max:9999999999.99',
             ],
-
             'item_costo_referencia' => [
                 'required',
                 'numeric',
                 'min:0',
                 'max:9999999999.99',
             ],
-
             'item_stock_total' => [
                 'nullable',
                 'integer',
                 'min:0',
             ],
-
             'item_venta_desde' => [
                 'nullable',
                 'date',
             ],
-
             'item_venta_hasta' => [
                 'nullable',
                 'date',
                 'after_or_equal:item_venta_desde',
             ],
-
             'item_min_por_inscripcion' => [
                 'required',
                 'integer',
                 'min:1',
             ],
-
             'item_max_por_inscripcion' => [
                 'nullable',
                 'integer',
                 'min:1',
                 'gte:item_min_por_inscripcion',
             ],
-
             'item_requiere_participante' => [
                 'nullable',
                 'boolean',
             ],
-
             'item_imagen' => [
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
                 'max:5120',
             ],
-
             'eliminar_item_imagen' => [
                 'nullable',
                 'boolean',
             ],
         ]);
     }
-
-    public function guardarItem(Request $request, Actividad $actividad)
+        public function guardarItem(Request $request, Actividad $actividad)
     {
         if (!in_array(
             $actividad->estado_publicacion,
@@ -309,6 +298,8 @@ class ActividadController extends Controller
 
                 $actividad->actualizado_por = Auth::id();
                 $actividad->save();
+
+                $this->invalidarConfiguracionGeneral($actividad);
             });
 
             return back()->with(
@@ -330,7 +321,12 @@ class ActividadController extends Controller
                 );
         }
     }
-        public function actualizarItem(Request $request, Actividad $actividad, ItemActividad $item) {
+
+    public function actualizarItem(
+        Request $request,
+        Actividad $actividad,
+        ItemActividad $item
+    ) {
         abort_unless(
             $item->id_actividad === $actividad->id_actividad,
             404
@@ -413,6 +409,8 @@ class ActividadController extends Controller
 
                 $actividad->actualizado_por = Auth::id();
                 $actividad->save();
+
+                $this->invalidarConfiguracionGeneral($actividad);
             });
 
             if ($rutaImagenAnterior) {
@@ -484,11 +482,12 @@ class ActividadController extends Controller
                     ->all();
 
                 $item->medios()->delete();
-
                 $item->delete();
 
                 $actividad->actualizado_por = Auth::id();
                 $actividad->save();
+
+                $this->invalidarConfiguracionGeneral($actividad);
             });
 
             foreach ($rutasImagenes as $rutaImagen) {
@@ -530,41 +529,26 @@ class ActividadController extends Controller
                     $validated
                 );
 
-                $actividad->slug =
-                    $this->generarSlugUnico(
-                        $validated['nombre']
-                    );
+                $actividad->slug = $this->generarSlugUnico(
+                    $validated['nombre']
+                );
 
-                $actividad->estado_publicacion =
-                    'borrador';
-
-                $actividad->estado_operativo =
-                    'normal';
-
-                $actividad->revision_actual =
-                    1;
-
-                $actividad->creado_por =
-                    Auth::id();
-
-                $actividad->actualizado_por =
-                    Auth::id();
-
+                $actividad->estado_publicacion = 'borrador';
+                $actividad->estado_operativo = 'normal';
+                $actividad->revision_actual = 1;
+                $actividad->creado_por = Auth::id();
+                $actividad->actualizado_por = Auth::id();
                 $actividad->save();
 
                 $actividad->etiquetas()->sync(
-                    $request->input(
-                        'etiquetas',
-                        []
-                    )
+                    $request->input('etiquetas', [])
                 );
 
                 if ($request->hasFile('portada')) {
-                    $rutaNueva =
-                        $request->file('portada')->store(
-                            "actividades/{$actividad->id_actividad}",
-                            'public'
-                        );
+                    $rutaNueva = $request->file('portada')->store(
+                        "actividades/{$actividad->id_actividad}",
+                        'public'
+                    );
 
                     if (!$rutaNueva) {
                         throw new \RuntimeException(
@@ -575,8 +559,7 @@ class ActividadController extends Controller
                     $actividad->medios()->create([
                         'tipo' => 'imagen',
                         'url' => $rutaNueva,
-                        'texto_alternativo' =>
-                            $validated['texto_alternativo_portada']
+                        'texto_alternativo' => $validated['texto_alternativo_portada']
                             ?? $actividad->nombre,
                         'es_portada' => true,
                         'orden' => 0,
@@ -589,7 +572,10 @@ class ActividadController extends Controller
             return redirect()
                 ->route(
                     'admin.actividades.configurar',
-                    $actividad
+                    [
+                        'actividad' => $actividad,
+                        'paso' => 'presentacion',
+                    ]
                 )
                 ->with(
                     'success',
@@ -597,8 +583,7 @@ class ActividadController extends Controller
                 );
         } catch (\Throwable $e) {
             if ($rutaNueva) {
-                Storage::disk('public')
-                    ->delete($rutaNueva);
+                Storage::disk('public')->delete($rutaNueva);
             }
 
             report($e);
@@ -638,22 +623,25 @@ class ActividadController extends Controller
 
     public function edit(Actividad $actividad)
     {
-        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'])) return redirect()
-            ->route('admin.actividades.index')
-            ->with('error', 'Esta actividad no puede editarse en su estado actual.');
-
-        $categorias = Categoria::where(
-            'activo',
+        if (!in_array(
+            $actividad->estado_publicacion,
+            ['borrador', 'cambios_solicitados'],
             true
-        )
+        )) {
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with(
+                    'error',
+                    'Esta actividad no puede editarse en su estado actual.'
+                );
+        }
+
+        $categorias = Categoria::where('activo', true)
             ->orderBy('orden')
             ->orderBy('nombre')
             ->get();
 
-        $etiquetas = Etiqueta::where(
-            'activo',
-            true
-        )
+        $etiquetas = Etiqueta::where('activo', true)
             ->orderBy('nombre')
             ->get();
 
@@ -672,14 +660,24 @@ class ActividadController extends Controller
         );
     }
 
-    public function update(Request $request, Actividad $actividad) {
-        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'])) return redirect()
-                    ->route('admin.actividades.index')
-                    ->with('error', 'Esta actividad no puede editarse en su estado actual.');
+    public function update(
+        Request $request,
+        Actividad $actividad
+    ) {
+        if (!in_array(
+            $actividad->estado_publicacion,
+            ['borrador', 'cambios_solicitados'],
+            true
+        )) {
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with(
+                    'error',
+                    'Esta actividad no puede editarse en su estado actual.'
+                );
+        }
 
-        $validated =
-            $this->validarActividad($request);
-
+        $validated = $this->validarActividad($request);
         $rutaNueva = null;
         $rutaAnterior = null;
 
@@ -691,69 +689,42 @@ class ActividadController extends Controller
                 &$rutaNueva,
                 &$rutaAnterior
             ) {
-                $nombreAnterior =
-                    $actividad->nombre;
+                $nombreAnterior = $actividad->nombre;
 
                 $this->asignarDatos(
                     $actividad,
                     $validated
                 );
 
-                if (
-                    $nombreAnterior
-                    !== $validated['nombre']
-                ) {
-                    $actividad->slug =
-                        $this->generarSlugUnico(
-                            $validated['nombre'],
-                            $actividad->id_actividad
-                        );
+                if ($nombreAnterior !== $validated['nombre']) {
+                    $actividad->slug = $this->generarSlugUnico(
+                        $validated['nombre'],
+                        $actividad->id_actividad
+                    );
                 }
 
-                $actividad->actualizado_por =
-                    Auth::id();
-
+                $actividad->actualizado_por = Auth::id();
                 $actividad->save();
 
                 $actividad->etiquetas()->sync(
-                    $request->input(
-                        'etiquetas',
-                        []
-                    )
+                    $request->input('etiquetas', [])
                 );
 
-                $portadaAnterior =
-                    $actividad->medios()
-                        ->where(
-                            'es_portada',
-                            true
-                        )
-                        ->first();
+                $portadaAnterior = $actividad->medios()
+                    ->whereNull('id_item_actividad')
+                    ->whereNull('id_sesion')
+                    ->where('es_portada', true)
+                    ->first();
 
-                $debeEliminarPortada =
-                    $request->boolean(
-                        'eliminar_portada'
-                    )
-                    || $request->hasFile(
-                        'portada'
-                    );
-
-                if (
-                    $portadaAnterior
-                    && $debeEliminarPortada
-                ) {
-                    $rutaAnterior =
-                        $portadaAnterior->url;
-
-                    $portadaAnterior->delete();
-                }
+                $debeEliminarPortada = $request->boolean(
+                    'eliminar_portada'
+                ) || $request->hasFile('portada');
 
                 if ($request->hasFile('portada')) {
-                    $rutaNueva =
-                        $request->file('portada')->store(
-                            "actividades/{$actividad->id_actividad}",
-                            'public'
-                        );
+                    $rutaNueva = $request->file('portada')->store(
+                        "actividades/{$actividad->id_actividad}",
+                        'public'
+                    );
 
                     if (!$rutaNueva) {
                         throw new \RuntimeException(
@@ -761,44 +732,63 @@ class ActividadController extends Controller
                         );
                     }
 
-                    $actividad->medios()->create([
-                        'tipo' => 'imagen',
-                        'url' => $rutaNueva,
-                        'texto_alternativo' =>
-                            $validated['texto_alternativo_portada']
-                            ?? $actividad->nombre,
-                        'es_portada' => true,
-                        'orden' => 0,
-                    ]);
+                    if ($portadaAnterior) {
+                        $rutaAnterior = $portadaAnterior->url;
+
+                        $portadaAnterior->update([
+                            'tipo' => 'imagen',
+                            'url' => $rutaNueva,
+                            'texto_alternativo' => $validated['texto_alternativo_portada']
+                                ?? $actividad->nombre,
+                            'es_portada' => true,
+                            'orden' => 0,
+                        ]);
+                    } else {
+                        $actividad->medios()->create([
+                            'tipo' => 'imagen',
+                            'url' => $rutaNueva,
+                            'texto_alternativo' => $validated['texto_alternativo_portada']
+                                ?? $actividad->nombre,
+                            'es_portada' => true,
+                            'orden' => 0,
+                        ]);
+                    }
                 } elseif (
                     $portadaAnterior
-                    && !$debeEliminarPortada
+                    && $request->boolean('eliminar_portada')
                 ) {
+                    $rutaAnterior = $portadaAnterior->url;
+                    $portadaAnterior->delete();
+                } elseif ($portadaAnterior && !$debeEliminarPortada) {
                     $portadaAnterior->texto_alternativo =
                         $validated['texto_alternativo_portada']
                         ?? $portadaAnterior->texto_alternativo;
 
                     $portadaAnterior->save();
                 }
+
+                $this->invalidarConfiguracionGeneral($actividad);
             });
 
             if ($rutaAnterior) {
-                Storage::disk('public')
-                    ->delete($rutaAnterior);
+                $rutaStorage = $this->rutaStorageDesdeUrl(
+                    $rutaAnterior
+                );
+
+                if ($rutaStorage) {
+                    Storage::disk('public')->delete($rutaStorage);
+                }
             }
 
             return redirect()
-                ->route(
-                    'admin.actividades.index'
-                )
+                ->route('admin.actividades.index')
                 ->with(
                     'success',
-                    'Actividad actualizada correctamente.'
+                    'Actividad actualizada correctamente. Revisa la configuración antes de volver a enviarla a revisión.'
                 );
         } catch (\Throwable $e) {
             if ($rutaNueva) {
-                Storage::disk('public')
-                    ->delete($rutaNueva);
+                Storage::disk('public')->delete($rutaNueva);
             }
 
             report($e);
@@ -811,11 +801,19 @@ class ActividadController extends Controller
                 );
         }
     }
-
-    public function enviarRevision(Actividad $actividad)
+        public function enviarRevision(Actividad $actividad)
     {
-        if (!in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados'], true)) {
-            return redirect()->route('admin.actividades.index')->with('error', 'Esta actividad no puede enviarse a revisión en su estado actual.');
+        if (!in_array(
+            $actividad->estado_publicacion,
+            ['borrador', 'cambios_solicitados'],
+            true
+        )) {
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with(
+                    'error',
+                    'Esta actividad no puede enviarse a revisión en su estado actual.'
+                );
         }
 
         try {
@@ -824,24 +822,29 @@ class ActividadController extends Controller
                 (int) $actividad->id_actividad
             )->first();
 
-            $configuracionSesiones = $documento?->session_configuration ?? [];
-
-            if (is_object($configuracionSesiones)) {
-                $configuracionSesiones = (array) $configuracionSesiones;
-            }
+            $configuracion = $this->normalizarMongo(
+                $documento?->configuration ?? []
+            );
 
             $configuracionCompleta = (bool) (
-                $configuracionSesiones['configured'] ?? false
+                $configuracion['configured'] ?? false
             );
 
             if (!$configuracionCompleta) {
                 return redirect()
                     ->route('admin.actividades.index')
-                    ->with('error', 'Debes completar la configuración antes de enviar la actividad a revisión.');
+                    ->with(
+                        'error',
+                        'Debes completar y finalizar la configuración antes de enviar la actividad a revisión.'
+                    );
             }
 
             $esReenvio = $actividad->estado_publicacion === 'cambios_solicitados';
-            DB::transaction(function () use ($actividad, $esReenvio) {
+
+            DB::transaction(function () use (
+                $actividad,
+                $esReenvio
+            ) {
                 if ($esReenvio) {
                     $actividad->revision_actual++;
                 }
@@ -854,89 +857,129 @@ class ActividadController extends Controller
                     'id_actividad' => $actividad->id_actividad,
                     'numero_revision' => $actividad->revision_actual,
                     'id_usuario' => Auth::id(),
-                    'accion' => $esReenvio ? 'reenviada_revision' : 'enviada_revision',
-                    'observacion' => $esReenvio ? 'Actividad reenviada después de realizar los cambios solicitados.' : 'Actividad enviada a revisión.',
+                    'accion' => 'enviada_revision',
+                    'observacion' => $esReenvio
+                        ? 'Actividad reenviada después de realizar los cambios solicitados.'
+                        : 'Actividad enviada a revisión.',
                     'creado_en' => now(),
                 ]);
             });
 
             return redirect()
                 ->route('admin.actividades.index')
-                ->with('success', 'Actividad enviada a revisión correctamente.');
-
+                ->with(
+                    'success',
+                    $esReenvio
+                        ? 'Actividad reenviada a revisión correctamente.'
+                        : 'Actividad enviada a revisión correctamente.'
+                );
         } catch (\Throwable $e) {
             report($e);
 
             return redirect()
                 ->route('admin.actividades.index')
-                ->with('error', 'No se pudo enviar la actividad a revisión.');
+                ->with(
+                    'error',
+                    'No se pudo enviar la actividad a revisión.'
+                );
         }
     }
 
     public function retirarRevision(Actividad $actividad)
     {
-        if ($actividad->estado_publicacion !== 'pendiente_revision') return redirect()->route('admin.actividades.index')->with('error', 'Esta actividad no está pendiente de revisión.');
+        if ($actividad->estado_publicacion !== 'pendiente_revision') {
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with(
+                    'error',
+                    'Esta actividad ya no está pendiente de revisión.'
+                );
+        }
+
         try {
             DB::transaction(function () use ($actividad) {
-                $actividad->update(['estado_publicacion' => 'borrador', 'actualizado_por' => Auth::id()]);
+                $actividad->estado_publicacion = 'borrador';
+                $actividad->actualizado_por = Auth::id();
+                $actividad->save();
+
                 DB::table('tbl_revisiones_actividad')->insert([
                     'id_actividad' => $actividad->id_actividad,
                     'numero_revision' => $actividad->revision_actual,
                     'id_usuario' => Auth::id(),
-                    'accion' => 'revision_retirada',
+                    'accion' => 'retirada',
                     'observacion' => 'Solicitud de revisión retirada por el creador.',
                     'creado_en' => now(),
                 ]);
             });
-            return redirect()->route('admin.actividades.index')->with('success', 'La actividad fue retirada de revisión y puede modificarse nuevamente.');
+
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with(
+                    'success',
+                    'La actividad fue retirada de revisión correctamente.'
+                );
         } catch (\Throwable $e) {
             report($e);
-            return redirect()->route('admin.actividades.index')->with('error', 'No se pudo retirar la actividad de revisión.');
+
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with(
+                    'error',
+                    'No se pudo retirar la actividad de revisión.'
+                );
         }
     }
 
     public function destroy(Actividad $actividad)
     {
         if ($actividad->estado_publicacion !== 'borrador') {
-            return back()->with('error', 'Solo pueden eliminarse actividades en estado borrador.');
+            return back()->with(
+                'error',
+                'Solo pueden eliminarse actividades en estado borrador.'
+            );
         }
 
         try {
             $actividad->delete();
-            return redirect()->route('admin.actividades.index')->with('success', 'Actividad eliminada correctamente.');
+
+            return redirect()
+                ->route('admin.actividades.index')
+                ->with(
+                    'success',
+                    'Actividad eliminada correctamente.'
+                );
         } catch (\Throwable $e) {
             report($e);
-            return back()->with('error', 'No se pudo eliminar la actividad.');
+
+            return back()->with(
+                'error',
+                'No se pudo eliminar la actividad.'
+            );
         }
     }
 
-    private function validarActividad(
-        Request $request
-    ): array {
+    private function validarActividad(Request $request): array
+    {
         return $request->validate([
             'id_categoria' => [
                 'nullable',
                 'integer',
                 'exists:tbl_categorias,id_categoria',
             ],
-
             'nombre' => [
                 'required',
                 'string',
                 'max:180',
             ],
-
             'resumen' => [
                 'nullable',
                 'string',
                 'max:300',
             ],
-
             'descripcion' => [
                 'nullable',
                 'string',
             ],
-
             'visibilidad' => [
                 'required',
                 Rule::in([
@@ -945,12 +988,10 @@ class ActividadController extends Controller
                     'interna',
                 ]),
             ],
-
             'destacada' => [
                 'nullable',
                 'boolean',
             ],
-
             'prioridad' => [
                 'required',
                 'integer',
@@ -961,94 +1002,78 @@ class ActividadController extends Controller
                     100,
                 ]),
             ],
-
             'habilita_inscripcion' => [
                 'nullable',
                 'boolean',
             ],
-
             'requiere_cuenta' => [
                 'nullable',
                 'boolean',
             ],
-
             'permite_lista_espera' => [
                 'nullable',
                 'boolean',
             ],
-
             'cupo_total' => [
                 'nullable',
                 'integer',
                 'min:0',
             ],
-
             'inscripcion_desde' => [
                 'nullable',
                 'date',
             ],
-
             'inscripcion_hasta' => [
                 'nullable',
                 'date',
                 'after_or_equal:inscripcion_desde',
             ],
-
             'visible_desde' => [
                 'nullable',
                 'date',
             ],
-
             'visible_hasta' => [
                 'nullable',
                 'date',
                 'after_or_equal:visible_desde',
             ],
-
             'realizacion_desde' => [
                 'nullable',
                 'date',
                 'required_with:realizacion_hasta',
             ],
-
             'realizacion_hasta' => [
                 'nullable',
                 'date',
                 'required_with:realizacion_desde',
                 'after_or_equal:realizacion_desde',
             ],
-
             'etiquetas' => [
                 'nullable',
                 'array',
             ],
-
             'etiquetas.*' => [
                 'integer',
                 'exists:tbl_etiquetas,id_etiqueta',
             ],
-
             'portada' => [
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
                 'max:5120',
             ],
-
             'texto_alternativo_portada' => [
                 'nullable',
                 'string',
                 'max:180',
             ],
-
             'eliminar_portada' => [
                 'nullable',
                 'boolean',
             ],
         ]);
     }
-
-    private function asignarDatos(
+        private function asignarDatos(
         Actividad $actividad,
         array $validated
     ): void {
@@ -1158,12 +1183,117 @@ class ActividadController extends Controller
                 )
                 ->exists()
         ) {
-            $slug =
-                "{$base}-{$contador}";
-
+            $slug = "{$base}-{$contador}";
             $contador++;
         }
 
         return $slug;
+    }
+
+    private function invalidarConfiguracionGeneral(
+        Actividad $actividad
+    ): void {
+        $documento = ActivityContent::where(
+            'id_actividad_pg',
+            (int) $actividad->id_actividad
+        )->first();
+
+        if (!$documento) {
+            return;
+        }
+
+        $configuracion = $this->normalizarMongo(
+            $documento->configuration ?? []
+        );
+
+        if (($configuracion['configured'] ?? false) !== true) {
+            return;
+        }
+
+        $documento->configuration = [
+            'configured' => false,
+            'completed_at' => null,
+            'updated_at' => now()->toIso8601String(),
+            'completed_by' => null,
+        ];
+
+        $documento->save();
+    }
+
+    private function normalizarMongo(mixed $valor): array
+    {
+        if ($valor === null) {
+            return [];
+        }
+
+        if (is_array($valor)) {
+            return $valor;
+        }
+
+        if ($valor instanceof \Illuminate\Support\Collection) {
+            return $valor->toArray();
+        }
+
+        if ($valor instanceof \JsonSerializable) {
+            $valor = $valor->jsonSerialize();
+
+            return is_array($valor)
+                ? $valor
+                : (array) $valor;
+        }
+
+        if (is_object($valor)) {
+            return json_decode(
+                json_encode($valor),
+                true
+            ) ?: [];
+        }
+
+        return [];
+    }
+
+    private function rutaStorageDesdeUrl(
+        ?string $url
+    ): ?string {
+        if (!$url) {
+            return null;
+        }
+
+        $ruta = trim($url);
+
+        if ($ruta === '') {
+            return null;
+        }
+
+        if (
+            Str::startsWith(
+                $ruta,
+                ['http://', 'https://']
+            )
+        ) {
+            $path = parse_url(
+                $ruta,
+                PHP_URL_PATH
+            );
+
+            if (!$path) {
+                return null;
+            }
+
+            $ruta = $path;
+        }
+
+        $ruta = ltrim($ruta, '/');
+
+        if (Str::startsWith($ruta, 'storage/')) {
+            $ruta = Str::after(
+                $ruta,
+                'storage/'
+            );
+        }
+
+        return $ruta !== ''
+            ? $ruta
+            : null;
     }
 }
