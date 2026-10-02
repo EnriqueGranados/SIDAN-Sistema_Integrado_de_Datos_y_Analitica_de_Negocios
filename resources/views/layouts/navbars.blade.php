@@ -364,25 +364,18 @@
                             @click.outside="profileOpen = false"
                             class="flex h-9 items-center gap-2 rounded-xl px-1 pr-3 transition hover:bg-slate-100 dark:hover:bg-white/5">
 
-                            <div
-                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-xs font-bold text-white">
-
-                                {{ strtoupper(substr(auth()->user()->nombres, 0, 1)) }}
-                            </div>
-
-                            <span class="hidden text-sm font-medium leading-none text-sidan-900 dark:text-white sm:block">
-                                {{ auth()->user()->apellidos }}
-                            </span>
+                            <img 
+                                src="{{ auth()->user()->imagen_perfil ? asset('storage/' . auth()->user()->imagen_perfil) : asset('images/usuario.png') }}" 
+                                alt="Foto de perfil" 
+                                class="h-7 w-7 shrink-0 rounded-full object-cover border border-slate-200 dark:border-white/10"
+                            >
 
                             <svg
                                 class="h-4 w-4 shrink-0 text-slate-400 dark:text-gray-400"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24">
-
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7">
-                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
 

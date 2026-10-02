@@ -7,6 +7,7 @@
         $usersData = $users->map(function ($user) {
             return [
                 'id' => $user->id_usuario,
+                'imagen_perfil' => $user->imagen_perfil,
                 'nombres' => $user->informacion_personal->nombres ?? '',
                 'apellidos' => $user->informacion_personal->apellidos ?? '',
                 'documento' => $user->informacion_personal->documento ?? '',
@@ -84,11 +85,11 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
 
-                                        <div
-                                            class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white font-bold shadow-sm shadow-red-500/20">
-
-                                            <span x-text="user.nombres.charAt(0).toUpperCase()"></span>
-                                        </div>
+                                        <img
+                                            :src="user.imagen_perfil ? '{{ asset('storage') }}/' + user.imagen_perfil : '{{ asset('images/usuario.png') }}'"
+                                            alt="Foto de perfil"
+                                            class="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 dark:border-white/10"
+                                        >
 
                                         <div>
                                             <p class="text-sm font-semibold text-sidan-900 dark:text-white"

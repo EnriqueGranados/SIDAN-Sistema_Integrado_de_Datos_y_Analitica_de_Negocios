@@ -371,12 +371,12 @@
                                 </div>
                             </div>
 
-                            <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5 text-sm">
+                            <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="font-black text-sidan-900 dark:text-white">Credenciales adicionales</h3>
+                                    <h3 class="font-black text-sidan-900 dark:text-white">Credenciales</h3>
                                     <button type="button" @click="step = 2" class="text-sm font-bold text-sidan-500 hover:text-green-600">Editar</button>
                                 </div>
-                                <div class="mt-4">
+                                <div class="mt-4 text-sm">
                                     <span class="text-sm text-slate-400">Contraseña alternativa</span>
                                     <p class="mt-1 font-bold text-slate-700 dark:text-slate-200" x-text="password ? 'Configurada (Oculta por seguridad)' : 'No configurada'"></p>
                                 </div>

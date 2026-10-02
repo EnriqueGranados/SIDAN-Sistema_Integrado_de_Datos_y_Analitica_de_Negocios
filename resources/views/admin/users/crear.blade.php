@@ -808,8 +808,8 @@
 
                 </form>
 
+                {{-- Separador --}}
                 <div class="my-7 flex items-center gap-4">
-
                     <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
 
                     <span class="text-xs font-semibold text-slate-400">
@@ -817,7 +817,6 @@
                     </span>
 
                     <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
-
                 </div>
 
                 <span class="text-xs font-semibold text-slate-400">
