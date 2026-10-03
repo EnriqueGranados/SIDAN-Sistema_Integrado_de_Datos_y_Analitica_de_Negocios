@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WompiController;
 use App\Http\Controllers\Admin\ActividadController;
 use App\Http\Controllers\Admin\ActividadRevisionController;
+use App\Http\Controllers\Admin\CategoriaController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -58,12 +59,12 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
 
     Route::post('/actividades/{actividad}/productos/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
         ->name('actividades.productos.configuracion');
-    
+
     Route::post('/actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
         ->name('actividades.enviar-revision');
 
     Route::post('/actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
-    ->name('actividades.retirar-revision');
+        ->name('actividades.retirar-revision');
 
     // Datos que se solicitarán al comprador
     Route::post('actividades/{actividad}/items/{item}/datos-pedido', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarDatosPedido'])
@@ -89,6 +90,17 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     Route::delete('actividades/{actividad}/medios/{medio}', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'eliminarMedio'])
         ->name('actividades.medios.destroy');
 
+    // Orden de Categorías
+    Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
+        ->name('categorias.reorder');
+
+    // CRUD de Categorías
+    Route::resource('categorias', CategoriaController::class)
+        ->except(['show'])
+        ->parameters(['categorias' => 'categoria']);
+
+
+
     // Rutas para la gestión de usuarios baneados y restauración
     Route::get('/users/banned', [\App\Http\Controllers\Admin\UserController::class, 'banned'])
         ->name('users.banned');
@@ -111,7 +123,7 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 
-    // CRUD de Roles para superadmin 
+    // CRUD de Roles para superadmin
     Route::middleware('rol:superadmin')->prefix('roles')->name('roles.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\RolController::class, 'index'])->name('index');
         Route::get('/crear', [\App\Http\Controllers\Admin\RolController::class, 'create'])->name('create');
