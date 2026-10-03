@@ -8,6 +8,7 @@ use App\Http\Controllers\WompiController;
 use App\Http\Controllers\Admin\ActividadController;
 use App\Http\Controllers\Admin\ActividadRevisionController;
 use App\Http\Controllers\Admin\CategoriaController;
+use App\Http\Controllers\Admin\EtiquetaController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -98,6 +99,11 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     Route::resource('categorias', CategoriaController::class)
         ->except(['show'])
         ->parameters(['categorias' => 'categoria']);
+
+    //CRUD de Etiquetas
+    Route::resource('etiquetas', EtiquetaController::class)
+        ->except(['show'])
+        ->parameters(['etiquetas' => 'etiqueta']);
 
 
 

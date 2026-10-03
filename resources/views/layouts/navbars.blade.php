@@ -161,6 +161,19 @@
                             Categorías
                         </a>
 
+                        <a href="{{ route('admin.etiquetas.index') }}"
+                            class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                            {{ request()->routeIs('admin.etiquetas.*')
+                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h.01M3 11l8.586-8.586A2 2 0 0113 2h5a2 2 0 012 2v5a2 2 0 01-.586 1.414L10.828 19a2 2 0 01-2.828 0L3 14a2 2 0 010-3z">
+                                </path>
+                            </svg>
+                            Etiquetas
+                        </a>
+
                         <a href="#"
                             class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white">
 
