@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\ActividadController;
 use App\Http\Controllers\Admin\ActividadRevisionController;
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\EtiquetaController;
+use App\Http\Controllers\Admin\RecursoController;
+use App\Http\Controllers\Admin\EspacioController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -104,6 +106,16 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     Route::resource('etiquetas', EtiquetaController::class)
         ->except(['show'])
         ->parameters(['etiquetas' => 'etiqueta']);
+
+    //CRUD de Recursos
+    Route::resource('recursos', RecursoController::class)
+        ->except(['show'])
+        ->parameters(['recursos' => 'recurso']);
+
+    //CRUD de Espacios
+    Route::resource('espacios', EspacioController::class)
+        ->except(['show'])
+        ->parameters(['espacios' => 'espacio']);
 
 
 

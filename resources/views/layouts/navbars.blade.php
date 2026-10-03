@@ -174,6 +174,31 @@
                             Etiquetas
                         </a>
 
+                        <a href="{{ route('admin.recursos.index') }}"
+                            class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                                {{ request()->routeIs('admin.recursos.*')
+                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                    : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7h-9m9 5h-9m9 5h-9M7 7H4m3 5H4m3 5H4" />
+                            </svg>
+                            Recursos
+                        </a>
+
+                        <a href="{{ route('admin.espacios.index') }}"
+                            class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all
+                                {{ request()->routeIs('admin.espacios.*')
+                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                    : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 21s6-4.35 6-10a6 6 0 10-12 0c0 5.65 6 10 6 10z" />
+                                <circle cx="12" cy="11" r="2" stroke-width="2" />
+                            </svg>
+                            Espacios
+                        </a>
+
                         <a href="#"
                             class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white">
 
