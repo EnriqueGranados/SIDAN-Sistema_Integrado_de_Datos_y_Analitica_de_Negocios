@@ -1,10 +1,7 @@
 @php
-    $mediosActividad = $actividad->medios
-        ->whereNull('id_item_actividad')
-        ->whereNull('id_sesion');
-
-    $portada = $mediosActividad->firstWhere('es_portada', true);
-    $galeria = $mediosActividad->where('es_portada', false);
+    $mediosActividad = $actividad->medios->whereNull('id_item_actividad')->whereNull('id_sesion');
+    $portada = $mediosActividad->firstWhere('es_portada',true);
+    $galeria = $mediosActividad->where('es_portada',false);
 
     $productosHabilitados = ($configuracionProductos['enabled'] ?? false) === true;
     $totalProductos = $actividad->items->count();
@@ -39,13 +36,11 @@
 
     $totalSesiones = $actividad->sesiones->count();
 
-    $primeraSesion = $actividad->sesiones
-        ->sortBy('fecha_inicio')
-        ->first();
-
-    $ultimaSesion = $actividad->sesiones
-        ->sortByDesc(fn ($sesion) => $sesion->fecha_fin ?: $sesion->fecha_inicio)
-        ->first();
+    $primeraSesion = $actividad->sesiones->sortBy('fecha_inicio')->first();
+    $ultimaSesion = $actividad->sesiones->sortByDesc(fn ($sesion) => $sesion->fecha_fin ?: $sesion->fecha_inicio)->first();
+    $ubicacionGeneral = $actividad->espacio?->nombre ?: ($actividad->ubicacion_externa ?: 'Sin ubicación definida');
+    $tipoUbicacionGeneral = $actividad->espacio ? 'Espacio registrado' : ($actividad->ubicacion_externa ? 'Lugar externo' : 'Sin definir');
+    $totalRecursosSesiones = $actividad->sesiones->sum(fn ($sesion) => $sesion->recursos->count());
 
     $urlMedio = function ($url) {
         if (!$url) {
@@ -67,6 +62,36 @@
 @endphp
 
 <div class="space-y-6">
+    <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Datos generales</p>
+                <h2 class="mt-1 text-lg font-semibold text-white">{{ $actividad->nombre }}</h2>
+            </div>
+            <a href="{{ route('admin.actividades.edit',$actividad) }}" class="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/[0.04]">Editar datos generales</a>
+        </div>
+        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Categoría</p>
+                <p class="mt-1 text-sm font-medium text-gray-300">{{ $actividad->categoria?->nombre ?: 'Sin categoría' }}</p>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Etiquetas</p>
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                    @forelse ($actividad->etiquetas as $etiqueta)
+                        <span class="rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-300">{{ $etiqueta->nombre }}</span>
+                    @empty
+                        <span class="text-sm text-gray-500">Sin etiquetas</span>
+                    @endforelse
+                </div>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Ubicación general</p>
+                <p class="mt-1 text-sm font-medium text-gray-300">{{ $ubicacionGeneral }}</p>
+                <p class="mt-1 text-xs text-gray-600">{{ $tipoUbicacionGeneral }}@if($actividad->espacio?->capacidad) · Capacidad {{ $actividad->espacio->capacidad }}@endif</p>
+            </div>
+        </div>
+    </div>
     <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4 sm:p-5">
         <div class="flex items-start gap-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-lg text-emerald-300">
@@ -140,10 +165,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <a href="{{ route('admin.actividades.configurar', [
-                        'actividad' => $actividad->id_actividad,
-                        'paso' => 'presentacion'
-                    ]) }}"
+                    <a href="{{ route('admin.actividades.configurar',['actividad' => $actividad->id_actividad,'paso' => 'presentacion']) }}"
                         class="inline-flex rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/[0.04]">
                         Editar presentación
                     </a>
@@ -220,10 +242,7 @@
                 @endif
 
                 <div class="mt-4">
-                    <a href="{{ route('admin.actividades.configurar', [
-                        'actividad' => $actividad->id_actividad,
-                        'paso' => 'productos'
-                    ]) }}"
+                    <a href="{{ route('admin.actividades.configurar',['actividad' => $actividad->id_actividad,'paso' => 'productos']) }}"
                         class="inline-flex rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/[0.04]">
                         Editar productos
                     </a>
@@ -426,104 +445,55 @@
             <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-xs font-bold text-blue-300">
-                            5
-                        </span>
-
-                        <h3 class="font-semibold text-white">
-                            Programación
-                        </h3>
-
-                        <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                            Completa
-                        </span>
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-xs font-bold text-blue-300">5</span>
+                        <h3 class="font-semibold text-white">Programación</h3>
+                        <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">Completa</span>
                     </div>
-
-                    <p class="mt-2 text-sm text-gray-500">
-                        {{ $textoModoSesiones }}
-                        @if ($totalSesiones > 0)
-                            · {{ $totalSesiones }} sesión{{ $totalSesiones === 1 ? '' : 'es' }}
-                        @endif
-                    </p>
+                    <p class="mt-2 text-sm text-gray-500">{{ $textoModoSesiones }}@if($totalSesiones > 0) · {{ $totalSesiones }} sesión{{ $totalSesiones === 1 ? '' : 'es' }} · {{ $totalRecursosSesiones }} recurso{{ $totalRecursosSesiones === 1 ? '' : 's' }} asignado{{ $totalRecursosSesiones === 1 ? '' : 's' }}@endif</p>
                 </div>
-
-                <span class="text-gray-500 transition group-open:rotate-180">
-                    ⌄
-                </span>
+                <span class="text-gray-500 transition group-open:rotate-180">⌄</span>
             </summary>
-
             <div class="border-t border-white/10 p-4 sm:p-5">
                 @if ($modoResumen === 'ninguna')
-                    <p class="text-sm text-gray-400">
-                        La actividad fue configurada sin sesiones adicionales.
-                    </p>
+                    <p class="text-sm text-gray-400">La actividad fue configurada sin sesiones adicionales.</p>
                 @elseif ($totalSesiones > 0)
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <div class="rounded-xl border border-white/10 bg-black/10 p-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                Primera sesión
-                            </p>
-
-                            <p class="mt-2 font-semibold text-white">
-                                {{ $primeraSesion?->nombre }}
-                            </p>
-
-                            <p class="mt-1 text-sm text-gray-500">
-                                {{ $primeraSesion?->fecha_inicio ? \Carbon\Carbon::parse($primeraSesion->fecha_inicio)->format('d/m/Y H:i') : 'Sin fecha' }}
-                            </p>
-                        </div>
-
-                        <div class="rounded-xl border border-white/10 bg-black/10 p-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                Finalización
-                            </p>
-
-                            <p class="mt-2 font-semibold text-white">
-                                {{ $ultimaSesion?->nombre }}
-                            </p>
-
-                            <p class="mt-1 text-sm text-gray-500">
-                                @if ($ultimaSesion)
-                                    {{ \Carbon\Carbon::parse($ultimaSesion->fecha_fin ?: $ultimaSesion->fecha_inicio)->format('d/m/Y H:i') }}
-                                @else
-                                    Sin fecha
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-
-                    @if ($modoResumen === 'multiples')
-                        <div class="mt-3 space-y-2">
-                            @foreach ($actividad->sesiones->sortBy('orden')->take(5) as $sesion)
-                                <div class="flex flex-col gap-1 rounded-xl border border-white/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                                    <span class="text-sm font-medium text-gray-300">
-                                        {{ $sesion->nombre }}
-                                    </span>
-
-                                    <span class="text-xs text-gray-500">
-                                        {{ $sesion->fecha_inicio ? \Carbon\Carbon::parse($sesion->fecha_inicio)->format('d/m/Y H:i') : 'Sin fecha' }}
-                                    </span>
+                    <div class="space-y-3">
+                        @foreach ($actividad->sesiones->sortBy('orden') as $sesion)
+                            @php
+                                $ubicacionSesion = $sesion->espacio?->nombre ?: ($sesion->ubicacion ?: $ubicacionGeneral);
+                                $tipoUbicacionSesion = $sesion->espacio ? 'Espacio registrado' : ($sesion->ubicacion ? 'Lugar externo' : 'Ubicación general');
+                            @endphp
+                            <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-white">{{ $sesion->nombre }}</p>
+                                        <p class="mt-1 text-xs text-gray-500">{{ $sesion->fecha_inicio ? \Carbon\Carbon::parse($sesion->fecha_inicio)->format('d/m/Y H:i') : 'Sin fecha' }}@if($sesion->fecha_fin) → {{ \Carbon\Carbon::parse($sesion->fecha_fin)->format('d/m/Y H:i') }}@endif</p>
+                                    </div>
+                                    @if($sesion->cupo !== null)<span class="shrink-0 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs font-semibold text-gray-400">Cupo {{ $sesion->cupo }}</span>@endif
                                 </div>
-                            @endforeach
-                        </div>
-
-                        @if ($totalSesiones > 5)
-                            <p class="mt-3 text-xs text-gray-600">
-                                Se muestran 5 de {{ $totalSesiones }} sesiones.
-                            </p>
-                        @endif
-                    @endif
+                                <div class="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+                                    <div class="rounded-lg border border-white/5 p-2.5">
+                                        <p class="text-xs text-gray-600">Ubicación · {{ $tipoUbicacionSesion }}</p>
+                                        <p class="mt-1 text-sm text-gray-300">{{ $ubicacionSesion }}</p>
+                                    </div>
+                                    <div class="rounded-lg border border-white/5 p-2.5">
+                                        <p class="text-xs text-gray-600">Recursos</p>
+                                        @if($sesion->recursos->isNotEmpty())
+                                            <div class="mt-1 flex flex-wrap gap-1.5">
+                                                @foreach($sesion->recursos as $uso)
+                                                    <span class="rounded-full bg-white/[0.05] px-2 py-1 text-xs text-gray-300">{{ $uso->recurso?->nombre ?: 'Recurso' }} × {{ $uso->cantidad }}</span>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="mt-1 text-sm text-gray-500">Sin recursos asignados</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 @endif
-
-                <div class="mt-4">
-                    <a href="{{ route('admin.actividades.configurar', [
-                        'actividad' => $actividad->id_actividad,
-                        'paso' => 'sesiones'
-                    ]) }}"
-                        class="inline-flex rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/[0.04]">
-                        Editar programación
-                    </a>
-                </div>
+                <div class="mt-4"><a href="{{ route('admin.actividades.configurar',['actividad' => $actividad->id_actividad,'paso' => 'sesiones']) }}" class="inline-flex rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/[0.04]">Editar programación</a></div>
             </div>
         </details>
     </div>
@@ -554,10 +524,7 @@
     </div>
 
     <div class="flex">
-        <a href="{{ route('admin.actividades.configurar', [
-            'actividad' => $actividad->id_actividad,
-            'paso' => 'sesiones'
-        ]) }}"
+        <a href="{{ route('admin.actividades.configurar',['actividad' => $actividad->id_actividad,'paso' => 'sesiones']) }}"
             class="rounded-xl border border-white/10 px-5 py-3 text-center text-sm font-semibold text-gray-400 hover:bg-white/[0.04]">
             Volver a programación
         </a>

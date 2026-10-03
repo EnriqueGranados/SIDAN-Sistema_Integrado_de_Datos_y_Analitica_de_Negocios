@@ -1,6 +1,6 @@
 @extends('layouts.navbars')
 
-@section('title', 'Nueva actividad')
+@section('title', 'Editar actividad')
 
 @section('content')
 <div class="w-full min-w-0 max-w-full overflow-x-hidden">
@@ -15,16 +15,16 @@
                     </span>
 
                     <span class="text-xs text-gray-500">
-                        Nueva actividad
+                        Editar actividad
                     </span>
                 </div>
 
                 <h1 class="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    Crear actividad
+                    Editar actividad
                 </h1>
 
                 <p class="mt-2 max-w-2xl break-words text-sm leading-6 text-gray-400">
-                    Completa los pasos siguientes. Podrás modificar y ampliar la actividad antes de publicarla.
+                    Actualiza los datos de la actividad. La interfaz y el flujo son los mismos utilizados al crearla.
                 </p>
             </div>
 
@@ -112,8 +112,17 @@
             </div>
         </div>
 
-        <form id="formActividad" action="{{ route('admin.actividades.store') }}" method="POST" enctype="multipart/form-data" class="w-full min-w-0">
+        @php
+            $portadaActualUrl='';
+            if($actividad->portada?->url){
+                $rutaPortada=ltrim($actividad->portada->url,'/');
+                $portadaActualUrl=\Illuminate\Support\Str::startsWith($rutaPortada,['http://','https://']) ? $rutaPortada : asset(\Illuminate\Support\Str::startsWith($rutaPortada,'storage/') ? $rutaPortada : 'storage/'.$rutaPortada);
+            }
+        @endphp
+        <form id="formActividad" action="{{ route('admin.actividades.update',$actividad) }}" method="POST" enctype="multipart/form-data" class="w-full min-w-0" data-portada-actual="{{ $portadaActualUrl }}">
             @csrf
+            @method('PUT')
+            <input type="hidden" id="eliminar_portada" name="eliminar_portada" value="0">
 
             {{-- ===================================================== --}}
             {{-- PASO 1: INFORMACIÓN --}}
@@ -148,7 +157,7 @@
                                 </button>
                             </div>
 
-                            <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" maxlength="180" required
+                            <input type="text" id="nombre" name="nombre" value="{{ old('nombre',$actividad->nombre) }}" maxlength="180" required
                                 placeholder="Ej. Congreso de Innovación y Tecnología 2026"
                                 class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none transition placeholder:text-gray-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 sm:text-sm">
 
@@ -179,7 +188,7 @@
                                     <option value="">Seleccionar categoría</option>
 
                                     @foreach ($categorias as $categoria)
-                                        <option value="{{ $categoria->id_categoria }}" @selected(old('id_categoria') == $categoria->id_categoria)>
+                                        <option value="{{ $categoria->id_categoria }}" @selected(old('id_categoria',$actividad->id_categoria) == $categoria->id_categoria)>
                                             {{ $categoria->nombre }}
                                         </option>
                                     @endforeach
@@ -204,7 +213,7 @@
 
                             <textarea id="resumen" name="resumen" rows="3" maxlength="300"
                                 placeholder="Ej. Una jornada dedicada a innovación, tecnología y nuevas tendencias..."
-                                class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">{{ old('resumen') }}</textarea>
+                                class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">{{ old('resumen',$actividad->resumen) }}</textarea>
 
                             <div class="mt-2 flex justify-end">
                                 <span class="text-xs text-gray-600">
@@ -230,7 +239,7 @@
 
                             <textarea id="descripcion" name="descripcion" rows="7"
                                 placeholder="Describe la actividad, sus objetivos y lo que podrán encontrar los participantes..."
-                                class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">{{ old('descripcion') }}</textarea>
+                                class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">{{ old('descripcion',$actividad->descripcion) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -266,15 +275,15 @@
                                 <select id="visibilidad" name="visibilidad" required
                                     class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 sm:text-sm">
 
-                                    <option value="publica" @selected(old('visibilidad', 'publica') === 'publica')>
+                                    <option value="publica" @selected(old('visibilidad',$actividad->visibilidad) === 'publica')>
                                         Pública
                                     </option>
 
-                                    <option value="no_listada" @selected(old('visibilidad') === 'no_listada')>
+                                    <option value="no_listada" @selected(old('visibilidad',$actividad->visibilidad) === 'no_listada')>
                                         No listada
                                     </option>
 
-                                    <option value="interna" @selected(old('visibilidad') === 'interna')>
+                                    <option value="interna" @selected(old('visibilidad',$actividad->visibilidad) === 'interna')>
                                         Interna
                                     </option>
                                 </select>
@@ -301,8 +310,8 @@
                                         </label>
 
                                         <input type="datetime-local" id="visible_desde" name="visible_desde"
-                                            value="{{ old('visible_desde') }}"
-                                            class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            value="{{ old('visible_desde',$actividad->visible_desde?->format('Y-m-d\\TH:i')) }}"
+                                            class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('visible_desde')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -315,8 +324,8 @@
                                         </label>
 
                                         <input type="datetime-local" id="visible_hasta" name="visible_hasta"
-                                            value="{{ old('visible_hasta') }}"
-                                            class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            value="{{ old('visible_hasta',$actividad->visible_hasta?->format('Y-m-d\\TH:i')) }}"
+                                            class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('visible_hasta')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -335,8 +344,8 @@
                             <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300"><input type="radio" name="tipo_ubicacion" value="registrada" class="tipo-ubicacion"> Espacio registrado</label>
                             <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300"><input type="radio" name="tipo_ubicacion" value="externa" class="tipo-ubicacion"> Otro / lugar externo</label>
                         </div>
-                        <div id="bloqueEspacioRegistrado" class="hidden"><label for="id_espacio" class="mb-2 block text-sm font-medium text-gray-300">Espacio</label><select id="id_espacio" name="id_espacio" class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none focus:border-emerald-500"><option value="">Seleccionar espacio</option>@foreach($espacios as $espacio)<option value="{{ $espacio->id_espacio }}" data-capacidad="{{ $espacio->capacidad }}" @selected(old('id_espacio') == $espacio->id_espacio)>{{ $espacio->nombre }}@if($espacio->contenedor) — dentro de {{ $espacio->contenedor->nombre }}@endif</option>@endforeach</select><p id="informacionCapacidadEspacio" class="mt-2 hidden text-xs text-cyan-300">Capacidad registrada: <span id="capacidadEspacioTexto"></span></p></div>
-                        <div id="bloqueUbicacionExterna" class="hidden"><label for="ubicacion_externa" class="mb-2 block text-sm font-medium text-gray-300">Lugar externo</label><input id="ubicacion_externa" name="ubicacion_externa" value="{{ old('ubicacion_externa') }}" maxlength="300" placeholder="Ej. Hotel, auditorio externo o dirección" class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500"></div>
+                        <div id="bloqueEspacioRegistrado" class="hidden"><label for="id_espacio" class="mb-2 block text-sm font-medium text-gray-300">Espacio</label><select id="id_espacio" name="id_espacio" class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none focus:border-emerald-500"><option value="">Seleccionar espacio</option>@foreach($espacios as $espacio)<option value="{{ $espacio->id_espacio }}" data-capacidad="{{ $espacio->capacidad }}" @selected(old('id_espacio',$actividad->id_espacio) == $espacio->id_espacio)>{{ $espacio->nombre }}@if($espacio->contenedor) — dentro de {{ $espacio->contenedor->nombre }}@endif</option>@endforeach</select><p id="informacionCapacidadEspacio" class="mt-2 hidden text-xs text-cyan-300">Capacidad registrada: <span id="capacidadEspacioTexto"></span></p></div>
+                        <div id="bloqueUbicacionExterna" class="hidden"><label for="ubicacion_externa" class="mb-2 block text-sm font-medium text-gray-300">Lugar externo</label><input id="ubicacion_externa" name="ubicacion_externa" value="{{ old('ubicacion_externa',$actividad->ubicacion_externa) }}" maxlength="300" placeholder="Ej. Hotel, auditorio externo o dirección" class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500"></div>
                     </div>
                 </div>
 
@@ -377,8 +386,8 @@
                                 </label>
 
                                 <input type="datetime-local" id="realizacion_desde" name="realizacion_desde"
-                                    value="{{ old('realizacion_desde') }}"
-                                    class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
+                                    value="{{ old('realizacion_desde',$actividad->realizacion_desde?->format('Y-m-d\\TH:i')) }}"
+                                    class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
 
                                 @error('realizacion_desde')
                                     <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -391,8 +400,8 @@
                                 </label>
 
                                 <input type="datetime-local" id="realizacion_hasta" name="realizacion_hasta"
-                                    value="{{ old('realizacion_hasta') }}"
-                                    class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
+                                    value="{{ old('realizacion_hasta',$actividad->realizacion_hasta?->format('Y-m-d\\TH:i')) }}"
+                                    class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
 
                                 @error('realizacion_hasta')
                                     <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -514,7 +523,7 @@
                                     </div>
 
                                     <input type="text" id="texto_alternativo_portada" name="texto_alternativo_portada"
-                                        value="{{ old('texto_alternativo_portada') }}" maxlength="180"
+                                        value="{{ old('texto_alternativo_portada',$actividad->portada?->texto_alternativo) }}" maxlength="180"
                                         placeholder="Ej. Estudiantes participando en el evento"
                                         class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">
                                 </div>
@@ -525,7 +534,7 @@
 
                                     <label class="flex cursor-pointer items-start gap-3">
                                         <input type="checkbox" id="destacada" name="destacada" value="1"
-                                            @checked(old('destacada') == '1')
+                                            @checked(old('destacada',$actividad->destacada ? '1' : '0') == '1')
                                             class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
 
                                         <span class="min-w-0">
@@ -565,19 +574,19 @@
                                     <select id="prioridad" name="prioridad"
                                         class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 sm:text-sm">
 
-                                        <option value="100" @selected(old('prioridad') == 100)>
+                                        <option value="100" @selected(old('prioridad',$actividad->prioridad) == 100)>
                                             Alta
                                         </option>
 
-                                        <option value="75" @selected(old('prioridad') == 75)>
+                                        <option value="75" @selected(old('prioridad',$actividad->prioridad) == 75)>
                                             Media
                                         </option>
 
-                                        <option value="50" @selected(old('prioridad', 50) == 50)>
+                                        <option value="50" @selected(old('prioridad',$actividad->prioridad) == 50)>
                                             Regular
                                         </option>
 
-                                        <option value="25" @selected(old('prioridad') == 25)>
+                                        <option value="25" @selected(old('prioridad',$actividad->prioridad) == 25)>
                                             Baja
                                         </option>
                                     </select>
@@ -613,7 +622,7 @@
                                     <label class="flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/10 px-3 py-3 transition hover:bg-white/[0.03]">
                                         <input type="checkbox" name="etiquetas[]" value="{{ $etiqueta->id_etiqueta }}"
                                             data-nombre-etiqueta="{{ $etiqueta->nombre }}"
-                                            @checked(in_array($etiqueta->id_etiqueta, old('etiquetas', [])))
+                                            @checked(in_array($etiqueta->id_etiqueta, old('etiquetas',$actividad->etiquetas->pluck('id_etiqueta')->all())))
                                             class="h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
 
                                         <span class="min-w-0 break-words text-sm text-gray-400">
@@ -650,7 +659,7 @@
 
                             <label class="flex cursor-pointer items-start gap-3">
                                 <input type="checkbox" id="habilita_inscripcion" name="habilita_inscripcion" value="1"
-                                    @checked(old('habilita_inscripcion', '1') == '1')
+                                    @checked(old('habilita_inscripcion',$actividad->habilita_inscripcion ? '1' : '0') == '1')
                                     class="mt-1 h-5 w-5 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
 
                                 <span class="min-w-0">
@@ -689,7 +698,7 @@
                                     </button>
                                 </div>
 
-                                <input type="number" id="cupo_total" name="cupo_total" value="{{ old('cupo_total') }}" min="0"
+                                <input type="number" id="cupo_total" name="cupo_total" value="{{ old('cupo_total',$actividad->cupo_total) }}" min="0"
                                     placeholder="Ej. 100"
                                     class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:max-w-sm sm:text-sm">
                             </div>
@@ -701,7 +710,7 @@
 
                                     <label class="flex cursor-pointer items-start gap-3">
                                         <input type="checkbox" id="requiere_cuenta" name="requiere_cuenta" value="1"
-                                            @checked(old('requiere_cuenta') == '1')
+                                            @checked(old('requiere_cuenta',$actividad->requiere_cuenta ? '1' : '0') == '1')
                                             class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
 
                                         <span class="min-w-0">
@@ -724,7 +733,7 @@
 
                                     <label class="flex cursor-pointer items-start gap-3">
                                         <input type="checkbox" id="permite_lista_espera" name="permite_lista_espera" value="1"
-                                            @checked(old('permite_lista_espera') == '1')
+                                            @checked(old('permite_lista_espera',$actividad->permite_lista_espera ? '1' : '0') == '1')
                                             class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
 
                                         <span class="min-w-0">
@@ -765,8 +774,8 @@
                                         </label>
 
                                         <input type="datetime-local" id="inscripcion_desde" name="inscripcion_desde"
-                                            value="{{ old('inscripcion_desde') }}"
-                                            class="future-date block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            value="{{ old('inscripcion_desde',$actividad->inscripcion_desde?->format('Y-m-d\\TH:i')) }}"
+                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('inscripcion_desde')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -779,8 +788,8 @@
                                         </label>
 
                                         <input type="datetime-local" id="inscripcion_hasta" name="inscripcion_hasta"
-                                            value="{{ old('inscripcion_hasta') }}"
-                                            class="future-date block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            value="{{ old('inscripcion_hasta',$actividad->inscripcion_hasta?->format('Y-m-d\\TH:i')) }}"
+                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('inscripcion_hasta')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -1034,7 +1043,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
 
-                        Crear actividad
+                        Guardar cambios
                     </button>
                 </div>
             </div>
@@ -1269,24 +1278,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function actualizarMinimosFecha() {
-        const ahora = localDateTimeValue();
-
-        document.querySelectorAll('.future-date').forEach(input => {
-            input.min = ahora;
-        });
-
-        visibleHasta.min = visibleDesde.value && visibleDesde.value > ahora
-            ? visibleDesde.value
-            : ahora;
-
-        inscripcionHasta.min = inscripcionDesde.value && inscripcionDesde.value > ahora
-            ? inscripcionDesde.value
-            : ahora;
-
-        realizacionHasta.min = realizacionDesde.value && realizacionDesde.value > ahora
-            ? realizacionDesde.value
-            : ahora;
-
+        visibleHasta.min = visibleDesde.value || '';
+        inscripcionHasta.min = inscripcionDesde.value || '';
+        realizacionHasta.min = realizacionDesde.value || '';
         actualizarEstadoRealizacion();
     }
 
@@ -1323,7 +1317,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     actualizarMinimosFecha();
 
-    setInterval(actualizarMinimosFecha, 60000);
 
     //Portada
     const inputPortada = document.getElementById('portada');
@@ -1343,7 +1336,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalPortadaImagen = document.getElementById('modalPortadaImagen');
     const cerrarModalPortada = document.getElementById('cerrarModalPortada');
 
-    let portadaDataUrl = null;
+    const eliminarPortada = document.getElementById('eliminar_portada');
+    const portadaActualUrl = document.getElementById('formActividad').dataset.portadaActual || '';
+    let portadaDataUrl = portadaActualUrl || null;
+
+    function cargarPortadaActual() {
+        if (!portadaActualUrl) return;
+        portadaPreview.src = portadaActualUrl;
+        portadaPreview.classList.remove('hidden');
+        portadaPlaceholder.classList.add('hidden');
+        resumenPortada.src = portadaActualUrl;
+        resumenPortada.classList.remove('hidden');
+        resumenSinPortada.classList.add('hidden');
+        portadaNombre.textContent = 'Cambiar fotografía';
+        quitarPortada.classList.remove('hidden');
+        quitarPortada.classList.add('inline-flex');
+        indicadorAmpliar.classList.remove('hidden');
+    }
 
     function mostrarModalPortada() {
         if (!portadaDataUrl) return;
@@ -1364,6 +1373,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function limpiarPortada() {
         inputPortada.value = '';
+        if (eliminarPortada) eliminarPortada.value = portadaActualUrl ? '1' : '0';
         portadaDataUrl = null;
 
         portadaPreview.src = '';
@@ -1382,6 +1392,8 @@ document.addEventListener('DOMContentLoaded', function () {
         indicadorAmpliar.classList.add('hidden');
     }
 
+    cargarPortadaActual();
+
     inputPortada.addEventListener('change', function () {
         const file = this.files[0];
 
@@ -1391,6 +1403,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         portadaNombre.textContent = file.name;
+        if (eliminarPortada) eliminarPortada.value = '0';
 
         const reader = new FileReader();
 

@@ -17,11 +17,12 @@ class SesionActividad extends Model
 
     protected $fillable = [
         'id_actividad',
+        'id_espacio',
         'nombre',
         'fecha_inicio',
         'fecha_fin',
         'ubicacion',
-        'enlace',
+        'enlace_acceso',
         'cupo',
         'requiere_reserva',
         'obligatoria',
@@ -32,6 +33,7 @@ class SesionActividad extends Model
     protected function casts(): array
     {
         return [
+            'id_espacio' => 'integer',
             'fecha_inicio' => 'datetime',
             'fecha_fin' => 'datetime',
             'cupo' => 'integer',
@@ -43,11 +45,28 @@ class SesionActividad extends Model
 
     public function actividad(): BelongsTo
     {
-        return $this->belongsTo(Actividad::class, 'id_actividad', 'id_actividad');
+        return $this->belongsTo(
+            Actividad::class,
+            'id_actividad',
+            'id_actividad'
+        );
+    }
+
+    public function espacio(): BelongsTo
+    {
+        return $this->belongsTo(
+            Espacio::class,
+            'id_espacio',
+            'id_espacio'
+        );
     }
 
     public function recursos(): HasMany
     {
-        return $this->hasMany(RecursoActividad::class, 'id_sesion', 'id_sesion');
+        return $this->hasMany(
+            RecursoActividad::class,
+            'id_sesion',
+            'id_sesion'
+        );
     }
 }

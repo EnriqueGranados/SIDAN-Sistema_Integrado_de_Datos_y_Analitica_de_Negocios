@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Models\Espacio;
+
 
 class ActividadController extends Controller
 {
@@ -110,12 +112,20 @@ class ActividadController extends Controller
 
     public function create()
     {
-        $categorias = Categoria::where('activo', true)
+        $categorias = Categoria::query()
+            ->where('activo', true)
             ->orderBy('orden')
             ->orderBy('nombre')
             ->get();
 
-        $etiquetas = Etiqueta::where('activo', true)
+        $etiquetas = Etiqueta::query()
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
+        $espacios = Espacio::query()
+            ->where('activo', true)
+            ->with('contenedor')
             ->orderBy('nombre')
             ->get();
 
@@ -123,7 +133,8 @@ class ActividadController extends Controller
             'admin.actividades.crear',
             compact(
                 'categorias',
-                'etiquetas'
+                'etiquetas',
+                'espacios'
             )
         );
     }
@@ -322,11 +333,7 @@ class ActividadController extends Controller
         }
     }
 
-    public function actualizarItem(
-        Request $request,
-        Actividad $actividad,
-        ItemActividad $item
-    ) {
+    public function actualizarItem( Request $request, Actividad $actividad, ItemActividad $item) {
         abort_unless(
             $item->id_actividad === $actividad->id_actividad,
             404
@@ -437,10 +444,7 @@ class ActividadController extends Controller
         }
     }
 
-    public function eliminarItem(
-        Actividad $actividad,
-        ItemActividad $item
-    ) {
+    public function eliminarItem( Actividad $actividad, ItemActividad $item) {
         abort_unless(
             $item->id_actividad === $actividad->id_actividad,
             404
@@ -511,7 +515,7 @@ class ActividadController extends Controller
             );
         }
     }
-        public function store(Request $request)
+    public function store(Request $request)
     {
         $validated = $this->validarActividad($request);
         $rutaNueva = null;
@@ -636,34 +640,73 @@ class ActividadController extends Controller
                 );
         }
 
-        $categorias = Categoria::where('activo', true)
+        $actividad->load([
+            'categoria',
+            'espacio.contenedor',
+            'etiquetas',
+            'portada',
+        ]);
+
+        $categorias = Categoria::query()
+            ->where(function ($query) use ($actividad) {
+                $query->where('activo', true);
+
+                if ($actividad->id_categoria) {
+                    $query->orWhere(
+                        'id_categoria',
+                        $actividad->id_categoria
+                    );
+                }
+            })
             ->orderBy('orden')
             ->orderBy('nombre')
             ->get();
 
-        $etiquetas = Etiqueta::where('activo', true)
+        $idsEtiquetasActuales = $actividad->etiquetas
+            ->pluck('id_etiqueta')
+            ->all();
+
+        $etiquetas = Etiqueta::query()
+            ->where(function ($query) use ($idsEtiquetasActuales) {
+                $query->where('activo', true);
+
+                if (!empty($idsEtiquetasActuales)) {
+                    $query->orWhereIn(
+                        'id_etiqueta',
+                        $idsEtiquetasActuales
+                    );
+                }
+            })
             ->orderBy('nombre')
             ->get();
 
-        $actividad->load([
-            'etiquetas',
-            'portada',
-        ]);
+        $espacios = Espacio::query()
+            ->where(function ($query) use ($actividad) {
+                $query->where('activo', true);
+
+                if ($actividad->id_espacio) {
+                    $query->orWhere(
+                        'id_espacio',
+                        $actividad->id_espacio
+                    );
+                }
+            })
+            ->with('contenedor')
+            ->orderBy('nombre')
+            ->get();
 
         return view(
             'admin.actividades.editar',
             compact(
                 'actividad',
                 'categorias',
-                'etiquetas'
+                'etiquetas',
+                'espacios'
             )
         );
     }
 
-    public function update(
-        Request $request,
-        Actividad $actividad
-    ) {
+    public function update( Request $request, Actividad $actividad) {
         if (!in_array(
             $actividad->estado_publicacion,
             ['borrador', 'cambios_solicitados'],
@@ -801,7 +844,7 @@ class ActividadController extends Controller
                 );
         }
     }
-        public function enviarRevision(Actividad $actividad)
+    public function enviarRevision(Actividad $actividad)
     {
         if (!in_array(
             $actividad->estado_publicacion,
@@ -960,11 +1003,21 @@ class ActividadController extends Controller
 
     private function validarActividad(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'id_categoria' => [
                 'nullable',
                 'integer',
                 'exists:tbl_categorias,id_categoria',
+            ],
+            'id_espacio' => [
+                'nullable',
+                'integer',
+                'exists:tbl_espacios,id_espacio',
+            ],
+            'ubicacion_externa' => [
+                'nullable',
+                'string',
+                'max:300',
             ],
             'nombre' => [
                 'required',
@@ -1072,14 +1125,49 @@ class ActividadController extends Controller
                 'boolean',
             ],
         ]);
+        if (
+                !empty($validated['id_espacio'])
+                && !empty($validated['ubicacion_externa'])
+            ) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'ubicacion_externa' =>
+                        'Selecciona un espacio registrado o escribe una ubicación externa, no ambas opciones.',
+                ]);
+            }
+
+            if (!empty($validated['id_espacio'])) {
+                $espacio = Espacio::query()
+                    ->find($validated['id_espacio']);
+
+                if (
+                    $espacio
+                    && $espacio->capacidad !== null
+                    && isset($validated['cupo_total'])
+                    && $validated['cupo_total'] !== null
+                    && (int) $validated['cupo_total'] > (int) $espacio->capacidad
+                ) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'cupo_total' =>
+                            "El cupo no puede superar la capacidad del espacio seleccionado ({$espacio->capacidad} personas).",
+                    ]);
+                }
+            }
+
+            return $validated;
     }
-        private function asignarDatos(
-        Actividad $actividad,
-        array $validated
-    ): void {
+    private function asignarDatos( Actividad $actividad, array $validated): void {
         $actividad->id_categoria =
             $validated['id_categoria']
             ?? null;
+
+        $actividad->id_espacio =
+            $validated['id_espacio']
+            ?? null;
+
+        $actividad->ubicacion_externa =
+            !empty($validated['id_espacio'])
+                ? null
+                : ($validated['ubicacion_externa'] ?? null);
 
         $actividad->nombre =
             $validated['nombre'];
@@ -1152,10 +1240,7 @@ class ActividadController extends Controller
             ?? null;
     }
 
-    private function generarSlugUnico(
-        string $nombre,
-        ?int $ignorarId = null
-    ): string {
+    private function generarSlugUnico( string $nombre, ?int $ignorarId = null): string {
         $base = Str::slug($nombre);
 
         $base =
@@ -1190,9 +1275,7 @@ class ActividadController extends Controller
         return $slug;
     }
 
-    private function invalidarConfiguracionGeneral(
-        Actividad $actividad
-    ): void {
+    private function invalidarConfiguracionGeneral(Actividad $actividad): void {
         $documento = ActivityContent::where(
             'id_actividad_pg',
             (int) $actividad->id_actividad
@@ -1252,9 +1335,7 @@ class ActividadController extends Controller
         return [];
     }
 
-    private function rutaStorageDesdeUrl(
-        ?string $url
-    ): ?string {
+    private function rutaStorageDesdeUrl(?string $url): ?string {
         if (!$url) {
             return null;
         }

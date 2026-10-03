@@ -21,6 +21,8 @@ class Actividad extends Model
 
     protected $fillable = [
         'id_categoria',
+        'id_espacio',
+        'ubicacion_externa',
         'nombre',
         'slug',
         'resumen',
@@ -71,6 +73,16 @@ class Actividad extends Model
             'id_categoria'
         );
     }
+
+    public function espacio(): BelongsTo
+    {
+        return $this->belongsTo(
+            Espacio::class,
+            'id_espacio',
+            'id_espacio'
+        );
+    }
+
 
     public function etiquetas(): BelongsToMany
     {
