@@ -28,12 +28,10 @@ return new class extends Migration
         });
 
         // Tabla para la recuperación de contraseñas.
-        Schema::create('codigos_reset', function (Blueprint $table) {
-            $table->id('id_codigo');
-            $table->string('correo', 100);
-            $table->string('codigo', 8);
-            $table->date('expiracion');
-            $table->boolean('usado')->default(false);
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
         });
 
         // Tabla para manejo de sesiones.
@@ -53,7 +51,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('tbl_usuarios');
-        Schema::dropIfExists('codigos_reset');
+        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };

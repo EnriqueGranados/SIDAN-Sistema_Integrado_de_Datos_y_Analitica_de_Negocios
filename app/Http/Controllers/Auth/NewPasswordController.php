@@ -21,7 +21,9 @@ class NewPasswordController extends Controller
      */
     public function create(Request $request): View
     {
-        return view('auth.reset-password', ['request' => $request]);
+        return view('auth.reset-password', [
+            'request' => $request,
+        ]);
     }
 
     /**
@@ -29,35 +31,64 @@ class NewPasswordController extends Controller
      *
      * @throws ValidationException
      */
+
+    // Maneja la solicitud de restablecimiento de contraseña.
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::defaults(),
+            ],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
+        $email = strtolower(trim($request->input('email')));
+
+        // Verificar si el usuario existe y tiene una cuenta válida para restablecer la contraseña.
+        $existingUser = User::where('correo', $email)->first();
+
+        if (!$existingUser || $existingUser->eliminado || !$existingUser->estado_activo || is_null($existingUser->password_hash)) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => 'No fue posible restablecer la contraseña.',
+                ]);
+        }
+
+        // Intentar restablecer la contraseña.
         $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
+            [
+                'correo' => $email,
+                'password' => $request->password,
+                'password_confirmation' => $request->password_confirmation,
+                'token' => $request->token,
+            ],
             function (User $user) use ($request) {
                 $user->forceFill([
-                    'password' => Hash::make($request->password),
+                    'password_hash' => Hash::make($request->password),
                     'remember_token' => Str::random(60),
+                    'must_change_password' => false,
                 ])->save();
 
                 event(new PasswordReset($user));
             }
         );
 
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+        // Respuesta genérica para todos los casos.
+        return $status === Password::PASSWORD_RESET
+            ? redirect()
+                ->route('login')
+                ->with(
+                    'status',
+                    'Tu contraseña ha sido restablecida correctamente.'
+                )
+            : back()
+                ->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => __($status),
+                ]);
     }
 }
