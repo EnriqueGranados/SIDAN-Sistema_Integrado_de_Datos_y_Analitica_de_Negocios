@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
@@ -43,6 +44,12 @@ class User extends Authenticatable implements CanResetPasswordContract
             'estado_activo' => 'boolean',
             'eliminado' => 'boolean',
         ];
+    }
+
+    // Relación uno a uno con la cuenta de Google del usuario.
+    public function googleAccount(): HasOne
+    {
+        return $this->hasOne(GoogleUser::class, 'id_usuario', 'id_usuario');
     }
 
     // Devuelve la contraseña del usuario para la autenticación.

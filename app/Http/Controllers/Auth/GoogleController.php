@@ -14,14 +14,21 @@ use Illuminate\Validation\Rules;
 use App\Models\User;
 use App\Models\Rol;
 use App\Models\InformacionPersonal;
+use App\Models\GoogleUser;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
 
 class GoogleController extends Controller
-{
+{   
+    // Redirigir al usuario a la página de autenticación de Google.
     public function redirectToGoogle()
     {
+        session()->forget('google_oauth_intent');
+
         return Socialite::driver('google')->redirect();
     }
 
+    // Manejar la respuesta de Google después de la autenticación.
     public function handleGoogleCallback()
     {
         try {
@@ -30,66 +37,113 @@ class GoogleController extends Controller
             return redirect('/login')->with('error', 'Error al comunicarse con Google.');
         }
 
-        $usuarioExistente = User::where('correo', $googleUser->getEmail())->first();
+        $googleId = $googleUser->getId();
+        $googleEmail = strtolower(trim($googleUser->getEmail()));
+
+        $intent = session()->pull('google_oauth_intent');
+
+        // Vincular la cuenta de Google con el perfil del usuario autenticado.
+        if ($intent === 'link') {
+            return $this->handleProfileGoogleLink(
+                $googleId,
+                $googleEmail
+            );
+        }
+
+        // Escenario 1: Google ya está vinculado a un usuario en SIDAN.
+        $googleAccount = GoogleUser::where('google_id', $googleId)->first();
+
+        if ($googleAccount) {
+            $usuario = $googleAccount->user;
+
+            Auth::login($usuario);
+
+            return redirect()->intended('/user/dashboard')->with('success', 'Has iniciado sesión con tu cuenta de Google.');
+        }
+
+        // Escenario 2: El correo ya existe en SIDAN, pero Google no está vinculado.
+        $usuarioExistente = User::where('correo', $googleEmail)->first();
 
         if ($usuarioExistente) {
-            if ($usuarioExistente->google_id !== null) {
-                // Escenario 1: Ya está vinculado, inicia sesión directo
-                Auth::login($usuarioExistente);
-                return redirect()->intended('/user/dashboard')->with('success', 'Has iniciado sesión con tu cuenta de Google.');
-            } else {
-                // Escenario 2: El correo existe pero no tiene google_id.
-                // Guardamos datos en sesión y pedimos confirmación.
-                session([
-                    'temp_google_id' => $googleUser->getId(),
-                    'temp_email'     => $googleUser->getEmail(),
-                    'temp_avatar'    => $googleUser->getAvatar()
-                ]);
-
-                return redirect()->route('vincular.cuenta');
-            }
-        } else {
-            // Escenario 3: Usuario nuevo
-            $partesNombre = explode(' ', $googleUser->getName(), 2);
-            
-            $infoPersonal = InformacionPersonal::create([
-                'nombres'   => $partesNombre[0] ?? '',
-                'apellidos' => $partesNombre[1] ?? '',
+            session([
+                'temp_google_id' => $googleId,
+                'temp_email' => $googleEmail,
+                'temp_avatar' => $googleUser->getAvatar(),
             ]);
 
-            // 1. Obtener la URL de la imagen de Google
-            $urlAvatar = $googleUser->getAvatar();
-            $rutaImagen = null;
+            return redirect()->route('vincular.cuenta');
+        }
 
-            if ($urlAvatar) {
-                // 2. Descargar el contenido de la imagen
-                $contenidoImagen = Http::get($urlAvatar)->body();
-                
-                // 3. Generar un nombre único (ej. google_a1b2c3d4.jpg)
+        // Escenario 3: Usuario nuevo, crear cuenta en SIDAN y vincular Google.
+        $urlAvatar = $googleUser->getAvatar();
+        $rutaImagen = null;
+
+        if ($urlAvatar) {
+            $respuestaAvatar = Http::get($urlAvatar);
+
+            if ($respuestaAvatar->successful()) {
                 $nombreArchivo = 'perfiles/google_' . Str::random(10) . '.jpg';
-                
-                // 4. Guardar en storage/app/public/perfiles
-                Storage::disk('public')->put($nombreArchivo, $contenidoImagen);
-                
+
+                Storage::disk('public')->put(
+                    $nombreArchivo,
+                    $respuestaAvatar->body()
+                );
+
                 $rutaImagen = $nombreArchivo;
             }
-            
-            $rolUsuario = Rol::where('nombre', 'usuario')->firstOrFail();
-
-            $nuevoUsuario = User::create([
-                'id_informacion_personal' => $infoPersonal->id_informacion_personal,
-                'id_rol'                  => $rolUsuario->id_rol,
-                'correo'                  => $googleUser->getEmail(),
-                'password_hash'           => null, 
-                'google_id'               => $googleUser->getId(),
-                'imagen_perfil'           => $rutaImagen, 
-            ]);
-
-            Auth::login($nuevoUsuario);
-            return redirect()->route('datos.personales')->with('success', 'Tu cuenta de Google se ha enlazado correctamente. Puedes completar tu perfil a continuación.');
         }
+
+        try {
+            $nuevoUsuario = DB::transaction(function () use (
+                $googleUser,
+                $googleId,
+                $googleEmail,
+                $rutaImagen
+            ) {
+                $partesNombre = explode(' ', $googleUser->getName(), 2);
+
+                $infoPersonal = InformacionPersonal::create([
+                    'nombres' => $partesNombre[0] ?? '',
+                    'apellidos' => $partesNombre[1] ?? '',
+                ]);
+
+                $rolUsuario = Rol::where('nombre', 'usuario')->firstOrFail();
+
+                // Primero creamos el usuario en la tabla tbl_usuarios.
+                $usuario = User::create([
+                    'id_informacion_personal' => $infoPersonal->id_informacion_personal,
+                    'id_rol' => $rolUsuario->id_rol,
+                    'correo' => $googleEmail,
+                    'password_hash' => null,
+                    'imagen_perfil' => $rutaImagen,
+                ]);
+
+                // Después creamos la relación en la tabla tbl_google_usuarios.
+                $usuario->googleAccount()->create([
+                    'google_id' => $googleId,
+                    'correo_google' => $googleEmail,
+                ]);
+
+                return $usuario;
+            });
+        } catch (\Exception $e) {
+            // Si hubo un error, eliminamos la imagen descargada para no dejar archivos huérfanos.
+            if ($rutaImagen) {
+                Storage::disk('public')->delete($rutaImagen);
+            }
+
+            report($e);
+
+            return redirect('/login')->with('error', 'No fue posible crear tu cuenta. Inténtalo nuevamente.');
+        }
+
+        Auth::login($nuevoUsuario);
+
+        return redirect()
+            ->route('datos.personales')->with('success', 'Tu cuenta de Google se ha enlazado correctamente. Puedes completar tu perfil a continuación.');
     }
 
+    // Mostrar el formulario para completar los datos personales del usuario.
     public function guardarDatosPersonales(Request $request)
     {
         $usuario = Auth::user();
@@ -140,6 +194,7 @@ class GoogleController extends Controller
         return redirect()->route('user.dashboard')->with('success', '¡Perfil actualizado con éxito!');
     }
 
+    // Mostrar el formulario para vincular la cuenta de Google con una cuenta existente en SIDAN.
     public function showLinkAccountForm()
     {
         if (!session()->has('temp_email')) {
@@ -149,46 +204,178 @@ class GoogleController extends Controller
         return view('auth.vincular-cuenta');
     }
 
+    // Vincular la cuenta de Google con una cuenta existente en SIDAN.
     public function linkAccount(Request $request)
     {
         $request->validate([
-            'password' => 'required|string',
+            'password' => ['required', 'string'],
         ]);
 
-        $usuario = User::where('correo', session('temp_email'))->first();
+        $googleId = session('temp_google_id');
+        $googleEmail = session('temp_email');
+        $googleAvatar = session('temp_avatar');
 
-        // Comprobamos la contraseña contra el campo password_hash.
-        if (Hash::check($request->password, $usuario->password_hash)) {
-            
-            $usuario->google_id = session('temp_google_id');
-            
-            if (is_null($usuario->imagen_perfil)) {
-                // 1. Obtener la URL de la imagen desde la variable de sesión
-                $urlAvatar = session('temp_avatar');
-
-                if ($urlAvatar) {
-                    // 2. Descargar el contenido de la imagen
-                    $contenidoImagen = Http::get($urlAvatar)->body();
-                    
-                    // 3. Generar un nombre único
-                    $nombreArchivo = 'perfiles/google_' . Str::random(10) . '.jpg';
-                    
-                    // 4. Guardar en storage/app/public/perfiles
-                    Storage::disk('public')->put($nombreArchivo, $contenidoImagen);
-                    
-                    // 5. Asignar la nueva ruta de la imagen al usuario directamente
-                    $usuario->imagen_perfil = $nombreArchivo;
-                }
-            }
-            
-            $usuario->save();
-
-            session()->forget(['temp_email', 'temp_google_id', 'temp_avatar']);
-            Auth::login($usuario);
-
-            return redirect()->intended('/user/dashboard')->with('success', 'Cuenta vinculada exitosamente.');
+        // Validar que exista una vinculación pendiente.
+        if (!$googleId || !$googleEmail) {
+            return redirect()->route('login')->with('error', 'La solicitud de vinculación con Google ha expirado.');
         }
 
-        return back()->withErrors(['password' => 'La contraseña es incorrecta.']);
+        // Buscamos el usuario por correo electrónico.
+        $usuario = User::where('correo', $googleEmail)->first();
+
+        if (!$usuario) {
+            session()->forget([
+                'temp_email',
+                'temp_google_id',
+                'temp_avatar',
+            ]);
+
+            return redirect()->route('login')->with('error', 'No fue posible encontrar la cuenta que deseas vincular.');
+        }
+
+        //Confirmar identidad mediante la contraseña SIDAN.
+        if (is_null($usuario->password_hash) || !Hash::check($request->password, $usuario->password_hash)) 
+        {
+            return back()->withErrors(['password' => 'La contraseña es incorrecta.',]);
+        }
+
+        // Comprobar que la cuenta de Google no esté ya vinculada a otro usuario.
+        $googleYaVinculado = GoogleUser::where('google_id', $googleId)->exists();
+
+        if ($googleYaVinculado) {
+            session()->forget([
+                'temp_email',
+                'temp_google_id',
+                'temp_avatar',
+            ]);
+
+            return redirect()->route('login')->with('error', 'Esta cuenta de Google ya se encuentra vinculada a otro usuario.');
+        }
+
+        // Comprobar que el usuario SIDAN no tenga ya una cuenta de Google vinculada.
+        if ($usuario->googleAccount()->exists()) {
+            session()->forget([
+                'temp_email',
+                'temp_google_id',
+                'temp_avatar',
+            ]);
+
+            return redirect()->route('login')->with('error', 'Esta cuenta de SIDAN ya tiene una cuenta de Google vinculada.');
+        }
+
+        $rutaImagen = null;
+
+        // Intentar descargar el avatar de Google si el usuario no tiene imagen de perfil.
+        if (is_null($usuario->imagen_perfil) && $googleAvatar) {
+            try {
+                $respuestaAvatar = Http::get($googleAvatar);
+
+                if ($respuestaAvatar->successful()) {
+                    $nombreArchivo = 'perfiles/google_' . Str::random(10) . '.jpg';
+
+                    Storage::disk('public')->put(
+                        $nombreArchivo,
+                        $respuestaAvatar->body()
+                    );
+
+                    $rutaImagen = $nombreArchivo;
+                }
+            } catch (\Exception $e) {
+                report($e);
+            }
+        }
+
+        try {
+            DB::transaction(function () use (
+                $usuario,
+                $googleId,
+                $googleEmail,
+                $rutaImagen
+            ) {
+                // Vincular la cuenta de Google al usuario existente.
+                $usuario->googleAccount()->create([
+                    'google_id' => $googleId,
+                    'correo_google' => $googleEmail,
+                ]);
+
+                // Actualizar la imagen de perfil si se descargó una nueva.
+                if ($rutaImagen) {
+                    $usuario->imagen_perfil = $rutaImagen;
+                    $usuario->save();
+                }
+            });
+        } catch (\Exception $e) {
+            if ($rutaImagen) {
+                Storage::disk('public')->delete($rutaImagen);
+            }
+
+            report($e);
+
+            return back()->withErrors(['password' => 'No fue posible vincular la cuenta de Google. Inténtalo nuevamente.',]);
+        }
+
+        session()->forget([
+            'temp_email',
+            'temp_google_id',
+            'temp_avatar',
+        ]);
+
+        Auth::login($usuario);
+
+        return redirect()->intended('/user/dashboard')->with('success', 'Cuenta de Google vinculada exitosamente.');
+    }
+
+    // Vincular la cuenta de Google desde el perfil del usuario autenticado.
+    public function redirectToGoogleFromProfile()
+    {
+        $user = Auth::user();
+
+        // El usuario ya tiene una cuenta de Google vinculada.
+        if ($user->googleAccount()->exists()) {
+            return redirect()
+                ->route('profile.edit')
+                ->with('error', 'Ya tienes una cuenta de Google vinculada.');
+        }
+
+        // Indicamos que este OAuth no es para iniciar sesión, sino para vincular Google al usuario autenticado.
+        session([
+            'google_oauth_intent' => 'link',
+        ]);
+
+        return Socialite::driver('google')->redirect();
+    }
+
+    //Vincular la cuenta de Google con el perfil del usuario autenticado.
+    private function handleProfileGoogleLink(string $googleId, string $googleEmail): RedirectResponse 
+    {
+        // El usuario debe seguir autenticado.
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Tu sesión ha expirado. Inicia sesión nuevamente.');
+        }
+
+        $user = Auth::user();
+
+        // El usuario SIDAN ya tiene Google vinculado.
+        if ($user->googleAccount()->exists()) {
+            return redirect()->route('profile.edit')->with('error', 'Ya tienes una cuenta de Google vinculada.');
+        }
+
+        // La cuenta Google seleccionada ya pertenece a otro usuario SIDAN.
+        if (GoogleUser::where('google_id', $googleId)->exists()) {
+            return redirect()->route('profile.edit')->with('error', 'Esta cuenta de Google ya se encuentra vinculada a otro usuario.');
+        }
+
+        try {
+            $user->googleAccount()->create([
+                'google_id' => $googleId,
+                'correo_google' => $googleEmail,
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return redirect()->route('profile.edit')->with('error', 'No fue posible vincular la cuenta de Google. Inténtalo nuevamente.');
+        }
+
+        return redirect()->route('profile.edit')->with('status', 'google-linked');
     }
 }

@@ -2,6 +2,13 @@
 
 @section('title', 'SIDAN | Mi perfil')
 
+@push('styles')
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css"
+    >
+@endpush
+
 @section('content')
     <div id="edit-profile-container" class="relative min-h-full">
         <div
@@ -21,7 +28,7 @@
                     </p>
                 </div>
 
-                {{-- Formulario --}}
+                {{-- Formulario de Actualización --}}
                 <form
                     action="{{ route('profile.update') }}"
                     method="POST"
@@ -35,31 +42,77 @@
                     <div class="mb-8 overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
                         <div class="px-6 py-8 sm:px-8">
                             <div class="flex flex-col items-center text-center">
-                                {{-- Foto de perfil --}}
-                                <div class="relative">
+                                {{-- Foto de perfil del usuario --}}
+                                <div class="relative" x-data="{ menuFotoAbierto: false }">
+                                    {{-- Foto de perfil --}}
                                     <img
-                                        x-ref="imagenPreview"
-                                        src="{{ $user->imagen_perfil ? asset('storage/' . $user->imagen_perfil) : asset('images/usuario.png') }}"
+                                        :src="imagenPreview"
                                         alt="Foto de perfil"
-                                        class="h-32 w-32 rounded-full object-cover ring-4 ring-white shadow-lg dark:ring-sidan-800"
+                                        class="h-32 w-32 rounded-full object-cover ring-4 ring-slate-200 shadow-lg dark:ring-slate-500"
                                     >
 
-                                    {{-- Botón cambiar foto --}}
+                                    {{-- Botón cámara --}}
                                     <button
                                         type="button"
+                                        @click="menuFotoAbierto = !menuFotoAbierto"
                                         class="absolute bottom-1 right-1 flex h-10 w-10 items-center justify-center rounded-full bg-sidan-500 text-white shadow-lg transition hover:bg-white hover:text-sidan-500 hover:ring-2 hover:ring-sidan-500 focus:outline-none focus:ring-2 focus:ring-sidan-500 focus:ring-offset-2"
-                                        @click="$refs.imagenPerfil.click()"
-                                        aria-label="Cambiar foto de perfil"
+                                        title="Opciones de foto"
                                     >
                                         <svg
-                                            xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h2l2-3h10l2 3h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z"/>
-
-                                            <circle cx="12" cy="13" r="3"/>
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-5 w-5"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M3 9a2 2 0 0 1 2-2h1.586a2 2 0 0 0 1.414-.586l.828-.828A2 2 0 0 1 10.243 5h3.514a2 2 0 0 1 1.415.586l.828.828A2 2 0 0 0 17.414 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"
+                                            />
+                                            <circle cx="12" cy="13" r="3" />
                                         </svg>
                                     </button>
 
-                                    {{-- Input oculto para la imagen --}}
+                                    {{-- Menú de opciones --}}
+                                    <div
+                                        x-show="menuFotoAbierto"
+                                        x-transition
+                                        @click.outside="menuFotoAbierto = false"
+                                        x-cloak
+                                        class="absolute left-1/2 top-full z-30 mt-3 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-slate-800"
+                                    >
+                                        {{-- Colocar / cambiar foto --}}
+                                        <button
+                                            type="button"
+                                            @click="
+                                                menuFotoAbierto = false;
+                                                $refs.imagenPerfil.click();
+                                            "
+                                            class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"
+                                        >
+                                            <span
+                                                x-text="tieneImagenPerfil ? 'Cambiar foto' : 'Colocar foto'"
+                                            ></span>
+                                        </button>
+
+                                        {{-- Quitar foto --}}
+                                        <button
+                                            x-show="tieneImagenPerfil"
+                                            x-transition
+                                            type="button"
+                                            @click="
+                                                menuFotoAbierto = false;
+                                                quitarImagenPerfil();
+                                            "
+                                            class="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-white/10 dark:text-red-400 dark:hover:bg-red-500/10"
+                                        >
+                                            Quitar foto
+                                        </button>
+                                    </div>
+
+                                    {{-- Input oculto para seleccionar imagen --}}
                                     <input
                                         x-ref="imagenPerfil"
                                         type="file"
@@ -68,6 +121,131 @@
                                         class="hidden"
                                         @change="cambiarImagen"
                                     >
+
+                                    {{-- Indica si se desea eliminar la imagen --}}
+                                    <input
+                                        type="hidden"
+                                        name="eliminar_imagen_perfil"
+                                        :value="eliminarImagenPerfil ? '1' : '0'"
+                                    >
+
+                                    {{-- Modal para recortar foto de perfil --}}
+                                    <div
+                                        x-show="editorImagenAbierto"
+                                        x-cloak
+                                        class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                                        @keydown.escape.window="cancelarRecorteImagen()"
+                                    >
+                                        {{-- Fondo --}}
+                                        <div
+                                            class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+                                            @click="cancelarRecorteImagen()"
+                                        ></div>
+
+                                        {{-- Modal --}}
+                                        <div
+                                            x-show="editorImagenAbierto"
+                                            x-transition
+                                            @click.stop
+                                            class="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-800 lg:left-32"
+                                        >
+                                            {{-- Encabezado --}}
+                                            <div class="flex w-full items-start justify-between border-b border-slate-200 px-6 py-4 dark:border-white/10">
+                                                <div>
+                                                    <h3 class="text-left text-lg font-bold text-slate-900 dark:text-white">
+                                                        Ajustar foto
+                                                    </h3>
+
+                                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                        Mueve y ajusta la imagen para seleccionar la parte que deseas mostrar.
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    @click="cancelarRecorteImagen()"
+                                                    class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
+                                                    aria-label="Cerrar"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-5 w-5"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            d="M6 18 18 6M6 6l12 12"
+                                                        />
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {{-- Editor --}}
+                                            <div class="bg-slate-100 p-4 sm:p-6 dark:bg-slate-900">
+                                                <div class="mx-auto h-[420px] max-h-[60vh] overflow-hidden rounded-xl bg-black">
+                                                    <img
+                                                        x-ref="imagenCropper"
+                                                        :src="imagenParaRecortar"
+                                                        @load="inicializarCropper()"
+                                                        alt="Imagen para recortar"
+                                                        class="block max-w-full"
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            {{-- Controles --}}
+                                            <div class="flex flex-col gap-4 border-t border-slate-200 p-5 dark:border-white/10">
+
+                                                {{-- Zoom --}}
+                                                <div class="flex items-center justify-center gap-3">
+                                                    <button
+                                                        type="button"
+                                                        @click="alejarImagen()"
+                                                        class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                                                        title="Alejar"
+                                                    >
+                                                        −
+                                                    </button>
+
+                                                    <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                                                        Zoom
+                                                    </span>
+
+                                                    <button
+                                                        type="button"
+                                                        @click="acercarImagen()"
+                                                        class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                                                        title="Acercar"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+
+                                                {{-- Acciones --}}
+                                                <div class="flex justify-end gap-3">
+                                                    <button
+                                                        type="button"
+                                                        @click="cancelarRecorteImagen()"
+                                                        class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        @click="aplicarRecorteImagen()"
+                                                        class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                                    >
+                                                        Aplicar cambios
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {{-- Nombre completo --}}
@@ -377,22 +555,157 @@
                                     Correo electrónico
                                 </label>
 
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value="{{ old('email', $user->correo ?? '') }}"
-                                    required
-                                    autocomplete="email"
-                                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
+                                {{-- Usuario Google --}}
+                                <template x-if="tieneGoogle && !tienePassword">
+                                    <div>
+                                        <input
+                                            type="hidden"
+                                            name="email"
+                                            value="{{ $user->correo }}"
+                                        >
 
-                                @error('email')
-                                    <p class="mt-2 text-sm font-semibold text-red-600">
-                                        {{ $message }}
-                                    </p>
-                                @enderror
+                                        <div class="relative">
+                                            <input
+                                                id="email"
+                                                type="email"
+                                                value="{{ $user->correo }}"
+                                                disabled
+                                                class="block w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 pr-11 text-sm text-slate-500 outline-none opacity-80 dark:border-white/10 dark:bg-white/5 dark:text-slate-400"
+                                            >
+
+                                            {{-- Candado --}}
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="h-5 w-5 text-slate-400"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <rect
+                                                        x="5"
+                                                        y="11"
+                                                        width="14"
+                                                        height="9"
+                                                        rx="2"
+                                                    />
+                                                    <path d="M8 11V7a4 4 0 018 0v4" />
+                                                </svg>
+                                            </div>
+                                        </div>
+
+                                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                            Establece una contraseña de SIDAN para poder cambiar tu correo electrónico.
+                                        </p>
+                                    </div>
+                                </template>
+
+                                {{-- Usuario normal --}}
+                                <template x-if="!tieneGoogle || tienePassword">
+                                    <div>
+                                        <input
+                                            id="email"
+                                            name="email"
+                                            type="email"
+                                            value="{{ old('email', $user->correo ?? '') }}"
+                                            required
+                                            autocomplete="email"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        >
+
+                                        @error('email')
+                                            <p class="mt-2 text-sm font-semibold text-red-600">
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                    </div>
+                                </template>
                             </div>
+                        </div>
+
+                        {{-- Cuenta de Google --}}
+                        <div class="border-t border-slate-200 p-6 sm:p-8 dark:border-white/10">
+                            @if ($user->googleAccount)
+                                {{-- Google vinculado --}}
+                                <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                Cuenta de Google
+                                            </h3>
+
+                                            <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold text-green-700 dark:bg-green-500/10 dark:text-green-400">
+                                                Vinculada
+                                            </span>
+                                        </div>
+
+                                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                            {{ $user->googleAccount->correo_google }}
+                                        </p>
+
+                                        @if (is_null($user->password_hash))
+                                            <p class="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                                                Establece una contraseña de SIDAN antes de desvincular Google.
+                                            </p>
+                                        @endif
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        @if (is_null($user->password_hash))
+                                            disabled
+                                        @else
+                                            @click="confirmarDesvinculacionGoogle()"
+                                        @endif
+                                        class="shrink-0 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/20 dark:bg-white/5 dark:text-red-400 dark:hover:bg-red-500/10"
+                                    >
+                                        Desvincular Google
+                                    </button>
+                                </div>
+                            @else
+                                {{-- Google no vinculado --}}
+                                <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+
+                                    <div>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                Cuenta de Google
+                                            </h3>
+
+                                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                                                No vinculada
+                                            </span>
+                                        </div>
+
+                                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                            Vincula una cuenta de Google para poder iniciar sesión con ella.
+                                        </p>
+                                    </div>
+
+                                    <a
+                                        href="{{ route('profile.google.link') }}"
+                                        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-sidan-500 hover:bg-green-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-sidan-500 dark:hover:bg-green-500/10 dark:hover:text-green-400"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-5 w-5"
+                                            viewBox="0 0 24 24"
+                                            fill="currentColor"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M21.35 11.1h-9.18v3.71h5.27c-.23 1.2-.91 2.22-1.94 2.9v2.41h3.14c1.84-1.69 2.9-4.19 2.9-7.12 0-.66-.06-1.3-.19-1.9Z"/>
+                                            <path d="M12.17 20.62c2.63 0 4.84-.87 6.46-2.36l-3.14-2.41c-.87.58-1.98.92-3.32.92-2.54 0-4.7-1.71-5.47-4.01H3.46v2.49a9.76 9.76 0 0 0 8.71 5.37Z"/>
+                                            <path d="M6.7 12.76a5.86 5.86 0 0 1 0-3.75V6.52H3.46a9.77 9.77 0 0 0 0 8.73l3.24-2.49Z"/>
+                                            <path d="M12.17 4.99c1.43 0 2.72.49 3.73 1.45l2.8-2.79C17 2.07 14.8 1.14 12.17 1.14a9.76 9.76 0 0 0-8.71 5.38L6.7 9.01c.77-2.3 2.93-4.02 5.47-4.02Z"/>
+                                        </svg>
+
+                                        Vincular con Google
+                                    </a>
+
+                                </div>
+                            @endif
+
                         </div>
                     </section>
 
@@ -514,7 +827,7 @@
 
                     {{-- Botones --}}
                     <div class="mt-8 flex items-center justify-end gap-3">
-                        <a href="{{ url()->previous() }}" class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10">
+                        <a href="{{ route('welcome') }}" class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10">
                             Cancelar
                         </a>
 
@@ -524,16 +837,18 @@
                     </div>
                 </form>
 
-                {{-- Separador --}}
-                <div class="my-7 flex items-center gap-4">
-                    <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
-
-                    <span class="text-xs font-semibold text-slate-400">
-                        SIDAN
-                    </span>
-
-                    <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
-                </div>
+                {{-- Formulario para desvincular Google --}}
+                @if ($user->googleAccount && !is_null($user->password_hash))
+                    <form
+                        id="unlink-google-form"
+                        action="{{ route('profile.google.unlink') }}"
+                        method="POST"
+                        class="hidden"
+                    >
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                @endif
             </main>
         </div>
     </div>
@@ -558,9 +873,17 @@
                 genero: @js(old('genero', $user->informacion_personal->genero ?? '')),
                 email: @js(old('email', $user->correo ?? '')),
                 tienePassword: @js(!is_null($user->password_hash)),
+                tieneGoogle: @js($user->googleAccount()->exists()),
                 currentPassword: '',
                 password: '',
                 passwordConfirmation: '',
+
+                imagenPreview: @js($user->imagen_perfil ? asset('storage/' . $user->imagen_perfil) : asset('images/usuario.png')),
+                eliminarImagenPerfil: false,
+                tieneImagenPerfil: @js(!empty($user->imagen_perfil)),
+                imagenParaRecortar: null,
+                cropper: null,
+                editorImagenAbierto: false,
 
                 // Variables para la ubicación
                 oldUbicacion: @js(old('ubicacion', $user->informacion_personal->ubicacion ?? '')),
@@ -576,7 +899,7 @@
                 apiKey: 'd94a880db2815eabb6a7a7af69fd5abd19c577d0020386e7b0bb04201f1b761a', 
                 baseUrl: 'https://api.countrystatecity.in/v1/countries',
 
-                // Funciones para formatear la ubicación
+                // Funciones para formatear la ubicación.
                 get ubicacionFormateada() {
                     if (this.ciudadSeleccionada && this.estadoSeleccionado && this.paisSeleccionado) {
                         return `${this.ciudadSeleccionada}-${this.estadoSeleccionado}-${this.paisSeleccionado}`;
@@ -597,16 +920,15 @@
                     return '';
                 },
 
-                // Funciones para manejar la imagen de perfil
+                // Funciones para manejar la imagen de perfil.
                 cambiarImagen(event) {
-
-                    const archivo = event.target.files[0];
+                    const input = event.target;
+                    const archivo = input.files?.[0];
 
                     if (!archivo) {
                         return;
                     }
 
-                    // Tipo de archivo
                     const tiposPermitidos = [
                         'image/jpeg',
                         'image/png',
@@ -614,24 +936,173 @@
                     ];
 
                     if (!tiposPermitidos.includes(archivo.type)) {
-                        alert('Selecciona una imagen JPG, PNG o WebP.');
-                        event.target.value = '';
+                        input.value = '';
+
+                        this.showAlert(
+                            'Imagen no válida',
+                            'Selecciona una imagen en formato JPG, PNG o WebP.'
+                        );
+
                         return;
                     }
 
-                    // Tamaño máximo: 5 MB
-                    const maximo = 5 * 1024 * 1024;
+                    const maxSize = 5 * 1024 * 1024;
 
-                    if (archivo.size > maximo) {
-                        alert('La imagen no puede superar los 5 MB.');
-                        event.target.value = '';
+                    if (archivo.size > maxSize) {
+                        input.value = '';
+
+                        this.showAlert(
+                            'Imagen demasiado grande',
+                            'La imagen no puede superar los 5 MB.'
+                        );
+
                         return;
                     }
 
-                    // Preview
-                    const url = URL.createObjectURL(archivo);
+                    this.imagenParaRecortar = URL.createObjectURL(archivo);
+                    this.abrirEditorImagen();
+                },
+                
+                // Función para quitar la imagen de perfil.
+                quitarImagenPerfil() {
+                    this.eliminarImagenPerfil = true;
+                    this.tieneImagenPerfil = false;
 
-                    this.$refs.imagenPreview.src = url;
+                    if (this.$refs.imagenPerfil) {
+                        this.$refs.imagenPerfil.value = '';
+                    }
+
+                    this.imagenPreview = @js(asset('images/usuario.png'));
+                },
+
+                // Función para abrir el editor de imagen.
+                abrirEditorImagen() {
+                    this.editorImagenAbierto = true;
+                },
+
+                // Funciones para inicializar y manejar el cropper de la imagen.
+                inicializarCropper() {
+                    if (!this.editorImagenAbierto) {
+                        return;
+                    }
+
+                    if (!this.$refs.imagenCropper) {
+                        return;
+                    }
+
+                    if (this.cropper) {
+                        this.cropper.destroy();
+                        this.cropper = null;
+                    }
+
+                    this.cropper = new Cropper(this.$refs.imagenCropper, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+
+                        dragMode: 'move',
+
+                        autoCropArea: 0.85,
+
+                        responsive: true,
+                        restore: false,
+
+                        background: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+
+                        movable: true,
+                        zoomable: true,
+                        zoomOnTouch: true,
+                        zoomOnWheel: true,
+
+                        cropBoxMovable: false,
+                        cropBoxResizable: false,
+
+                        toggleDragModeOnDblclick: false,
+                    });
+                },
+
+                aplicarRecorteImagen() {
+                    if (!this.cropper) {
+                        return;
+                    }
+
+                    const canvas = this.cropper.getCroppedCanvas({
+                        width: 512,
+                        height: 512,
+
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high',
+                    });
+
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            return;
+                        }
+
+                        const archivoRecortado = new File(
+                            [blob],
+                            'perfil.jpg',
+                            {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            }
+                        );
+
+                        const dataTransfer = new DataTransfer();
+
+                        dataTransfer.items.add(archivoRecortado);
+
+                        this.$refs.imagenPerfil.files = dataTransfer.files;
+
+                        // Actualizamos el preview principal.
+                        this.imagenPreview = URL.createObjectURL(blob);
+
+                        this.eliminarImagenPerfil = false;
+                        this.tieneImagenPerfil = true;
+
+                        this.cerrarEditorImagen();
+                    }, 'image/jpeg', 0.9);
+                },
+
+                cancelarRecorteImagen() {
+                    // La imagen seleccionada no se enviará.
+                    if (this.$refs.imagenPerfil) {
+                        this.$refs.imagenPerfil.value = '';
+                    }
+
+                    this.cerrarEditorImagen();
+                },
+
+                cerrarEditorImagen() {
+                    this.editorImagenAbierto = false;
+
+                    if (this.cropper) {
+                        this.cropper.destroy();
+                        this.cropper = null;
+                    }
+
+                    if (this.imagenParaRecortar) {
+                        URL.revokeObjectURL(this.imagenParaRecortar);
+                        this.imagenParaRecortar = null;
+                    }
+                },
+
+                acercarImagen() {
+                    if (!this.cropper) {
+                        return;
+                    }
+
+                    this.cropper.zoom(0.1);
+                },
+
+                alejarImagen() {
+                    if (!this.cropper) {
+                        return;
+                    }
+
+                    this.cropper.zoom(-0.1);
                 },
 
                 // Errores de validación para los campos de contraseña
@@ -753,8 +1224,21 @@
                     }
                 },
 
+                // Función para confirmar la desvinculación de Google.
+                async confirmarDesvinculacionGoogle() {
+                    const confirmado = await this.showConfirm(
+                        '¿Desvincular cuenta de Google?',
+                        'Ya no podrás iniciar sesión con esta cuenta de Google. Podrás seguir accediendo a SIDAN con tu correo electrónico y contraseña.',
+                        'Desvincular Google'
+                    );
+
+                    if (confirmado) {
+                        document.getElementById('unlink-google-form')?.submit();
+                    }
+                },
+
                 // Función para mostrar un modal de confirmación
-                async showConfirm(title, message) {
+                async showConfirm(title, message, confirmText = 'Confirmar') {
                     return new Promise((resolve) => {
                         const overlay = document.createElement('div');
 
@@ -811,7 +1295,7 @@
                                                 data-confirm
                                                 class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:bg-green-600"
                                             >
-                                                Actualizar usuario
+                                                ${confirmText}
                                             </button>
                                         </div>
                                     </div>
@@ -942,4 +1426,9 @@
             };
         }
     </script>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    @endpush
 @endsection
+

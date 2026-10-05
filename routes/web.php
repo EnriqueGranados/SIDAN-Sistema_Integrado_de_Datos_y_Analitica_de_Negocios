@@ -180,3 +180,7 @@ Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name(
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])->name('vincular.cuenta');
 Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])->name('vincular.cuenta.procesar');
+
+// Google desde el perfil (Autenticado)
+Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])->middleware('auth')->name('profile.google.link');
+Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])->middleware('auth')->name('profile.google.unlink');

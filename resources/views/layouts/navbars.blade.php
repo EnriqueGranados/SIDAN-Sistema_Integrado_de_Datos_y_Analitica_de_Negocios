@@ -60,6 +60,8 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @stack('styles')
 </head>
 
 <body
@@ -508,6 +510,8 @@
             </section>
         </div>
     </div>
+
+    @stack('scripts')
 </body>
 
 </html>

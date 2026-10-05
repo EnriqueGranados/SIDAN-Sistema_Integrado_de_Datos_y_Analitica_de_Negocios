@@ -58,6 +58,8 @@ class ProfileUpdateRequest extends FormRequest
             // Imagen de perfil
             'imagen_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120',],
 
+            'eliminar_imagen_perfil' => ['nullable', 'boolean',],
+
             // Información personal
             'nombres' => ['required', 'string', 'max:100',],
             'apellidos' => ['required', 'string', 'max:100',],
@@ -74,6 +76,35 @@ class ProfileUpdateRequest extends FormRequest
             'current_password' => $currentPasswordRules,
             'password' => $passwordRules,
             'password_confirmation' => $passwordConfirmationRules,
+        ];
+    }
+
+    // Validaciones adicionales después de las reglas principales.
+    public function after(): array
+    {
+        return [
+            function ($validator) {
+                $user = $this->user();
+
+                // Normalizamos ambos correos antes de compararlos.
+                $correoActual = strtolower(trim($user->correo));
+                $correoNuevo = strtolower(trim((string) $this->input('email')));
+
+                // Solo nos interesa si realmente está intentando cambiarlo.
+                $correoCambio = $correoActual !== $correoNuevo;
+
+                // Tiene una cuenta Google vinculada y no tiene contraseña local.
+                $esGoogleOnly =
+                    $user->googleAccount()->exists() &&
+                    is_null($user->password_hash);
+
+                if ($correoCambio && $esGoogleOnly) {
+                    $validator->errors()->add(
+                        'email',
+                        'Debes establecer una contraseña de SIDAN antes de cambiar tu correo electrónico.'
+                    );
+                }
+            },
         ];
     }
 

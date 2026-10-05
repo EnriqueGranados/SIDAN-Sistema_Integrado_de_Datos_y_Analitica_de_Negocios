@@ -26,49 +26,73 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-
         $data = $request->validated();
 
-        DB::transaction(function () use ($user, $data, $request) {
+        $imagenAnterior = $user->imagen_perfil;
+        $imagenNueva = null;
 
-            // Actualizar imagen de perfil si se proporciona una nueva
-            if ($request->hasFile('imagen_perfil')) {
+        // Si el usuario no quiere eliminar la imagen y ha subido una nueva, guardarla temporalmente.
+        if (!$request->boolean('eliminar_imagen_perfil') && $request->hasFile('imagen_perfil')) 
+        {
+            $imagenNueva = $request->file('imagen_perfil')->store('perfiles', 'public');
+        }
 
-                // Eliminar imagen anterior si existe
-                if ($user->imagen_perfil) {
-                    Storage::disk('public')->delete($user->imagen_perfil);
+        try {
+            DB::transaction(function () use ($user, $data, $request, $imagenNueva) 
+            {
+                // Actualizar imagen de perfil.
+                if ($request->boolean('eliminar_imagen_perfil')) {
+                    $user->imagen_perfil = null;
+
+                } elseif ($imagenNueva) {
+                    $user->imagen_perfil = $imagenNueva;
                 }
 
-                // Guardar nueva imagen
-                $user->imagen_perfil = $request->file('imagen_perfil')->store('perfiles', 'public');
+                // Actualizar información personal.
+                $personal = $user->informacion_personal;
+
+                $personal->nombres = $data['nombres'];
+                $personal->apellidos = $data['apellidos'];
+                $personal->documento = $data['documento'] ?? null;
+                $personal->telefono = $data['telefono'] ?? null;
+                $personal->fecha_nacimiento = $data['fecha_nacimiento'] ?? null;
+                $personal->genero = $data['genero'] ?? null;
+                $personal->ubicacion = $data['ubicacion'] ?? null;
+
+                $personal->save();
+
+                // Actualizar correo del usuario.
+                $user->correo = $data['email'];
+
+                // Actualizar contraseña si se proporciona una nueva.
+
+                if (!empty($data['password'])) {
+                    $user->password_hash = Hash::make($data['password']);
+                }
+
+                $user->save();
+            });
+
+        } catch (\Throwable $e) {
+            // Si ocurre un error durante la transacción, eliminar la nueva imagen si se guardó.
+
+            if ($imagenNueva) {
+                Storage::disk('public')->delete($imagenNueva);
             }
 
-            // Actualizar información personal
-            $personal = $user->informacion_personal;
+            throw $e;
+        }
 
-            $personal->nombres = $data['nombres'];
-            $personal->apellidos = $data['apellidos'];
-            $personal->documento = $data['documento'] ?? null;
-            $personal->telefono = $data['telefono'] ?? null;
-            $personal->fecha_nacimiento = $data['fecha_nacimiento'] ?? null;
-            $personal->genero = $data['genero'] ?? null;
-            $personal->ubicacion = $data['ubicacion'] ?? null;
+        // Eliminar la imagen anterior si no hubo error y si el usuario la eliminó o la reemplazó por una nueva.
+        $imagenFueEliminada = $request->boolean('eliminar_imagen_perfil');
+        $imagenFueReemplazada = !is_null($imagenNueva);
 
-            $personal->save();
+        if ($imagenAnterior && ($imagenFueEliminada || $imagenFueReemplazada)) 
+        {
+            Storage::disk('public')->delete($imagenAnterior);
+        }
 
-            // Actualizar correo del usuario
-            $user->correo = $data['email'];
-
-            // Actualizar contraseña si se proporciona una nueva
-            if (!empty($data['password'])) {
-                $user->password_hash = Hash::make($data['password']);
-            }
-
-            $user->save();
-        });
-
-        return Redirect::route('profile.edit')
-            ->with('status', 'profile-updated');
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     // Eliminar la cuenta del usuario
@@ -86,5 +110,25 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    // Desvincular la cuenta de Google del usuario autenticado.
+    public function unlinkGoogle(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        // No hay ninguna cuenta de Google vinculada.
+        if (!$user->googleAccount()->exists()) {
+            return Redirect::route('profile.edit')->with('error', 'No tienes una cuenta de Google vinculada.');
+        }
+
+        // Nunca permitir que el usuario se quede sin método de acceso.
+        if (is_null($user->password_hash)) {
+            return Redirect::route('profile.edit')->with('error', 'Debes establecer una contraseña de SIDAN antes de desvincular tu cuenta de Google.');
+        }
+
+        $user->googleAccount()->delete();
+
+        return Redirect::route('profile.edit')->with('status', 'google-unlinked');
     }
 }
