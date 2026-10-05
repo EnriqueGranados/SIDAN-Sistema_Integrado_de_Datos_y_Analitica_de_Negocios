@@ -40,6 +40,8 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
 
     Route::get('/revisiones-actividades', [ActividadRevisionController::class, 'index'])->name('actividades.revision.index');
     Route::get('/revisiones-actividades/{actividad}', [ActividadRevisionController::class, 'show'])->name('actividades.revision.show');
+    Route::post('/revisiones-actividades/{actividad}/observaciones',[ActividadRevisionController::class, 'guardarObservacion'])->name('actividades.revision.observaciones.store');
+    Route::delete('/revisiones-actividades/{actividad}/observaciones/{observacion}',[ActividadRevisionController::class, 'eliminarObservacion'])->name('actividades.revision.observaciones.destroy');
     Route::post('/revisiones-actividades/{actividad}/aprobar', [ActividadRevisionController::class, 'aprobar'])->name('actividades.revision.aprobar');
     Route::post('/revisiones-actividades/{actividad}/solicitar-cambios', [ActividadRevisionController::class, 'solicitarCambios'])->name('actividades.revision.solicitar-cambios');
     Route::post('/revisiones-actividades/{actividad}/rechazar', [ActividadRevisionController::class, 'rechazar'])->name('actividades.revision.rechazar');
@@ -65,6 +67,8 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
 
     Route::post('/actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
         ->name('actividades.enviar-revision');
+
+        
 
     Route::post('/actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
         ->name('actividades.retirar-revision');

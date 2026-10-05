@@ -90,6 +90,59 @@
         'id' => $recurso->id_recurso,'nombre' => $recurso->nombre,'categoria' => $recurso->categoria,'es_movil' => (bool) $recurso->es_movil,
         'espacios' => $recurso->espacios->mapWithKeys(fn ($espacio) => [(string) $espacio->id_espacio => (int) $espacio->pivot->cantidad])->all(),
     ])->values()->all(),JSON_UNESCAPED_UNICODE));
+
+    $modoCorreccion = $modoCorreccion ?? false;
+    $observacionesCorreccion = $observacionesCorreccion ?? collect();
+
+    $seccionesConfiguracion = [
+        'presentacion' => 'presentacion',
+        'productos' => 'productos',
+        'datos_solicitados' => 'datos',
+        'precios_costos' => 'precios',
+        'programacion' => 'sesiones',
+    ];
+
+    $conteoCorreccionesPaso = collect();
+
+    foreach ($seccionesConfiguracion as $seccionRevision => $pasoConfiguracion) {
+        $conteoCorreccionesPaso[$pasoConfiguracion] = $observacionesCorreccion
+            ->get($seccionRevision, collect())
+            ->count();
+    }
+
+    $totalCorreccionesConfiguracion = $conteoCorreccionesPaso->sum();
+    $seccionPasoActual = array_search($paso, $seccionesConfiguracion, true);
+
+    $observacionesPasoActual = $seccionPasoActual
+        ? $observacionesCorreccion->get($seccionPasoActual, collect())
+        : collect();
+
+    $nombreReferenciaCorreccion = function ($observacion) use ($actividad) {
+        if (!$observacion->referencia_tipo || !$observacion->referencia_id) {
+            return null;
+        }
+
+        return match ($observacion->referencia_tipo) {
+            'item' => $actividad->items
+                ->firstWhere('id_item_actividad', $observacion->referencia_id)?->nombre
+                ?? 'Producto o servicio #'.$observacion->referencia_id,
+
+            'sesion' => $actividad->sesiones
+                ->firstWhere('id_sesion', $observacion->referencia_id)?->nombre
+                ?? 'Sesión #'.$observacion->referencia_id,
+
+            'formulario' => $actividad->formularios
+                ->firstWhere('id_formulario', $observacion->referencia_id)?->nombre
+                ?? 'Formulario #'.$observacion->referencia_id,
+
+            'campo' => $actividad->formularios
+                ->flatMap(fn ($formulario) => $formulario->campos)
+                ->firstWhere('id_campo', $observacion->referencia_id)?->nombre
+                ?? 'Campo #'.$observacion->referencia_id,
+
+            default => null,
+        };
+    };
 @endphp
 <div class="w-full min-w-0 max-w-full overflow-x-hidden">
     <div class="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
@@ -97,7 +150,7 @@
             <div class="min-w-0">
                 <div class="mb-2 flex flex-wrap items-center gap-2">
                     <span class="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
-                        Configuración pendiente
+                        {{ $modoCorreccion ? 'Cambios solicitados · revisión #'.$actividad->revision_actual : 'Configuración pendiente' }}
                     </span>
                     <span class="truncate text-xs text-gray-500">
                         {{ $actividad->nombre }}
@@ -106,10 +159,10 @@
                     @foreach ($actividad->etiquetas as $etiqueta)<span class="rounded-full bg-white/5 px-2 py-1 text-[11px] text-gray-500">#{{ $etiqueta->nombre }}</span>@endforeach
                 </div>
                 <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    Termina de configurar tu actividad
+                    {{ $modoCorreccion ? 'Corrige la configuración solicitada' : 'Termina de configurar tu actividad' }}
                 </h1>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
-                    Configura únicamente lo que aplique. Puedes salir y continuar después.
+                    {{ $modoCorreccion ? 'Las observaciones del revisor aparecen en el paso correspondiente. Corrige lo necesario y vuelve a finalizar la configuración.' : 'Configura únicamente lo que aplique. Puedes salir y continuar después.' }}
                 </p>
             </div>
             <a href="{{ route('admin.actividades.index') }}"
@@ -117,6 +170,37 @@
                 Volver al listado
             </a>
         </div>
+        @if ($modoCorreccion)
+            <div class="mb-6 overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/[0.05]">
+                <div class="flex flex-col gap-3 border-b border-amber-500/15 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.16em] text-amber-400">
+                            Correcciones pendientes
+                        </p>
+                        <h2 class="mt-1 text-base font-semibold text-white">
+                            El revisor dejó indicaciones en esta configuración
+                        </h2>
+                    </div>
+
+                    <span class="inline-flex w-fit items-center rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300">
+                        {{ $totalCorreccionesConfiguracion }}
+                        {{ $totalCorreccionesConfiguracion === 1 ? 'corrección' : 'correcciones' }}
+                    </span>
+                </div>
+
+                @if ($decisionCorrecciones?->observacion && $decisionCorrecciones->observacion !== 'Se solicitaron correcciones específicas.')
+                    <div class="px-4 py-4 sm:px-5">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Comentario general del revisor
+                        </p>
+                        <p class="mt-2 text-sm leading-6 text-gray-300">
+                            {{ $decisionCorrecciones->observacion }}
+                        </p>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <div class="sticky top-0 z-[80] -mx-4 mb-7 border-y border-white/10 bg-[#0b1018]/95 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
             <div class="mx-auto max-w-6xl">
                 <div class="flex items-center justify-between gap-4">
@@ -140,13 +224,19 @@
                         @php
                             $esActual = $clave === $paso;
                             $estaCompleto = $estadoPasos[$clave] ?? false;
+                            $correccionesPaso = (int) ($conteoCorreccionesPaso[$clave] ?? 0);
                         @endphp
                         <a href="{{ route('admin.actividades.configurar', [
                             'actividad' => $actividad->id_actividad,
                             'paso' => $clave
                         ]) }}"
                             title="{{ $info['numero'] }}. {{ $info['titulo'] }}"
-                            class="group flex min-w-0 flex-1 flex-col gap-1.5">
+                            class="group relative flex min-w-0 flex-1 flex-col gap-1.5">
+                            @if ($modoCorreccion && $correccionesPaso > 0)
+                                <span class="absolute -right-1 -top-2 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black leading-none text-slate-950 ring-2 ring-[#0b1018]">
+                                    {{ min(99, $correccionesPaso) }}
+                                </span>
+                            @endif
                             <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-800">
                                 <div class="h-full rounded-full transition-all
                                     {{ $esActual
@@ -183,6 +273,51 @@
                 </div>
             </div>
         </div>
+        @if ($modoCorreccion && $observacionesPasoActual->isNotEmpty())
+            <div class="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-4 sm:p-5">
+                <div class="flex items-start gap-3">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-sm font-black text-amber-300">
+                        !
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                        <h2 class="font-semibold text-amber-200">
+                            Cambios solicitados en {{ $tituloPaso }}
+                        </h2>
+                        <p class="mt-1 text-xs leading-5 text-gray-500">
+                            Estas observaciones no puedes eliminarlas. El revisor las marcará como corregidas cuando compruebe tus cambios.
+                        </p>
+
+                        <div class="mt-3 grid gap-2">
+                            @foreach ($observacionesPasoActual as $observacion)
+                                @php
+                                    $referenciaCorreccion = $nombreReferenciaCorreccion($observacion);
+                                @endphp
+
+                                <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+                                            Revisión #{{ $observacion->revision?->numero_revision ?? $actividad->revision_actual }}
+                                        </span>
+
+                                        @if ($referenciaCorreccion)
+                                            <span class="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-gray-400">
+                                                {{ $referenciaCorreccion }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <p class="mt-1.5 text-sm leading-6 text-gray-300">
+                                        {{ $observacion->observacion }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if ($paso === 'presentacion')
             @include('admin.actividades.partials.configuracion-presentacion')
         @endif

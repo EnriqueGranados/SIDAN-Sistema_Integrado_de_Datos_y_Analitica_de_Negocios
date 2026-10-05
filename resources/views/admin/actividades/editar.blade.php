@@ -3,6 +3,39 @@
 @section('title', 'Editar actividad')
 
 @section('content')
+@php
+    $observacionesCorreccion = $observacionesCorreccion ?? collect();
+    $correccionesInformacion = $observacionesCorreccion->get('informacion_general', collect());
+    $correccionesPresentacion = $observacionesCorreccion->get('presentacion', collect());
+    $correccionesInscripcion = $observacionesCorreccion->get('inscripcion', collect());
+    $totalCorreccionesEdicion = $correccionesInformacion->count()
+        + $correccionesPresentacion->count()
+        + $correccionesInscripcion->count();
+    $modoCorreccion = $actividad->estado_publicacion === 'cambios_solicitados';
+    $modoAprobada = $actividad->estado_publicacion === 'aprobada';
+
+    $formatoFechaInput = function ($valor) {
+        if (!$valor) {
+            return '';
+        }
+
+        try {
+            return \Illuminate\Support\Carbon::parse($valor)->format('Y-m-d\\TH:i');
+        } catch (\Throwable $e) {
+            return (string) $valor;
+        }
+    };
+
+    $espacioSeleccionado = old('id_espacio', $actividad->id_espacio);
+    $ubicacionExternaActual = old('ubicacion_externa', $actividad->ubicacion_externa);
+
+    $tipoUbicacionInicial = old(
+        'tipo_ubicacion',
+        $espacioSeleccionado
+            ? 'registrada'
+            : ($ubicacionExternaActual ? 'externa' : '')
+    );
+@endphp
 <div class="w-full min-w-0 max-w-full overflow-x-hidden">
     <div class="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
 
@@ -11,7 +44,7 @@
             <div class="min-w-0">
                 <div class="mb-2 flex flex-wrap items-center gap-2">
                     <span class="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
-                        Borrador
+                        {{ $modoCorreccion ? 'Cambios solicitados' : ($modoAprobada ? 'Aprobada' : 'Borrador') }}
                     </span>
 
                     <span class="text-xs text-gray-500">
@@ -24,7 +57,11 @@
                 </h1>
 
                 <p class="mt-2 max-w-2xl break-words text-sm leading-6 text-gray-400">
-                    Actualiza los datos de la actividad. La interfaz y el flujo son los mismos utilizados al crearla.
+                    {{ $modoCorreccion
+                        ? 'Realiza las correcciones indicadas por el revisor y guarda los cambios antes de volver a enviar la actividad.'
+                        : ($modoAprobada
+                            ? 'Puedes modificar los datos aprobados. Al guardar un cambio, la actividad pasará a borrador y deberá enviarse a una nueva revisión.'
+                            : 'Actualiza los datos de la actividad. La interfaz y el flujo son los mismos utilizados al crearla.') }}
                 </p>
             </div>
 
@@ -36,6 +73,43 @@
                 Volver
             </a>
         </div>
+
+        @if ($modoCorreccion)
+            <div class="mb-6 overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/[0.05]">
+                <div class="flex flex-col gap-3 border-b border-amber-500/15 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.16em] text-amber-400">
+                            Correcciones de la revisión #{{ $actividad->revision_actual }}
+                        </p>
+                        <h2 class="mt-1 text-base font-semibold text-white">
+                            Revisa lo que debes modificar
+                        </h2>
+                    </div>
+
+                    <span class="inline-flex w-fit items-center rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300">
+                        {{ $totalCorreccionesEdicion }}
+                        {{ $totalCorreccionesEdicion === 1 ? 'corrección en esta pantalla' : 'correcciones en esta pantalla' }}
+                    </span>
+                </div>
+
+                @if ($decisionCorrecciones?->observacion && $decisionCorrecciones->observacion !== 'Se solicitaron correcciones específicas.')
+                    <div class="px-4 py-4 sm:px-5">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Comentario general del revisor
+                        </p>
+                        <p class="mt-2 text-sm leading-6 text-gray-300">
+                            {{ $decisionCorrecciones->observacion }}
+                        </p>
+                    </div>
+                @endif
+
+                @if ($totalCorreccionesEdicion === 0)
+                    <div class="px-4 py-4 text-sm text-gray-400 sm:px-5">
+                        Las correcciones específicas de esta revisión están en la configuración adicional de la actividad.
+                    </div>
+                @endif
+            </div>
+        @endif
 
         {{-- ERRORES --}}
         @if (session('error'))
@@ -73,8 +147,23 @@
                                 {{ $numero }}
                             </div>
 
-                            <span class="step-label hidden whitespace-nowrap text-sm font-semibold text-gray-500 md:block">
+                            <span class="step-label hidden items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-gray-500 md:flex">
                                 {{ $titulo }}
+                                @if (
+                                    $modoCorreccion
+                                    && (($numero === 1 && $correccionesInformacion->isNotEmpty())
+                                        || ($numero === 2 && $correccionesPresentacion->isNotEmpty())
+                                        || ($numero === 3 && $correccionesInscripcion->isNotEmpty()))
+                                )
+                                    <span class="inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black leading-none text-slate-950">
+                                        {{ match ($numero) {
+                                            1 => $correccionesInformacion->count(),
+                                            2 => $correccionesPresentacion->count(),
+                                            3 => $correccionesInscripcion->count(),
+                                            default => 0,
+                                        } }}
+                                    </span>
+                                @endif
                             </span>
                         </div>
 
@@ -128,6 +217,34 @@
             {{-- PASO 1: INFORMACIÓN --}}
             {{-- ===================================================== --}}
             <section class="form-step space-y-5" data-step="1">
+                @if ($modoCorreccion && $correccionesInformacion->isNotEmpty())
+                    <div class="rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-4 sm:p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-sm font-black text-amber-300">
+                                !
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h2 class="font-semibold text-amber-200">Cambios solicitados en la información general</h2>
+                                <p class="mt-1 text-xs leading-5 text-gray-500">
+                                    Estas indicaciones son solo de lectura. El revisor las marcará como corregidas cuando vuelva a revisar la actividad.
+                                </p>
+
+                                <div class="mt-3 space-y-2">
+                                    @foreach ($correccionesInformacion as $observacion)
+                                        <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+                                                    Revisión #{{ $observacion->revision?->numero_revision ?? $actividad->revision_actual }}
+                                                </span>
+                                            </div>
+                                            <p class="mt-1.5 text-sm leading-6 text-gray-300">{{ $observacion->observacion }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 <div class="rounded-2xl border border-white/10 bg-white/[0.03]">
                     <div class="border-b border-white/10 px-4 py-5 sm:px-6">
                         <h2 class="text-lg font-semibold text-white">
@@ -310,7 +427,7 @@
                                         </label>
 
                                         <input type="datetime-local" id="visible_desde" name="visible_desde"
-                                            value="{{ old('visible_desde',$actividad->visible_desde?->format('Y-m-d\\TH:i')) }}"
+                                            value="{{ $formatoFechaInput(old('visible_desde', $actividad->visible_desde)) }}"
                                             class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('visible_desde')
@@ -324,7 +441,7 @@
                                         </label>
 
                                         <input type="datetime-local" id="visible_hasta" name="visible_hasta"
-                                            value="{{ old('visible_hasta',$actividad->visible_hasta?->format('Y-m-d\\TH:i')) }}"
+                                            value="{{ $formatoFechaInput(old('visible_hasta', $actividad->visible_hasta)) }}"
                                             class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('visible_hasta')
@@ -341,11 +458,50 @@
                     <div class="border-b border-white/10 px-4 py-5 sm:px-6"><h2 class="text-lg font-semibold text-white">Ubicación general</h2><p class="mt-1 text-sm text-gray-500">Define dónde se realizará principalmente la actividad. Las sesiones podrán precisar esta ubicación después.</p></div>
                     <div class="space-y-4 p-4 sm:p-6">
                         <div class="flex flex-wrap gap-4">
-                            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300"><input type="radio" name="tipo_ubicacion" value="registrada" class="tipo-ubicacion"> Espacio registrado</label>
-                            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300"><input type="radio" name="tipo_ubicacion" value="externa" class="tipo-ubicacion"> Otro / lugar externo</label>
+                            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300">
+                                <input type="radio" name="tipo_ubicacion" value="registrada" class="tipo-ubicacion" @checked($tipoUbicacionInicial === 'registrada')>
+                                Espacio registrado
+                            </label>
+                            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300">
+                                <input type="radio" name="tipo_ubicacion" value="externa" class="tipo-ubicacion" @checked($tipoUbicacionInicial === 'externa')>
+                                Otro / lugar externo
+                            </label>
                         </div>
-                        <div id="bloqueEspacioRegistrado" class="hidden"><label for="id_espacio" class="mb-2 block text-sm font-medium text-gray-300">Espacio</label><select id="id_espacio" name="id_espacio" class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none focus:border-emerald-500"><option value="">Seleccionar espacio</option>@foreach($espacios as $espacio)<option value="{{ $espacio->id_espacio }}" data-capacidad="{{ $espacio->capacidad }}" @selected(old('id_espacio',$actividad->id_espacio) == $espacio->id_espacio)>{{ $espacio->nombre }}@if($espacio->contenedor) — dentro de {{ $espacio->contenedor->nombre }}@endif</option>@endforeach</select><p id="informacionCapacidadEspacio" class="mt-2 hidden text-xs text-cyan-300">Capacidad registrada: <span id="capacidadEspacioTexto"></span></p></div>
-                        <div id="bloqueUbicacionExterna" class="hidden"><label for="ubicacion_externa" class="mb-2 block text-sm font-medium text-gray-300">Lugar externo</label><input id="ubicacion_externa" name="ubicacion_externa" value="{{ old('ubicacion_externa',$actividad->ubicacion_externa) }}" maxlength="300" placeholder="Ej. Hotel, auditorio externo o dirección" class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500"></div>
+
+                        <div id="bloqueEspacioRegistrado" class="{{ $tipoUbicacionInicial === 'registrada' ? '' : 'hidden' }}">
+                            <label for="id_espacio" class="mb-2 block text-sm font-medium text-gray-300">Espacio</label>
+
+                            <select id="id_espacio" name="id_espacio" class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none focus:border-emerald-500">
+                                <option value="">Seleccionar espacio</option>
+
+                                @foreach($espacios as $espacio)
+                                    <option
+                                        value="{{ $espacio->id_espacio }}"
+                                        data-capacidad="{{ $espacio->capacidad }}"
+                                        @selected((string) $espacioSeleccionado === (string) $espacio->id_espacio)
+                                    >
+                                        {{ $espacio->nombre }}@if($espacio->contenedor) — dentro de {{ $espacio->contenedor->nombre }}@endif
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <p id="informacionCapacidadEspacio" class="mt-2 hidden text-xs text-cyan-300">
+                                Capacidad registrada: <span id="capacidadEspacioTexto"></span>
+                            </p>
+                        </div>
+
+                        <div id="bloqueUbicacionExterna" class="{{ $tipoUbicacionInicial === 'externa' ? '' : 'hidden' }}">
+                            <label for="ubicacion_externa" class="mb-2 block text-sm font-medium text-gray-300">Lugar externo</label>
+
+                            <input
+                                id="ubicacion_externa"
+                                name="ubicacion_externa"
+                                value="{{ $ubicacionExternaActual }}"
+                                maxlength="300"
+                                placeholder="Ej. Hotel, auditorio externo o dirección"
+                                class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500"
+                            >
+                        </div>
                     </div>
                 </div>
 
@@ -386,7 +542,7 @@
                                 </label>
 
                                 <input type="datetime-local" id="realizacion_desde" name="realizacion_desde"
-                                    value="{{ old('realizacion_desde',$actividad->realizacion_desde?->format('Y-m-d\\TH:i')) }}"
+                                    value="{{ $formatoFechaInput(old('realizacion_desde', $actividad->realizacion_desde)) }}"
                                     class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
 
                                 @error('realizacion_desde')
@@ -400,7 +556,7 @@
                                 </label>
 
                                 <input type="datetime-local" id="realizacion_hasta" name="realizacion_hasta"
-                                    value="{{ old('realizacion_hasta',$actividad->realizacion_hasta?->format('Y-m-d\\TH:i')) }}"
+                                    value="{{ $formatoFechaInput(old('realizacion_hasta', $actividad->realizacion_hasta)) }}"
                                     class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
 
                                 @error('realizacion_hasta')
@@ -423,6 +579,31 @@
             {{-- ===================================================== --}}
             <section class="form-step hidden" data-step="2">
                 <div class="space-y-5">
+                    @if ($modoCorreccion && $correccionesPresentacion->isNotEmpty())
+                        <div class="rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-4 sm:p-5">
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-sm font-black text-amber-300">
+                                    !
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <h2 class="font-semibold text-amber-200">Cambios solicitados en la presentación</h2>
+                                    <p class="mt-1 text-xs leading-5 text-gray-500">
+                                        Revisa portada, destacado, prioridad y etiquetas. Si la observación corresponde a galería u otra configuración adicional, también aparecerá en Configurar.
+                                    </p>
+                                    <div class="mt-3 space-y-2">
+                                        @foreach ($correccionesPresentacion as $observacion)
+                                            <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+                                                    Revisión #{{ $observacion->revision?->numero_revision ?? $actividad->revision_actual }}
+                                                </span>
+                                                <p class="mt-1.5 text-sm leading-6 text-gray-300">{{ $observacion->observacion }}</p>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- PORTADA --}}
                     <div class="rounded-2xl border border-white/10 bg-white/[0.03]">
@@ -641,6 +822,28 @@
             {{-- PASO 3 --}}
             {{-- ===================================================== --}}
             <section class="form-step hidden" data-step="3">
+                @if ($modoCorreccion && $correccionesInscripcion->isNotEmpty())
+                    <div class="mb-5 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-4 sm:p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-sm font-black text-amber-300">
+                                !
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h2 class="font-semibold text-amber-200">Cambios solicitados en las inscripciones</h2>
+                                <div class="mt-3 space-y-2">
+                                    @foreach ($correccionesInscripcion as $observacion)
+                                        <div class="rounded-xl border border-white/10 bg-black/10 p-3">
+                                            <span class="text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+                                                Revisión #{{ $observacion->revision?->numero_revision ?? $actividad->revision_actual }}
+                                            </span>
+                                            <p class="mt-1.5 text-sm leading-6 text-gray-300">{{ $observacion->observacion }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 <div class="rounded-2xl border border-white/10 bg-white/[0.03]">
                     <div class="border-b border-white/10 px-4 py-5 sm:px-6">
                         <h2 class="text-lg font-semibold text-white">
@@ -774,7 +977,7 @@
                                         </label>
 
                                         <input type="datetime-local" id="inscripcion_desde" name="inscripcion_desde"
-                                            value="{{ old('inscripcion_desde',$actividad->inscripcion_desde?->format('Y-m-d\\TH:i')) }}"
+                                            value="{{ $formatoFechaInput(old('inscripcion_desde', $actividad->inscripcion_desde)) }}"
                                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('inscripcion_desde')
@@ -788,7 +991,7 @@
                                         </label>
 
                                         <input type="datetime-local" id="inscripcion_hasta" name="inscripcion_hasta"
-                                            value="{{ old('inscripcion_hasta',$actividad->inscripcion_hasta?->format('Y-m-d\\TH:i')) }}"
+                                            value="{{ $formatoFechaInput(old('inscripcion_hasta', $actividad->inscripcion_hasta)) }}"
                                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('inscripcion_hasta')

@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -169,6 +171,49 @@ class Actividad extends Model
             'id_actividad',
             'id_actividad'
         );
+    }
+
+    public function observacionesRevision(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            ObservacionRevisionActividad::class,
+            RevisionActividad::class,
+            'id_actividad',
+            'id_revision',
+            'id_actividad',
+            'id_revision'
+        );
+    }
+
+    public function getPrioridadTextoAttribute(): string
+    {
+        return match ((int) $this->prioridad) {
+            100 => 'Alta',
+            75 => 'Media',
+            50 => 'Regular',
+            25 => 'Baja',
+            default => 'Sin definir',
+        };
+    }
+
+    public function scopeVisiblesPara(Builder $query, User $usuario): Builder
+    {
+        $rol = $usuario->rol?->nombre;
+
+        if (in_array($rol, ['superadmin', 'admin'], true)) {
+            return $query;
+        }
+
+        return $query->where(
+            $this->qualifyColumn('creado_por'),
+            $usuario->getAuthIdentifier()
+        );
+    }
+
+    public function perteneceA(User $usuario): bool
+    {
+        return (int) $this->creado_por
+            === (int) $usuario->getAuthIdentifier();
     }
 
     public function items(): HasMany

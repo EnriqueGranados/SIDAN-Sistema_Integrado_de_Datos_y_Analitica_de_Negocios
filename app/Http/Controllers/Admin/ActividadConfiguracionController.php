@@ -20,107 +20,402 @@ use Illuminate\Validation\ValidationException;
 use App\Models\Espacio;
 use App\Models\Recurso;
 use App\Models\RecursoActividad;
+use App\Models\ObservacionRevisionActividad;
+use App\Models\RevisionActividad;
+use App\Services\ActividadRevisionSnapshotService;
 class ActividadConfiguracionController extends Controller {
+    public function __construct(
+        private readonly ActividadRevisionSnapshotService $snapshotService
+    ) {
+    }
 
-    public function show(Request $request, Actividad $actividad) {
+
+    public function show(Request $request, Actividad $actividad)
+    {
         $this->validarActividadEditable($actividad);
-        $actividad->load(['categoria', 'etiquetas', 'espacio.contenedor', 'medios', 'items.variantes', 'sesiones.espacio.contenedor', 'sesiones.recursos.recurso', 'formularios.campos', 'recursos.recurso', 'promociones.items', ]);
-        $contenidoFlexible = ActivityContent::where('id_actividad_pg',(int) $actividad->id_actividad)->first();
-        $configuracionProductos = $this->normalizarMongo($contenidoFlexible?->product_configuration ?? []);
-        $configuracionesDatos = collect($this->normalizarMongo($contenidoFlexible?->purchase_fields ?? []))->keyBy(fn ($configuracion) =>(string) ($configuracion['id_item_pg'] ?? ''));
-        $configuracionesPrecios = collect($this->normalizarMongo($contenidoFlexible?->pricing_configuration ?? []))->keyBy(fn ($configuracion) =>(string) ($configuracion['id_item_pg'] ?? ''));
-        $configuracionSesiones = $this->normalizarMongo($contenidoFlexible?->session_configuration ?? []);
-        $configuracionGeneral = $this->normalizarMongo($contenidoFlexible?->configuration ?? []);
-        $presentacionCompleta = $actividad->medios->whereNull('id_item_actividad')->whereNull('id_sesion')->contains(fn ($medio) => (bool) $medio->es_portada);
-        $productosConfigurados = ($configuracionProductos['configured'] ?? false) === true;
-        $productosHabilitados = ($configuracionProductos['enabled'] ?? false) === true;
-        if (!$productosConfigurados && $actividad->items->isNotEmpty() ) {
+
+        $actividad->load([
+            'categoria',
+            'etiquetas',
+            'espacio.contenedor',
+            'medios',
+            'items.variantes',
+            'sesiones.espacio.contenedor',
+            'sesiones.recursos.recurso',
+            'formularios.campos',
+            'recursos.recurso',
+            'promociones.items',
+        ]);
+
+        $contenidoFlexible = ActivityContent::where(
+            'id_actividad_pg',
+            (int) $actividad->id_actividad
+        )->first();
+
+        $configuracionProductos = $this->normalizarMongo(
+            $contenidoFlexible?->product_configuration ?? []
+        );
+
+        $configuracionesDatos = collect(
+            $this->normalizarMongo(
+                $contenidoFlexible?->purchase_fields ?? []
+            )
+        )->keyBy(
+            fn ($configuracion) =>
+                (string) ($configuracion['id_item_pg'] ?? '')
+        );
+
+        $configuracionesPrecios = collect(
+            $this->normalizarMongo(
+                $contenidoFlexible?->pricing_configuration ?? []
+            )
+        )->keyBy(
+            fn ($configuracion) =>
+                (string) ($configuracion['id_item_pg'] ?? '')
+        );
+
+        $configuracionSesiones = $this->normalizarMongo(
+            $contenidoFlexible?->session_configuration ?? []
+        );
+
+        $configuracionGeneral = $this->normalizarMongo(
+            $contenidoFlexible?->configuration ?? []
+        );
+
+        $revisionCorrecciones = null;
+        $decisionCorrecciones = null;
+        $observacionesCorreccion = collect();
+        $modoCorreccion =
+            $actividad->estado_publicacion === 'cambios_solicitados';
+
+        if ($modoCorreccion) {
+            $observacionesCorreccion = ObservacionRevisionActividad::query()
+                ->where('resuelta', false)
+                ->whereHas('revision', function ($query) use ($actividad) {
+                    $query->where(
+                        'id_actividad',
+                        $actividad->id_actividad
+                    );
+                })
+                ->with('revision')
+                ->orderBy('id_observacion')
+                ->get()
+                ->groupBy('seccion');
+
+            $revisionCorrecciones = RevisionActividad::query()
+                ->where('id_actividad', $actividad->id_actividad)
+                ->where('numero_revision', $actividad->revision_actual)
+                ->where('accion', 'enviada_revision')
+                ->latest('id_revision')
+                ->first();
+
+            $decisionCorrecciones = RevisionActividad::query()
+                ->where('id_actividad', $actividad->id_actividad)
+                ->where('numero_revision', $actividad->revision_actual)
+                ->where('accion', 'cambios_solicitados')
+                ->latest('id_revision')
+                ->first();
+        }
+
+        $presentacionCompleta = $actividad->medios
+            ->whereNull('id_item_actividad')
+            ->whereNull('id_sesion')
+            ->contains(fn ($medio) => (bool) $medio->es_portada);
+
+        $productosConfigurados =
+            ($configuracionProductos['configured'] ?? false) === true;
+
+        $productosHabilitados =
+            ($configuracionProductos['enabled'] ?? false) === true;
+
+        if (!$productosConfigurados && $actividad->items->isNotEmpty()) {
             $productosConfigurados = true;
             $productosHabilitados = true;
-            $configuracionProductos = array_merge($configuracionProductos, ['configured' => true, 'enabled' => true, ]);
+
+            $configuracionProductos = array_merge(
+                $configuracionProductos,
+                [
+                    'configured' => true,
+                    'enabled' => true,
+                ]
+            );
         }
-        if ($productosConfigurados && $productosHabilitados && $actividad->items->isEmpty() ) {
+
+        if (
+            $productosConfigurados
+            && $productosHabilitados
+            && $actividad->items->isEmpty()
+        ) {
             $productosConfigurados = false;
         }
+
         $datosCompletos = false;
         $preciosCompletos = false;
-        if ($productosConfigurados && !$productosHabilitados ) {
+
+        if ($productosConfigurados && !$productosHabilitados) {
             $datosCompletos = true;
             $preciosCompletos = true;
         }
-        if ($productosConfigurados && $productosHabilitados && $actividad->items->isNotEmpty() ) {
-            $datosCompletos = $actividad->items->every(function ($item) use ($configuracionesDatos) {
-                    return $configuracionesDatos->has((string) $item->id_item_actividad);
-                }
+
+        if (
+            $productosConfigurados
+            && $productosHabilitados
+            && $actividad->items->isNotEmpty()
+        ) {
+            $datosCompletos = $actividad->items->every(
+                fn ($item) => $configuracionesDatos->has(
+                    (string) $item->id_item_actividad
+                )
             );
+
             if ($datosCompletos) {
-                $preciosCompletos = $actividad->items->every(function ($item) use ($configuracionesDatos, $configuracionesPrecios ) {
-                        $configDatos = $configuracionesDatos->get((string) $item->id_item_actividad);
-                        $camposLista = collect($configDatos['fields'] ?? [])->filter(fn ($campo) => ($campo['type'] ?? null) === 'lista' && !empty($campo['options'] ?? []));
+                $preciosCompletos = $actividad->items->every(
+                    function ($item) use (
+                        $configuracionesDatos,
+                        $configuracionesPrecios
+                    ) {
+                        $configDatos = $configuracionesDatos->get(
+                            (string) $item->id_item_actividad
+                        );
+
+                        $camposLista = collect(
+                            $configDatos['fields'] ?? []
+                        )->filter(
+                            fn ($campo) =>
+                                ($campo['type'] ?? null) === 'lista'
+                                && !empty($campo['options'] ?? [])
+                        );
+
                         if ($camposLista->isEmpty()) {
                             return true;
                         }
-                        return $configuracionesPrecios->has((string) $item->id_item_actividad);
+
+                        return $configuracionesPrecios->has(
+                            (string) $item->id_item_actividad
+                        );
                     }
                 );
             }
         }
-        $sesionesConfiguradas = ($configuracionSesiones['configured'] ?? false) === true;
-        $estadoPasos = ['presentacion' => $presentacionCompleta, 'productos' => $productosConfigurados, 'datos' => $productosConfigurados && $datosCompletos, 'precios' => $productosConfigurados && $datosCompletos && $preciosCompletos, 'sesiones' => $sesionesConfiguradas, 'resumen' => false,];
-        $pasosValidos = ['presentacion', 'productos', 'datos', 'precios', 'sesiones', 'resumen',];
+
+        $sesionesConfiguradas =
+            ($configuracionSesiones['configured'] ?? false) === true;
+
+        $estadoPasos = [
+            'presentacion' => $presentacionCompleta,
+            'productos' => $productosConfigurados,
+            'datos' => $productosConfigurados && $datosCompletos,
+            'precios' => $productosConfigurados
+                && $datosCompletos
+                && $preciosCompletos,
+            'sesiones' => $sesionesConfiguradas,
+            'resumen' => false,
+        ];
+
+        $pasosValidos = [
+            'presentacion',
+            'productos',
+            'datos',
+            'precios',
+            'sesiones',
+            'resumen',
+        ];
+
         $primerPendiente = 'resumen';
-        foreach (['presentacion', 'productos', 'datos', 'precios', 'sesiones', ] as $pasoEvaluado ) {
+
+        foreach (
+            ['presentacion', 'productos', 'datos', 'precios', 'sesiones']
+            as $pasoEvaluado
+        ) {
             if (!($estadoPasos[$pasoEvaluado] ?? false)) {
                 $primerPendiente = $pasoEvaluado;
                 break;
             }
         }
-        $pasoSolicitado = $request->query('paso');
-        if (!$pasoSolicitado || !in_array($pasoSolicitado, $pasosValidos, true) ) {
-            $paso = $primerPendiente;
-        } else {
-            $indiceSolicitado = array_search($pasoSolicitado, $pasosValidos, true);
-            $indicePendiente = array_search($primerPendiente, $pasosValidos, true);
-            $paso = $indiceSolicitado > $indicePendiente ? $primerPendiente : $pasoSolicitado;
+
+        $seccionesConfiguracion = [
+            'presentacion' => 'presentacion',
+            'productos' => 'productos',
+            'datos_solicitados' => 'datos',
+            'precios_costos' => 'precios',
+            'programacion' => 'sesiones',
+        ];
+
+        $primerPasoCorreccion = 'resumen';
+
+        if ($modoCorreccion) {
+            foreach ($seccionesConfiguracion as $seccion => $pasoConfig) {
+                if (
+                    $observacionesCorreccion
+                        ->get($seccion, collect())
+                        ->isNotEmpty()
+                ) {
+                    $primerPasoCorreccion = $pasoConfig;
+                    break;
+                }
+            }
         }
+
+        $pasoSolicitado = $request->query('paso');
+
+        if (
+            !$pasoSolicitado
+            || !in_array($pasoSolicitado, $pasosValidos, true)
+        ) {
+            $paso = $modoCorreccion
+                ? $primerPasoCorreccion
+                : $primerPendiente;
+        } elseif ($modoCorreccion) {
+            $paso = $pasoSolicitado;
+        } else {
+            $indiceSolicitado = array_search(
+                $pasoSolicitado,
+                $pasosValidos,
+                true
+            );
+
+            $indicePendiente = array_search(
+                $primerPendiente,
+                $pasosValidos,
+                true
+            );
+
+            $paso = $indiceSolicitado > $indicePendiente
+                ? $primerPendiente
+                : $pasoSolicitado;
+        }
+
         $itemSeleccionado = null;
+
         if ($request->filled('item')) {
-            $itemSeleccionado = $actividad->items->firstWhere('id_item_actividad', (int) $request->query('item'));
+            $itemSeleccionado = $actividad->items->firstWhere(
+                'id_item_actividad',
+                (int) $request->query('item')
+            );
+
             abort_unless($itemSeleccionado, 404);
         }
-        if ($itemSeleccionado && !in_array($paso, ['datos', 'precios'], true) ) {
+
+        if (
+            $itemSeleccionado
+            && !in_array($paso, ['datos', 'precios'], true)
+        ) {
             $itemSeleccionado = null;
         }
+
         $configDatosSeleccionado = null;
         $configPrecioSeleccionado = null;
+
         if ($itemSeleccionado) {
-            $configDatosSeleccionado = $configuracionesDatos->get((string) $itemSeleccionado->id_item_actividad);
-            $configPrecioSeleccionado = $configuracionesPrecios->get((string) $itemSeleccionado->id_item_actividad);
+            $configDatosSeleccionado = $configuracionesDatos->get(
+                (string) $itemSeleccionado->id_item_actividad
+            );
+
+            $configPrecioSeleccionado = $configuracionesPrecios->get(
+                (string) $itemSeleccionado->id_item_actividad
+            );
         }
+
         $modoSesiones = $configuracionSesiones['mode'] ?? null;
-        if (!in_array($modoSesiones, ['ninguna', 'unica', 'multiples'], true) ) {
+
+        if (
+            !in_array(
+                $modoSesiones,
+                ['ninguna', 'unica', 'multiples'],
+                true
+            )
+        ) {
             if (($configuracionSesiones['configured'] ?? false) === true) {
                 if (($configuracionSesiones['enabled'] ?? false) === false) {
                     $modoSesiones = 'ninguna';
                 } else {
-                    $modoSesiones = $actividad->sesiones->count() <= 1 ? 'unica' : 'multiples';
+                    $modoSesiones = $actividad->sesiones->count() <= 1
+                        ? 'unica'
+                        : 'multiples';
                 }
             } else {
                 $modoSesiones = null;
             }
         }
-        $espacios = Espacio::query()->where(function ($query) use ($actividad) {
-            $query->where('activo',true);
-            if ($actividad->id_espacio) $query->orWhere('id_espacio',$actividad->id_espacio);
-            $idsSesiones = $actividad->sesiones->pluck('id_espacio')->filter()->unique()->values()->all();
-            if (!empty($idsSesiones)) $query->orWhereIn('id_espacio',$idsSesiones);
-        })->with(['contenedor','recursos' => fn ($query) => $query->where('tbl_recursos.activo',true)->orderBy('tbl_recursos.nombre')])->orderBy('nombre')->get();
-        $recursos = Recurso::query()->where(function ($query) use ($actividad) {
-            $query->where('activo',true);
-            $idsUsados = $actividad->recursos->pluck('id_recurso')->merge($actividad->sesiones->flatMap(fn ($sesion) => $sesion->recursos->pluck('id_recurso')))->filter()->unique()->values()->all();
-            if (!empty($idsUsados)) $query->orWhereIn('id_recurso',$idsUsados);
-        })->with('espacios')->orderBy('nombre')->get();
-        return view('admin.actividades.configurar',compact('actividad','paso','itemSeleccionado','configuracionProductos','configuracionesDatos','configuracionesPrecios','configDatosSeleccionado','configPrecioSeleccionado','configuracionSesiones','configuracionGeneral','modoSesiones','espacios','recursos'));
+
+        $espacios = Espacio::query()
+            ->where(function ($query) use ($actividad) {
+                $query->where('activo', true);
+
+                if ($actividad->id_espacio) {
+                    $query->orWhere(
+                        'id_espacio',
+                        $actividad->id_espacio
+                    );
+                }
+
+                $idsSesiones = $actividad->sesiones
+                    ->pluck('id_espacio')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if (!empty($idsSesiones)) {
+                    $query->orWhereIn('id_espacio', $idsSesiones);
+                }
+            })
+            ->with([
+                'contenedor',
+                'recursos' => fn ($query) => $query
+                    ->where('tbl_recursos.activo', true)
+                    ->orderBy('tbl_recursos.nombre'),
+            ])
+            ->orderBy('nombre')
+            ->get();
+
+        $recursos = Recurso::query()
+            ->where(function ($query) use ($actividad) {
+                $query->where('activo', true);
+
+                $idsUsados = $actividad->recursos
+                    ->pluck('id_recurso')
+                    ->merge(
+                        $actividad->sesiones->flatMap(
+                            fn ($sesion) =>
+                                $sesion->recursos->pluck('id_recurso')
+                        )
+                    )
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if (!empty($idsUsados)) {
+                    $query->orWhereIn('id_recurso', $idsUsados);
+                }
+            })
+            ->with('espacios')
+            ->orderBy('nombre')
+            ->get();
+
+        return view(
+            'admin.actividades.configurar',
+            compact(
+                'actividad',
+                'paso',
+                'itemSeleccionado',
+                'configuracionProductos',
+                'configuracionesDatos',
+                'configuracionesPrecios',
+                'configDatosSeleccionado',
+                'configPrecioSeleccionado',
+                'configuracionSesiones',
+                'configuracionGeneral',
+                'modoSesiones',
+                'espacios',
+                'recursos',
+                'modoCorreccion',
+                'revisionCorrecciones',
+                'decisionCorrecciones',
+                'observacionesCorreccion'
+            )
+        );
     }
 
     public function guardarConfiguracionProductos(Request $request,Actividad $actividad) {
@@ -129,6 +424,9 @@ class ActividadConfiguracionController extends Controller {
         $ofreceProductos = (bool) $validated['ofrece_productos'];
         if (!$ofreceProductos && $actividad->items()->exists() ) {
             throw ValidationException::withMessages(['ofrece_productos' => 'La actividad ya tiene productos o servicios agregados. Elimínalos antes de indicar que no ofrecerá ninguno.', ]);
+        }
+        if ($actividad->estado_publicacion === 'aprobada') {
+            $this->snapshotService->capturarSiAprobada($actividad);
         }
         try {
             $documento = $this->obtenerDocumentoActividad($actividad);
@@ -141,7 +439,8 @@ class ActividadConfiguracionController extends Controller {
             $documento->save();
             $actividad->actualizado_por = Auth::id();
             $actividad->save();
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => $ofreceProductos ? 'productos' : 'sesiones', ] )->with('success', $ofreceProductos ? 'Ahora puedes agregar los productos o servicios que ofrecerá la actividad.' : 'La actividad quedó configurada sin productos ni servicios. Puedes continuar con su programación.');
+            $this->marcarComoBorradorSiAprobada($actividad);
+        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => $ofreceProductos ? 'productos' : 'sesiones', ] )->with('success', $ofreceProductos ? 'Ahora puedes agregar los productos o servicios que ofrecerá la actividad.' : 'La actividad quedó configurada sin productos ni servicios. Puedes continuar con su programación.');
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
@@ -184,6 +483,10 @@ class ActividadConfiguracionController extends Controller {
                 $camposProcesados[] = ['key' => $clave, 'label' => $nombre, 'type' => $tipo, 'required' => (bool) ($campo['required'] ?? false), 'options' => $opciones,];
             }
         }
+        if ($actividad->estado_publicacion === 'aprobada') {
+            $this->snapshotService->capturarSiAprobada($actividad);
+        }
+
         try {
             $documento = $this->obtenerDocumentoActividad($actividad);
             $configuraciones = collect($this->normalizarMongo($documento->purchase_fields ?? []) )->reject(fn ($configuracion) => (int) ($configuracion['id_item_pg'] ?? 0 ) === (int) $item->id_item_actividad )->values()->all();
@@ -193,7 +496,8 @@ class ActividadConfiguracionController extends Controller {
             $documento->save();
             $actividad->actualizado_por = Auth::id();
             $actividad->save();
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos', ] )->with('success', 'La configuración fue guardada correctamente.');
+            $this->marcarComoBorradorSiAprobada($actividad);
+        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos', ] )->with('success', 'La configuración fue guardada correctamente.');
         } catch (\Throwable $e) {
             report($e);
             return back()->withInput()->with('error', 'No se pudo guardar la configuración.');
@@ -216,6 +520,9 @@ class ActividadConfiguracionController extends Controller {
         }
         $validated = $request->validate(['tiene_cambios' => ['required', 'boolean', ], 'campos_clave' => ['nullable', 'array', 'max:10', ], 'campos_clave.*' => ['string', 'max:100', ], 'ajustes' => ['nullable', 'array', 'max:200', ], 'ajustes.*.campo' => ['required_with:ajustes', 'string', 'max:100', ], 'ajustes.*.opcion' => ['required_with:ajustes', 'string', 'max:200', ], 'ajustes.*.aumento_precio' => ['required_with:ajustes', 'numeric', 'min:0', 'max:9999999999.99', ], 'ajustes.*.aumento_costo' => ['required_with:ajustes', 'numeric', 'min:0', 'max:9999999999.99', ], ]);
         $tieneCambios = (bool) $validated['tiene_cambios'];
+        if ($actividad->estado_publicacion === 'aprobada') {
+            $this->snapshotService->capturarSiAprobada($actividad);
+        }
         if (!$tieneCambios) {
             try {
                 $this->eliminarVariantesComerciales($item);
@@ -225,6 +532,7 @@ class ActividadConfiguracionController extends Controller {
                 $documento->save();
                 $actividad->actualizado_por = Auth::id();
                 $actividad->save();
+                $this->marcarComoBorradorSiAprobada($actividad);
                 return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios', ] )->with('success', 'Todas las opciones utilizarán el precio y costo base.');
             } catch (\Throwable $e) {
                 report($e);
@@ -341,6 +649,7 @@ class ActividadConfiguracionController extends Controller {
             $documento->save();
             $actividad->actualizado_por = Auth::id();
             $actividad->save();
+            $this->marcarComoBorradorSiAprobada($actividad);
             return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios', ] )->with('success', 'Los aumentos de precio y costo fueron guardados correctamente.');
         } catch (\Throwable $e) {
             report($e);
@@ -388,7 +697,11 @@ class ActividadConfiguracionController extends Controller {
                 throw ValidationException::withMessages(['confirmar_solapamientos' => 'Hay horarios que se realizan al mismo tiempo: ' . implode('; ', array_slice($solapamientos, 0, 5)) . '. Si es intencional, confirma que se realizarán simultáneamente.', ]);
             }
         }
-                try {
+                if ($actividad->estado_publicacion === 'aprobada') {
+            $this->snapshotService->capturarSiAprobada($actividad);
+        }
+
+        try {
             DB::transaction(function () use ($actividad, $modo, $sesionesPreparadas ) {
                     if ($modo === 'ninguna') {
                         $actividad->sesiones()->delete();
@@ -449,6 +762,7 @@ class ActividadConfiguracionController extends Controller {
             $documento->session_configuration = ['configured' => true, 'enabled' => $modo !== 'ninguna', 'mode' => $modo, 'inherits_general_capacity' => $modo === 'unica' && $actividad->habilita_inscripcion && $actividad->cupo_total !== null, 'updated_at' => now()->toIso8601String(),];
             $this->invalidarConfiguracionGeneral($documento);
             $documento->save();
+            $this->marcarComoBorradorSiAprobada($actividad);
             return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'resumen', ] )->with('success', 'Programación guardada correctamente. Revisa el resumen antes de finalizar.');
         } catch (ValidationException $e) {
             throw $e;
@@ -462,6 +776,9 @@ class ActividadConfiguracionController extends Controller {
         $this->validarActividadEditable($actividad);
         $validated = $request->validate(['portada' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ], 'texto_alternativo' => ['nullable', 'string', 'max:255', ], 'galeria' => ['nullable', 'array', 'max:20', ], 'galeria.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ], ]);
         $actividad->load('medios');
+        if ($actividad->estado_publicacion === 'aprobada') {
+            $this->snapshotService->capturarSiAprobada($actividad);
+        }
         $portadaActual = $actividad->medios->whereNull('id_item_actividad')->whereNull('id_sesion')->firstWhere('es_portada', true);
         $archivosNuevos = [];
         $archivoAnterior = null;
@@ -523,6 +840,7 @@ class ActividadConfiguracionController extends Controller {
             $documento = $this->obtenerDocumentoActividad($actividad);
             $this->invalidarConfiguracionGeneral($documento);
             $documento->save();
+            $this->marcarComoBorradorSiAprobada($actividad);
             return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'productos', ] )->with('success', 'Presentación guardada correctamente. Continúa con productos o servicios.');
         } catch (\Throwable $e) {
             foreach ($archivosNuevos as $ruta ) {
@@ -543,6 +861,9 @@ class ActividadConfiguracionController extends Controller {
         if ($medio->es_portada) {
             return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ]);
         }
+        if ($actividad->estado_publicacion === 'aprobada') {
+            $this->snapshotService->capturarSiAprobada($actividad);
+        }
         DB::transaction(function () use ($actividad, $medio ) {
                 MedioActividad::query()->where('id_actividad', $actividad->id_actividad )->whereNull('id_item_actividad' )->whereNull('id_sesion' )->where('es_portada', true)->update(['es_portada' => false, ]);
                 $medio->es_portada = true;
@@ -553,6 +874,7 @@ class ActividadConfiguracionController extends Controller {
         $documento = $this->obtenerDocumentoActividad($actividad);
         $this->invalidarConfiguracionGeneral($documento);
         $documento->save();
+        $this->marcarComoBorradorSiAprobada($actividad);
         return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ] )->with('success', 'La imagen fue establecida como portada.');
     }
 
@@ -564,6 +886,9 @@ class ActividadConfiguracionController extends Controller {
         if ($medio->es_portada) {
             return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ] )->with('error', 'La portada no puede eliminarse directamente. Primero selecciona otra imagen como portada.');
         }
+        if ($actividad->estado_publicacion === 'aprobada') {
+            $this->snapshotService->capturarSiAprobada($actividad);
+        }
         $ruta = $this->rutaStorageDesdeUrl($medio->url);
         $medio->delete();
         if ($ruta && Storage::disk('public')->exists($ruta) ) {
@@ -572,6 +897,7 @@ class ActividadConfiguracionController extends Controller {
         $documento = $this->obtenerDocumentoActividad($actividad);
         $this->invalidarConfiguracionGeneral($documento);
         $documento->save();
+        $this->marcarComoBorradorSiAprobada($actividad);
         return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ] )->with('success', 'Imagen eliminada correctamente.');
     }
 
@@ -842,8 +1168,18 @@ class ActividadConfiguracionController extends Controller {
         abort_unless((int) $item->id_actividad === (int) $actividad->id_actividad, 404);
     }
 
+    private function marcarComoBorradorSiAprobada(Actividad $actividad): void {
+        if ($actividad->estado_publicacion !== 'aprobada') {
+            return;
+        }
+
+        $actividad->estado_publicacion = 'borrador';
+        $actividad->actualizado_por = Auth::id();
+        $actividad->save();
+    }
+
     private function validarActividadEditable(Actividad $actividad): void {
-        abort_unless(in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados', ], true), 403);
+        abort_unless(in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados', 'aprobada', ], true), 403);
     }
 
     private function normalizarMongo(mixed $valor): array {
