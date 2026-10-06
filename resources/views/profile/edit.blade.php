@@ -10,6 +10,8 @@
 @endpush
 
 @section('content')
+    <x-status-alert />
+    
     <div id="edit-profile-container" class="relative min-h-full">
         <div
             x-data="profileForm()"
@@ -711,116 +713,59 @@
 
                     {{-- Contraseña --}}
                     <section class="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+
                         <div class="border-b border-slate-200 p-6 sm:p-8 dark:border-white/10">
                             <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
                                 Seguridad
                             </p>
 
-                            <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white" x-text="tienePassword ? 'Cambiar contraseña' : 'Establecer contraseña'"></h2>
+                            <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white">
+                                {{ is_null($user->password_hash)
+                                    ? 'Establecer contraseña'
+                                    : 'Cambiar contraseña' }}
+                            </h2>
 
-                            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400" x-show="tienePassword">
-                                Introduce tu contraseña actual y establece una nueva contraseña.
-                            </p>
-
-                            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400" x-show="!tienePassword">
-                                Tu cuenta utiliza Google para iniciar sesión. Puedes establecer una contraseña para habilitar también el inicio de sesión con correo electrónico y contraseña.
-                            </p>
+                            @if (is_null($user->password_hash))
+                                <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                    Aún no tienes una contraseña de SIDAN.
+                                    Establece una para poder iniciar sesión también con tu correo electrónico y contraseña.
+                                </p>
+                            @else
+                                <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                    Por seguridad, te enviaremos un enlace a tu correo electrónico para cambiar tu contraseña.
+                                </p>
+                            @endif
                         </div>
 
-                        {{-- Sección de contraseña --}}
-                        <div x-ref="passwordSection" class="p-6 sm:p-8">
-                            <div class="space-y-5">
-                                {{-- Contraseña actual --}}                          
-                                <div x-show="tienePassword" x-cloak>
+                        <div class="p-6 sm:p-8">
+                            <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
-                                    <label for="current_password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                        Contraseña actual
-                                    </label>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        {{ is_null($user->password_hash)
+                                            ? 'Contraseña no establecida'
+                                            : 'Contraseña configurada' }}
+                                    </h3>
 
-                                    <div class="grid gap-5 sm:grid-cols-2">
-                                        <input
-                                            id="current_password"
-                                            name="current_password"
-                                            type="password"
-                                            placeholder="********"
-                                            minlength="8"
-                                            x-model="currentPassword"
-                                            @input="clearPasswordError('current_password')"
-                                            autocomplete="current-password"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                        >
-                                    </div>
-                                    
-                                    {{-- Error de validación --}}
-                                    <p x-show="passwordErrors.current_password" x-text="passwordErrors.current_password" class="mt-2 text-sm font-semibold text-red-600"></p>
-
-                                    @error('current_password')
-                                        <p class="mt-2 text-sm font-semibold text-red-600">
-                                            {{ $message }}
-                                        </p>
-                                    @enderror
+                                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                        El enlace será enviado a
+                                        <span class="font-bold text-slate-700 dark:text-slate-200">
+                                            {{ $user->correo }}
+                                        </span>
+                                    </p>
                                 </div>
 
-                                {{-- Nueva contraseña y confirmación --}}
-                                <div class="grid gap-5 sm:grid-cols-2">
-                                    {{-- Nueva contraseña --}}
-                                    <div>
-                                        <label for="password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            Nueva contraseña
-                                        </label>
-
-                                        <input
-                                            id="password"
-                                            name="password"
-                                            type="password"
-                                            x-model="password"
-                                            placeholder="********"
-                                            @input="clearPasswordError('password')"
-                                            autocomplete="new-password"
-                                            minlength="8"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                        >
-
-                                        {{-- Error de Alpine --}}
-                                        <p x-show="passwordErrors.password" x-text="passwordErrors.password" class="mt-2 text-sm font-semibold text-red-600"></p>
-
-                                        {{-- Error de Laravel --}}
-                                        @error('password')
-                                            <p class="mt-2 text-sm font-semibold text-red-600">
-                                                {{ $message }}
-                                            </p>
-                                        @enderror
-                                    </div>
-
-                                    {{-- Confirmación --}}
-                                    <div>
-                                        <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            Confirmar nueva contraseña
-                                        </label>
-
-                                        <input
-                                            id="password_confirmation"
-                                            name="password_confirmation"
-                                            type="password"
-                                            minlength="8"
-                                            placeholder="********"
-                                            x-model="passwordConfirmation"
-                                            @input="clearPasswordError('password_confirmation')"
-                                            autocomplete="new-password"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                        >
-
-                                        {{-- Error de validación --}}
-                                        <p x-show="passwordErrors.password_confirmation" x-text="passwordErrors.password_confirmation" class="mt-2 text-sm font-semibold text-red-600"></p>
-
-                                        {{-- Error de Laravel --}}
-                                        @error('password_confirmation')
-                                            <p class="mt-2 text-sm font-semibold text-red-600">
-                                                {{ $message }}
-                                            </p>
-                                        @enderror
-                                    </div>
-                                </div>
+                                <button
+                                    type="button"
+                                    @click="solicitarCambioPassword()"
+                                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                >
+                                    @if (is_null($user->password_hash))
+                                        Establecer contraseña
+                                    @else
+                                        Cambiar contraseña
+                                    @endif
+                                </button>
                             </div>
                         </div>
                     </section>
@@ -835,6 +780,16 @@
                             Guardar cambios
                         </button>
                     </div>
+                </form>
+                
+                {{-- Formulario para solicitar el cambio de contraseña --}}
+                <form
+                    id="password-link-form"
+                    action="{{ route('profile.password.email') }}"
+                    method="POST"
+                    class="hidden"
+                >
+                    @csrf
                 </form>
 
                 {{-- Formulario para desvincular Google --}}
@@ -874,10 +829,7 @@
                 email: @js(old('email', $user->correo ?? '')),
                 tienePassword: @js(!is_null($user->password_hash)),
                 tieneGoogle: @js($user->googleAccount()->exists()),
-                currentPassword: '',
-                password: '',
-                passwordConfirmation: '',
-
+                
                 imagenPreview: @js($user->imagen_perfil ? asset('storage/' . $user->imagen_perfil) : asset('images/usuario.png')),
                 eliminarImagenPerfil: false,
                 tieneImagenPerfil: @js(!empty($user->imagen_perfil)),
@@ -1105,85 +1057,31 @@
                     this.cropper.zoom(-0.1);
                 },
 
-                // Errores de validación para los campos de contraseña
-                passwordErrors: {
-                    current_password: '',
-                    password: '',
-                    password_confirmation: '',
-                },
+                // Función para solicitar el cambio o establecimiento de contraseña.
+                async solicitarCambioPassword() {
+                    const tienePassword = @js(!is_null($user->password_hash));
 
-                // Función para validar los campos de contraseña
-                validatePasswords() {
-                    this.passwordErrors = {
-                        current_password: '',
-                        password: '',
-                        password_confirmation: '',
-                    };
+                    const title = tienePassword
+                        ? '¿Cambiar contraseña?'
+                        : '¿Establecer contraseña?';
 
-                    const current = this.currentPassword.trim();
-                    const password = this.password.trim();
-                    const confirmation = this.passwordConfirmation.trim();
+                    const message = tienePassword
+                        ? 'Te enviaremos un enlace de seguridad a tu correo electrónico para que puedas establecer una nueva contraseña.'
+                        : 'Te enviaremos un enlace a tu correo electrónico para que puedas establecer tu contraseña de SIDAN.';
 
-                    // No se está intentando cambiar o establecer contraseña.
-                    if (!current && !password && !confirmation) {
-                        return true;
-                    }
+                    const confirmText = tienePassword
+                        ? 'Enviar enlace'
+                        : 'Establecer contraseña';
 
-                    let valid = true;
-
-                    if (this.tienePassword && !current) {
-                        this.passwordErrors.current_password =
-                            'La contraseña actual es obligatoria.';
-                        valid = false;
-                    }
-
-                    if (!password) {
-                        this.passwordErrors.password =
-                            'La nueva contraseña es obligatoria.';
-                        valid = false;
-                    }
-
-                    if (!confirmation) {
-                        this.passwordErrors.password_confirmation =
-                            'Debes confirmar la nueva contraseña.';
-                        valid = false;
-                    }
-
-                    if (password && confirmation && password !== confirmation) {
-                        this.passwordErrors.password_confirmation =
-                            'Las contraseñas no coinciden.';
-                        valid = false;
-                    }
-
-                    return valid;
-                },
-
-                // Función para inicializar el componente y hacer scroll a la sección de contraseña si hay errores del servidor
-                init() {
-                    const hasPasswordServerError = @js(
-                        $errors->has('current_password') ||
-                        $errors->has('password') ||
-                        $errors->has('password_confirmation')
+                    const confirmado = await this.showConfirm(
+                        title,
+                        message,
+                        confirmText
                     );
 
-                    if (hasPasswordServerError) {
-                        this.scrollToPassword();
+                    if (confirmado) {
+                        document.getElementById('password-link-form')?.submit();
                     }
-                },
-
-                // Función para hacer scroll a la sección de contraseña
-                scrollToPassword() {
-                    this.$nextTick(() => {
-                        this.$refs.passwordSection?.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-                    });
-                },
-
-                // Función para limpiar errores de validación para los campos de contraseña
-                clearPasswordError(field) {
-                    this.passwordErrors[field] = '';    
                 },
 
                 // Función para limpiar errores del servidor
@@ -1208,11 +1106,6 @@
                 // Función para manejar el envío del formulario
                 async submitForm(event) {
                     event.preventDefault();
-
-                    if (!this.validatePasswords()) {
-                        this.scrollToPassword();
-                        return;
-                    }
 
                     const confirmado = await this.showConfirm(
                         '¿Actualizar información?',

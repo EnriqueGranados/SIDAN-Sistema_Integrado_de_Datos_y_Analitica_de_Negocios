@@ -332,9 +332,7 @@ class GoogleController extends Controller
 
         // El usuario ya tiene una cuenta de Google vinculada.
         if ($user->googleAccount()->exists()) {
-            return redirect()
-                ->route('profile.edit')
-                ->with('error', 'Ya tienes una cuenta de Google vinculada.');
+            return redirect()->route('profile.edit')->with('error', 'Ya tienes una cuenta de Google vinculada.');
         }
 
         // Indicamos que este OAuth no es para iniciar sesión, sino para vincular Google al usuario autenticado.
@@ -365,6 +363,12 @@ class GoogleController extends Controller
             return redirect()->route('profile.edit')->with('error', 'Esta cuenta de Google ya se encuentra vinculada a otro usuario.');
         }
 
+        // El correo de Google debe coincidir con el correo del usuario SIDAN.
+        if (strtolower(trim($user->correo)) !== strtolower(trim($googleEmail))) 
+        {
+            return redirect()->route('profile.edit')->with('error', 'La cuenta de Google seleccionada no coincide con el correo electrónico de tu cuenta SIDAN.');
+        }
+
         try {
             $user->googleAccount()->create([
                 'google_id' => $googleId,
@@ -376,6 +380,6 @@ class GoogleController extends Controller
             return redirect()->route('profile.edit')->with('error', 'No fue posible vincular la cuenta de Google. Inténtalo nuevamente.');
         }
 
-        return redirect()->route('profile.edit')->with('status', 'google-linked');
+        return redirect()->route('profile.edit')->with('success', 'Cuenta de Google vinculada exitosamente.');
     }
 }

@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
+use App\Notifications\ChangePasswordNotification;
+use App\Notifications\SetPasswordNotification;
+use Illuminate\Support\Facades\URL;
 
 class ProfileController extends Controller
 {
@@ -64,12 +68,6 @@ class ProfileController extends Controller
                 // Actualizar correo del usuario.
                 $user->correo = $data['email'];
 
-                // Actualizar contraseña si se proporciona una nueva.
-
-                if (!empty($data['password'])) {
-                    $user->password_hash = Hash::make($data['password']);
-                }
-
                 $user->save();
             });
 
@@ -92,7 +90,65 @@ class ProfileController extends Controller
             Storage::disk('public')->delete($imagenAnterior);
         }
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.edit')->with('success', 'Perfil actualizado correctamente.');
+    }
+
+    // Enviar enlace para cambiar la contraseña del usuario autenticado.
+    public function sendPasswordLink(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->eliminado || !$user->estado_activo) {
+            Auth::logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'error',
+                    'Tu cuenta no se encuentra disponible.'
+                );
+        }
+
+        $intent = is_null($user->password_hash)
+            ? 'set'
+            : 'change';
+
+        // Generamos un token utilizando el mismo broker del sistema de recuperación de contraseña.
+        $token = Password::broker()->createToken($user);
+
+        // La intención queda protegida mediante una URL firmada.
+        $url = URL::temporarySignedRoute(
+            'profile.password.reset',
+            now()->addMinutes(
+                config('auth.passwords.users.expire')
+            ),
+            [
+                'token' => $token,
+                'email' => $user->correo,
+                'intent' => $intent,
+            ]
+        );
+
+        if ($intent === 'set') {
+            $user->notify(
+                new SetPasswordNotification($url)
+            );
+        } else {
+            $user->notify(
+                new ChangePasswordNotification($url)
+            );
+        }
+
+        return Redirect::route('profile.edit')
+            ->with(
+                'success',
+                $intent === 'set'
+                    ? 'Te enviamos un enlace a tu correo electrónico para establecer tu contraseña de SIDAN.'
+                    : 'Te enviamos un enlace a tu correo electrónico para cambiar tu contraseña.'
+            );
     }
 
     // Eliminar la cuenta del usuario
@@ -129,6 +185,6 @@ class ProfileController extends Controller
 
         $user->googleAccount()->delete();
 
-        return Redirect::route('profile.edit')->with('status', 'google-unlinked');
+        return Redirect::route('profile.edit')->with('success', 'Cuenta de Google desvinculada correctamente. Ahora puedes iniciar sesión usando tu correo y contraseña de SIDAN.');
     }
 }
