@@ -8,17 +8,14 @@ use RuntimeException;
 
 class WompiService
 {
-    // Obtener el token de autenticación necesario para consumir la API de Wompi
     public function obtenerToken(bool $renovar = false): string
     {
         $cacheKey = 'wompi.access_token';
 
-        // Utilizar el token almacenado en caché mientras siga disponible
         if (!$renovar && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
-        // Solicitar un nuevo token de acceso a Wompi
         $response = Http::asForm()
             ->acceptJson()
             ->timeout(30)
@@ -29,23 +26,19 @@ class WompiService
                 'client_secret' => config('services.wompi.client_secret'),
             ]);
 
-        // Verificar que la autenticación con Wompi haya sido exitosa
         if ($response->failed()) {
             throw new RuntimeException(
                 'No se pudo autenticar con Wompi. Código HTTP: ' . $response->status()
             );
         }
 
-        // Obtener el token y su tiempo de duración
         $token = $response->json('access_token');
         $expiresIn = (int) $response->json('expires_in', 3600);
 
-        // Verificar que Wompi haya devuelto el token correctamente
         if (!$token) {
             throw new RuntimeException('Wompi no devolvió un access_token.');
         }
 
-        // Guardar el token temporalmente para evitar solicitar uno en cada petición
         Cache::put(
             $cacheKey,
             $token,
@@ -55,10 +48,8 @@ class WompiService
         return $token;
     }
 
-    // Crear un enlace de pago utilizando la API de Wompi
     public function crearEnlacePago(array $datos): array
     {
-        // Enviar los datos del pago utilizando el token de autenticación
         $response = Http::withToken($this->obtenerToken())
             ->acceptJson()
             ->timeout(30)
@@ -67,7 +58,6 @@ class WompiService
                 $datos
             );
 
-        // Renovar el token y repetir la petición si Wompi indica que no está autorizado
         if ($response->status() === 401) {
             Cache::forget('wompi.access_token');
 
@@ -80,14 +70,70 @@ class WompiService
                 );
         }
 
-        // Verificar que el enlace de pago haya sido creado correctamente
         if ($response->failed()) {
             throw new RuntimeException(
-                'Error al crear el enlace de pago en Wompi. Código HTTP: ' . $response->status()
+                'Error Wompi HTTP ' . $response->status() . ': ' . $response->body()
             );
         }
 
-        // Retornar la respuesta de Wompi en forma de arreglo
+        return $response->json();
+    }
+
+    public function obtenerEnlacePago(int $idEnlace): array
+    {
+        $response = Http::withToken($this->obtenerToken())
+            ->acceptJson()
+            ->timeout(30)
+            ->get(
+                config('services.wompi.api_url') . '/EnlacePago/' . $idEnlace
+            );
+
+        if ($response->status() === 401) {
+            Cache::forget('wompi.access_token');
+
+            $response = Http::withToken($this->obtenerToken(true))
+                ->acceptJson()
+                ->timeout(30)
+                ->get(
+                    config('services.wompi.api_url') . '/EnlacePago/' . $idEnlace
+                );
+        }
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Error al consultar el enlace de pago en Wompi. Código HTTP: ' . $response->status()
+            );
+        }
+
+        return $response->json();
+    }
+
+    public function obtenerTransaccion(string $idTransaccion): array
+    {
+        $response = Http::withToken($this->obtenerToken())
+            ->acceptJson()
+            ->timeout(30)
+            ->get(
+                config('services.wompi.api_url') . '/TransaccionCompra/' . $idTransaccion
+            );
+
+        if ($response->status() === 401) {
+            Cache::forget('wompi.access_token');
+
+            $response = Http::withToken($this->obtenerToken(true))
+                ->acceptJson()
+                ->timeout(30)
+                ->get(
+                    config('services.wompi.api_url') . '/TransaccionCompra/' . $idTransaccion
+                );
+        }
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Error al consultar la transacción en Wompi. Código HTTP: ' . $response->status()
+            );
+        }
+
         return $response->json();
     }
 }

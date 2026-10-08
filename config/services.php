@@ -47,6 +47,7 @@ return [
         'audience' => env('WOMPI_AUDIENCE', 'wompi_api'),
         'token_url' => env('WOMPI_TOKEN_URL', 'https://id.wompi.sv/connect/token'),
         'api_url' => env('WOMPI_API_URL', 'https://api.wompi.sv'),
+        'webhook_url' => env('WOMPI_WEBHOOK_URL'),
     ],
 
 ];

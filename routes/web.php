@@ -37,6 +37,21 @@ Route::get('/wompi/prueba', [WompiController::class, 'prueba'])
     ->middleware('auth')
     ->name('wompi.prueba');
 
+Route::get('/wompi/prueba/estado', [WompiController::class, 'estadoPrueba'])
+    ->middleware('auth')
+    ->name('wompi.prueba.estado');
+
+Route::get('/wompi/prueba/resultado', [WompiController::class, 'resultado'])
+    ->middleware('auth')
+    ->name('wompi.prueba.resultado');
+
+Route::get('/tunnel-test', function () {
+    return response('SIDAN TUNNEL OK', 200);
+});
+
+Route::post('/wompi/webhook', [WompiController::class, 'webhook'])
+    ->name('wompi.webhook');
+
 // Administradores
 Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -46,8 +61,8 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
 
     Route::get('/revisiones-actividades', [ActividadRevisionController::class, 'index'])->name('actividades.revision.index');
     Route::get('/revisiones-actividades/{actividad}', [ActividadRevisionController::class, 'show'])->name('actividades.revision.show');
-    Route::post('/revisiones-actividades/{actividad}/observaciones',[ActividadRevisionController::class, 'guardarObservacion'])->name('actividades.revision.observaciones.store');
-    Route::delete('/revisiones-actividades/{actividad}/observaciones/{observacion}',[ActividadRevisionController::class, 'eliminarObservacion'])->name('actividades.revision.observaciones.destroy');
+    Route::post('/revisiones-actividades/{actividad}/observaciones', [ActividadRevisionController::class, 'guardarObservacion'])->name('actividades.revision.observaciones.store');
+    Route::delete('/revisiones-actividades/{actividad}/observaciones/{observacion}', [ActividadRevisionController::class, 'eliminarObservacion'])->name('actividades.revision.observaciones.destroy');
     Route::post('/revisiones-actividades/{actividad}/aprobar', [ActividadRevisionController::class, 'aprobar'])->name('actividades.revision.aprobar');
     Route::post('/revisiones-actividades/{actividad}/solicitar-cambios', [ActividadRevisionController::class, 'solicitarCambios'])->name('actividades.revision.solicitar-cambios');
     Route::post('/revisiones-actividades/{actividad}/rechazar', [ActividadRevisionController::class, 'rechazar'])->name('actividades.revision.rechazar');
@@ -74,7 +89,7 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admi
     Route::post('/actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
         ->name('actividades.enviar-revision');
 
-        
+
 
     Route::post('/actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
         ->name('actividades.retirar-revision');

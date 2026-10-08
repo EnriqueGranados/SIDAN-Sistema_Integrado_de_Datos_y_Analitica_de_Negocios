@@ -15,9 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'rol' => \App\Http\Middleware\CheckRol::class,
             'user.status' => \App\Http\Middleware\CheckUserStatus::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'wompi/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
-    
-
