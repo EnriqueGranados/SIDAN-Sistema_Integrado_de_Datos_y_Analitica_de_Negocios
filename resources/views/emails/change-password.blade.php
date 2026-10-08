@@ -123,14 +123,9 @@
                                 la contraseña de tu cuenta.
                             </p>
 
-                            <p
-                                style="
-                                    margin:12px 0 0;
-                                    color:#475569;
-                                    font-size:15px;
-                                    line-height:24px;
-                                ">
-                                Utiliza el siguiente enlace para establecer una nueva contraseña:
+                            <p style="margin:12px 0 0; color:#475569; font-size:15px; line-height:24px;">
+                                Para continuar, haz clic en el siguiente botón y establece
+                                una nueva contraseña segura.
                             </p>
 
                             {{-- Botón --}}
@@ -197,15 +192,9 @@
                                 </tr>
                             </table>
 
-                            <p
-                                style="
-                                    margin:24px 0 0;
-                                    color:#64748b;
-                                    font-size:13px;
-                                    line-height:21px;
-                                ">
-                                Si no solicitaste este cambio, puedes ignorar este correo.
-                                Tu contraseña permanecerá sin cambios.
+                            <p style="margin:24px 0 0; color:#64748b; font-size:13px; line-height:21px;">
+                                Si no solicitaste este cambio, puedes ignorar este mensaje.
+                                Tu contraseña actual seguirá funcionando.
                             </p>
 
                             <div

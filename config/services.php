@@ -50,4 +50,9 @@ return [
         'webhook_url' => env('WOMPI_WEBHOOK_URL'),
     ],
 
+    'countrystatecity' => [
+        'key' => env('COUNTRY_STATE_CITY_API_KEY'),
+        'url' => 'https://api.countrystatecity.in/v1',
+    ],
+
 ];

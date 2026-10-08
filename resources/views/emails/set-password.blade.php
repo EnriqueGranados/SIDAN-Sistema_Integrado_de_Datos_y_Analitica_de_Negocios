@@ -112,26 +112,19 @@
                                 Hola{{ $nombre ? ', ' . $nombre : '' }}.
                             </p>
 
-                            <p
-                                style="
-                                    margin:12px 0 0;
-                                    color:#475569;
-                                    font-size:15px;
-                                    line-height:24px;
-                                ">
-                                Aún no tienes una contraseña configurada en SIDAN.
+                            <p style="margin:12px 0 0; color:#475569; font-size:15px; line-height:24px;">
+                                Actualmente utilizas tu cuenta de Google para iniciar sesión en SIDAN
+                                y todavía no tienes una contraseña propia configurada.
                             </p>
 
-                            <p
-                                style="
-                                    margin:12px 0 0;
-                                    color:#475569;
-                                    font-size:15px;
-                                    line-height:24px;
-                                ">
-                                Puedes establecer una contraseña para iniciar sesión utilizando
-                                tu correo electrónico y contraseña, además de continuar usando
-                                tu cuenta de Google. Utiliza el siguiente enlace para establecer una contraseña:
+                            <p style="margin:12px 0 0; color:#475569; font-size:15px; line-height:24px;">
+                                Puedes establecer una contraseña para iniciar sesión también
+                                con tu correo electrónico y contraseña, sin perder el acceso
+                                mediante Google.
+                            </p>
+
+                            <p style="margin:12px 0 0; color:#475569; font-size:15px; line-height:24px;">
+                                Haz clic en el siguiente botón para configurar tu contraseña de SIDAN.
                             </p>
 
                             {{-- Botón --}}
@@ -198,15 +191,9 @@
                                 </tr>
                             </table>
 
-                            <p
-                                style="
-                                    margin:24px 0 0;
-                                    color:#64748b;
-                                    font-size:13px;
-                                    line-height:21px;
-                                ">
+                            <p style="margin:24px 0 0; color:#64748b; font-size:13px; line-height:21px;">
                                 Si no solicitaste establecer una contraseña, puedes ignorar
-                                este correo y continuar iniciando sesión con Google.
+                                este mensaje. Tu acceso mediante Google seguirá funcionando.
                             </p>
 
                             <div

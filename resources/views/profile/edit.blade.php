@@ -848,8 +848,7 @@
                 paisSeleccionado: '',
                 estadoSeleccionado: '',
                 ciudadSeleccionada: '',
-                apiKey: 'd94a880db2815eabb6a7a7af69fd5abd19c577d0020386e7b0bb04201f1b761a', 
-                baseUrl: 'https://api.countrystatecity.in/v1/countries',
+                baseUrl: @js(url('/ubicaciones')),
 
                 // Funciones para formatear la ubicación.
                 get ubicacionFormateada() {
@@ -1249,9 +1248,10 @@
 
                 // Funciones para cargar países, estados y ciudades
                 cargarPaises() {
-                    // Si existe un valor old(), lo dividimos en sus 3 partes (Ciudad-Estado-País)
+                    // Restaurar ubicación anterior.
                     if (this.oldUbicacion) {
                         const partes = this.oldUbicacion.split('-');
+
                         if (partes.length === 3) {
                             this._oldCiudad = partes[0];
                             this._oldEstado = partes[1];
@@ -1259,16 +1259,22 @@
                         }
                     }
 
-                    fetch(this.baseUrl, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
-                        .then(res => res.json())
+                    fetch(`${this.baseUrl}/paises`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('Error al cargar países');
+                            return res.json();
+                        })
                         .then(data => {
                             this.paises = data;
-                            
+
                             this.$nextTick(() => {
-                                // Asigna el país antiguo si existe, si no, por defecto 'SV'
+                                // Mantener país anterior o El Salvador por defecto.
                                 this.paisSeleccionado = this._oldPais || 'SV';
                                 this.cargarEstados();
                             });
+                        })
+                        .catch(error => {
+                            console.error('No fue posible cargar los países:', error);
                         });
                 },
 
@@ -1277,14 +1283,19 @@
                     this.ciudades = [];
                     this.estadoSeleccionado = '';
                     this.ciudadSeleccionada = '';
-                    
+
                     if (this.paisSeleccionado) {
-                        fetch(`${this.baseUrl}/${this.paisSeleccionado}/states`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
-                            .then(res => res.json())
+
+                        const pais = encodeURIComponent(this.paisSeleccionado);
+
+                        fetch(`${this.baseUrl}/estados/${pais}`)
+                            .then(res => {
+                                if (!res.ok) throw new Error('Error al cargar estados');
+                                return res.json();
+                            })
                             .then(data => {
                                 this.estados = data;
-                                
-                                // Si hay un estado guardado en old(), lo seleccionamos
+
                                 if (this._oldEstado) {
                                     this.$nextTick(() => {
                                         this.estadoSeleccionado = this._oldEstado;
@@ -1292,6 +1303,9 @@
                                         this.cargarCiudades();
                                     });
                                 }
+                            })
+                            .catch(error => {
+                                console.error('No fue posible cargar los estados:', error);
                             });
                     }
                 },
@@ -1301,18 +1315,27 @@
                     this.ciudadSeleccionada = '';
 
                     if (this.paisSeleccionado && this.estadoSeleccionado) {
-                        fetch(`${this.baseUrl}/${this.paisSeleccionado}/states/${this.estadoSeleccionado}/cities`, { headers: { 'X-CSCAPI-KEY': this.apiKey } })
-                            .then(res => res.json())
+
+                        const pais = encodeURIComponent(this.paisSeleccionado);
+                        const estado = encodeURIComponent(this.estadoSeleccionado);
+
+                        fetch(`${this.baseUrl}/ciudades/${pais}/${estado}`)
+                            .then(res => {
+                                if (!res.ok) throw new Error('Error al cargar ciudades');
+                                return res.json();
+                            })
                             .then(data => {
                                 this.ciudades = data;
-                                
-                                // Si hay una ciudad guardada en old(), la seleccionamos
+
                                 if (this._oldCiudad) {
                                     this.$nextTick(() => {
                                         this.ciudadSeleccionada = this._oldCiudad;
                                         this._oldCiudad = '';
                                     });
                                 }
+                            })
+                            .catch(error => {
+                                console.error('No fue posible cargar las ciudades:', error);
                             });
                     }
                 }

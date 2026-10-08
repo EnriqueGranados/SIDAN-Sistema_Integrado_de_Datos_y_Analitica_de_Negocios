@@ -1,6 +1,18 @@
+@php
+    $esEstablecimiento = $intent === 'set';
+
+    $titulo = $esEstablecimiento
+        ? 'Establecer contraseña'
+        : 'Cambiar contraseña';
+
+    $subtitulo = $esEstablecimiento
+        ? 'Configura tu primera contraseña de SIDAN para iniciar sesión también con correo electrónico y contraseña.'
+        : 'Establece una nueva contraseña segura para proteger tu cuenta de SIDAN.';
+@endphp
+
 @extends('layouts.public')
 
-@section('title', 'SIDAN | Nueva contraseña')
+@section('title', 'SIDAN | ' . $titulo)
 
 @section('content')
     <div class="flex min-h-screen flex-col bg-[#f6f8fb] dark:bg-sidan-950">
@@ -71,19 +83,40 @@
             <div class="w-full max-w-md">
 
                 <div class="mb-8 text-center">
-
                     <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">
-                        Recupera tu accesossssssssssssssss
+                        {{ $esEstablecimiento ? 'Configura tu acceso' : 'Seguridad de tu cuenta' }}
                     </p>
 
                     <h1 class="mt-3 text-3xl font-black tracking-tight text-sidan-900 dark:text-white sm:text-4xl">
-                        Nueva contraseña
+                        {{ $titulo }}
                     </h1>
 
                     <p class="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                        Establece una nueva contraseña segura para volver a acceder a tu cuenta en SIDAN.
+                        {{ $subtitulo }}
                     </p>
                 </div>
+
+                @if ($esEstablecimiento)
+                    <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4 dark:border-green-500/20 dark:bg-green-500/5">
+                        <div class="flex items-start gap-3">
+                            <svg
+                                class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M20 6 9 17l-5-5" />
+                            </svg>
+
+                            <p class="text-sm leading-6 text-green-800 dark:text-green-300">
+                                <strong>Tu cuenta de Google seguirá vinculada.</strong>
+                                Después de establecer tu contraseña podrás iniciar sesión
+                                con Google o con tu correo electrónico y contraseña.
+                            </p>
+                        </div>
+                    </div>
+                @endif
 
                 <div
                     class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
@@ -161,7 +194,7 @@
                             <label
                                 for="password"
                                 class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                Nueva contraseña
+                                {{ $esEstablecimiento ? 'Crear contraseña' : 'Nueva contraseña' }}
                             </label>
 
                             <input
@@ -201,7 +234,7 @@
                         <button
                             type="submit"
                             class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-500/20">
-                            Restablecer contraseña
+                            {{ $esEstablecimiento ? 'Establecer contraseña' : 'Guardar nueva contraseña' }}
                         </button>
                     </form>
 
@@ -228,7 +261,13 @@
                 </div>
 
                 <p class="mt-6 text-center text-xs leading-5 text-slate-400">
-                    Utiliza una contraseña segura que no hayas utilizado anteriormente.
+                    @if ($esEstablecimiento)
+                        Tu nueva contraseña te permitirá acceder a SIDAN sin depender
+                        exclusivamente de Google.
+                    @else
+                        Al cambiar tu contraseña, deberás iniciar sesión nuevamente
+                        utilizando la nueva.
+                    @endif
                 </p>
             </div>
         </main>

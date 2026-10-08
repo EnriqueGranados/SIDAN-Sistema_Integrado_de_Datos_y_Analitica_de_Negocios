@@ -9,6 +9,7 @@ use App\Models\InformacionPersonal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 
 class UserController extends Controller
@@ -126,6 +127,11 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
+            // Imagen de perfil.
+            'imagen_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120',],
+            'eliminar_imagen_perfil' => ['nullable', 'boolean',],
+
+            // Información personal.
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
             'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento,' . $user->id_informacion_personal . ',id_informacion_personal'],
@@ -151,34 +157,80 @@ class UserController extends Controller
             'rol' => 'required|exists:tbl_roles,id_rol',
         ]);
 
-        DB::beginTransaction();
+        // Guardar referencia a la imagen actual.
+        $imagenAnterior = $user->imagen_perfil;
+        $imagenNueva = null;
+
+        // Determinar si se solicitó eliminar la imagen.
+        $eliminarImagen = $request->boolean('eliminar_imagen_perfil');
+
         try {
-            $user->informacion_personal->update([
-                'nombres' => $validated['nombres'],
-                'apellidos' => $validated['apellidos'],
-                'documento' => $validated['documento'],
-                'telefono' => $validated['telefono'],
-                'fecha_nacimiento' => $validated['fecha_nacimiento'],
-                'genero' => $validated['genero'],
-            ]);
-
-            $userData = [
-                'correo' => $validated['email'],
-                'id_rol' => $validated['rol'],
-            ];
-
-            if (!empty($validated['password'])) {
-                $userData['password_hash'] = Hash::make($validated['password']);
+            // Subir imagen solamente si no se solicitó eliminarla.
+            if (!$eliminarImagen && $request->hasFile('imagen_perfil')) {
+                $imagenNueva = $request->file('imagen_perfil')->store('perfiles', 'public');
             }
 
-            $user->update($userData);
+            // Actualizar datos dentro de una transacción.
+            DB::transaction(function () use (
+                $user,
+                $validated,
+                $eliminarImagen,
+                $imagenNueva
+            ) {
+                // Actualizar información personal.
+                $user->informacion_personal->update([
+                    'nombres' => $validated['nombres'],
+                    'apellidos' => $validated['apellidos'],
+                    'documento' => $validated['documento'] ?? null,
+                    'telefono' => $validated['telefono'] ?? null,
+                    'fecha_nacimiento' => $validated['fecha_nacimiento'] ?? null,
+                    'genero' => $validated['genero'] ?? null,
+                ]);
 
-            DB::commit();
-            return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error al actualizar: ' . $e->getMessage())->withInput();
+                // Datos de la cuenta.
+                $userData = [
+                    'correo' => $validated['email'],
+                    'id_rol' => $validated['rol'],
+                ];
+
+                // Actualizar contraseña solamente si se proporcionó.
+                if (!empty($validated['password'])) {
+                    $userData['password_hash'] = Hash::make(
+                        $validated['password']
+                    );
+                }
+
+                // Actualizar imagen de perfil.
+                if ($eliminarImagen) {
+                    $userData['imagen_perfil'] = null;
+                } elseif ($imagenNueva) {
+                    $userData['imagen_perfil'] = $imagenNueva;
+                }
+
+                // Guardar cambios del usuario.
+                $user->update($userData);
+            });
+
+        } catch (\Throwable $e) {
+            // Si falla la actualización, eliminar la imagen recién subida.
+            if ($imagenNueva) {
+                Storage::disk('public')->delete($imagenNueva);
+            }
+
+            report($e);
+
+            return back()->with('error', 'No fue posible actualizar el usuario.')->withInput();
         }
+
+        // Eliminar imagen anterior solo después de guardar correctamente.
+        $imagenFueReemplazada = !is_null($imagenNueva);
+
+        if ($imagenAnterior && ($eliminarImagen || $imagenFueReemplazada)) 
+        {
+            Storage::disk('public')->delete($imagenAnterior);
+        }
+
+        return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
     }
 
     // Alterna el estado y devuelve JSON para Alpine.js
@@ -194,6 +246,7 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => 'Error.'], 500);
         }
     }
+
     // Eliminar (Borrado lógico completo)
     public function destroy(User $user)
     {
@@ -208,7 +261,6 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => 'Error.'], 500);
         }
     }
-
 
     // Búsqueda en tiempo real 
     public function search(Request $request)

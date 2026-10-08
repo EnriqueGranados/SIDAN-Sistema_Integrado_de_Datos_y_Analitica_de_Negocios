@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\EtiquetaController;
 use App\Http\Controllers\Admin\RecursoController;
 use App\Http\Controllers\Admin\EspacioController;
+use App\Http\Controllers\UbicacionController;
+
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -32,6 +34,22 @@ Route::middleware('auth')->group(function () {
         ->middleware(['auth', 'throttle:3,1'])
         ->name('profile.password.email');
 });
+
+Route::middleware(['throttle:60,1'])
+    ->prefix('ubicaciones')
+    ->name('ubicaciones.')
+    ->group(function () {
+
+        Route::get('/paises', [UbicacionController::class, 'paises'])
+            ->name('paises');
+
+        Route::get('/estados/{pais}', [UbicacionController::class, 'estados'])
+            ->name('estados');
+
+        Route::get('/ciudades/{pais}/{estado}', [UbicacionController::class, 'ciudades'])
+            ->name('ciudades');
+
+    });
 
 Route::get('/wompi/prueba', [WompiController::class, 'prueba'])
     ->middleware('auth')
