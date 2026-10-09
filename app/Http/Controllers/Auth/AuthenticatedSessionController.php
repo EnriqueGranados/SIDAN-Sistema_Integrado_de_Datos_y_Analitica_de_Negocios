@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\Rol;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -24,20 +25,21 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $request->authenticate();
 
-        // Autenticamos usando tu campo 'correo'
-        if (Auth::attempt(['correo' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended('/');
+        $request->session()->regenerate();
+
+        $usuario = Auth::user();
+
+        $rol = Rol::find($usuario->id_rol);
+
+        if ($rol && $rol->nombre === 'admin' || $rol->nombre === 'superadmin') {
+            return redirect()->route('admin.dashboard')
+                            ->with('success', 'Se ha iniciado sesión como administrador. Puedes gestionar el sistema desde aquí.');
         }
-
-        return back()->withErrors([
-            'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
-        ])->onlyInput('email');
+       
+        return redirect()->route('user.dashboard')
+                        ->with('success', 'Se ha iniciado sesión correctamente.');
     }
 
     /**

@@ -40,6 +40,7 @@ class RegisteredUserController extends Controller
             'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono'],
             'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
             'genero' => ['nullable', 'string', 'max:10'],
+            'ubicacion' => ['nullable', 'string', 'max:150'],
 
             'email' => [
                 'required',
@@ -57,11 +58,9 @@ class RegisteredUserController extends Controller
             ],
         ],
         [
-            'documento.required' => 'El DUI es obligatorio.',
             'documento.unique' => 'Este DUI ya está registrado.',
             'documento.regex' => 'Ingresa un número de DUI válido.',
 
-            'telefono.required' => 'El número de teléfono es obligatorio.',
             'telefono.regex' => 'Ingresa un número de teléfono válido.',
             'telefono.unique' => 'Este número de teléfono ya está registrado.',
 
@@ -85,6 +84,7 @@ class RegisteredUserController extends Controller
                 'telefono' => $request->telefono,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'genero' => $request->genero,
+                'ubicacion' => $request->ubicacion,
             ]);
 
             // Crear la cuenta de usuario
@@ -103,6 +103,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($usuario);
 
-        return redirect('/');
+        return redirect()->intended('/user/dashboard')->with('success', 'Cuenta creada exitosamente.');
     }
 }

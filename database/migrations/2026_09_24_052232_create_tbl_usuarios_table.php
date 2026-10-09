@@ -17,21 +17,20 @@ return new class extends Migration
             $table->foreignId('id_informacion_personal')->unique()->constrained('tbl_informacion_personal', 'id_informacion_personal')->cascadeOnDelete();
             $table->foreignId('id_rol')->constrained('tbl_roles', 'id_rol');
             $table->string('correo', 150)->unique();
-            $table->string('password_hash', 255);
+            $table->string('password_hash', 255)->nullable();
             $table->boolean('must_change_password')->default(false);
             $table->boolean('estado_activo')->default(true);
             $table->boolean('eliminado')->default(false);
+            $table->string('imagen_perfil', 255)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
 
         // Tabla para la recuperación de contraseñas.
-        Schema::create('codigos_reset', function (Blueprint $table) {
-            $table->id('id_codigo');
-            $table->string('correo', 100);
-            $table->string('codigo', 8);
-            $table->date('expiracion');
-            $table->boolean('usado')->default(false);
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
         });
 
         // Tabla para manejo de sesiones.
@@ -51,7 +50,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('tbl_usuarios');
-        Schema::dropIfExists('codigos_reset');
+        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };
