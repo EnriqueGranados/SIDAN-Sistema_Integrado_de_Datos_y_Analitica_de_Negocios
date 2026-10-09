@@ -529,40 +529,21 @@
                                 </div>
 
 
-                                <div class="grid gap-5 sm:grid-cols-2">
-                                    <div>
-                                        <label for="password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            Contraseña *
-                                        </label>
+                                <div class="rounded-xl border border-blue-200 bg-blue-50 p-4
+                                            text-sm text-blue-800 dark:border-blue-500/20
+                                            dark:bg-blue-500/10 dark:text-blue-200">
 
-                                        <input
-                                            id="password"
-                                            name="password"
-                                            type="password"
-                                            required
-                                            x-model="password"
-                                            @input="validatePasswordMatch()"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                        >
+                                    <p class="font-bold">Acceso inicial del usuario</p>
 
-                                    </div>
+                                    <p class="mt-2">
+                                        SIDAN generará automáticamente una contraseña temporal
+                                        y la enviará al correo electrónico registrado.
+                                    </p>
 
-                                    <div>
-                                        <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            Confirmar contraseña *
-                                        </label>
-
-                                        <input
-                                            id="password_confirmation"
-                                            name="password_confirmation"
-                                            type="password"
-                                            required
-                                            x-model="passwordConfirmation"
-                                            @input="validatePasswordMatch()"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                        >
-
-                                    </div>
+                                    <p class="mt-2">
+                                        El usuario deberá cambiarla obligatoriamente
+                                        al iniciar sesión por primera vez.
+                                    </p>
                                 </div>
 
                                 {{-- Rol --}}
@@ -758,12 +739,13 @@
                                         </div>
 
                                         <div class="mt-4">
-
                                             <span class="text-sm text-slate-400">
                                                 Contraseña
                                             </span>
-                                            
-                                            <p class="mt-1 font-bold text-slate-700 dark:text-slate-200">Establecida</p>
+
+                                            <p class="mt-1 font-bold text-slate-700 dark:text-slate-200">
+                                                Se generará y enviará por correo
+                                            </p>
                                         </div>
 
                                         <div class="mt-4">
@@ -859,9 +841,6 @@
             email: @js(old('email', '')),
             rol: @js(old('rol', '')),
 
-            password: '',
-            passwordConfirmation: '',
-
             // ==========================================
             // 2. VARIABLES DE UBICACIÓN
             // ==========================================
@@ -920,19 +899,6 @@
                 const section = document.getElementById(`register-step-${this.step}`);
                 if (!section) return false;
 
-                if (this.step === 2) {
-                    const password = document.getElementById('password');
-                    const confirmation = document.getElementById('password_confirmation');
-                    confirmation.setCustomValidity('');
-
-                    if (password.value !== confirmation.value) {
-                        confirmation.setCustomValidity('Las contraseñas no coinciden.');
-                        confirmation.reportValidity();
-                        confirmation.focus();
-                        return false;
-                    }
-                }
-
                 const fields = section.querySelectorAll('input, select, textarea');
                 for (const field of fields) {
                     if (!field.checkValidity()) {
@@ -942,16 +908,6 @@
                     }
                 }
                 return true;
-            },
-
-            validatePasswordMatch() {
-                const password = document.getElementById('password');
-                const confirmation = document.getElementById('password_confirmation');
-                confirmation.setCustomValidity('');
-
-                if (confirmation.value && password.value !== confirmation.value) {
-                    confirmation.setCustomValidity('Las contraseñas no coinciden.');
-                }
             },
 
             clearError(field) {

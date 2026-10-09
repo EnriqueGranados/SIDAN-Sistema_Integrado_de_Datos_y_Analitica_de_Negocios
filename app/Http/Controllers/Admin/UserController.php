@@ -11,10 +11,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
+use App\Notifications\UsuarioCreadoNotification;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-
     // Muestra solo usuarios activos y no eliminados
     public function index(Request $request)
     {
@@ -64,15 +65,8 @@ class UserController extends Controller
                 'unique:tbl_usuarios,correo',
             ],
 
-            'password' => [
-                'required',
-                'confirmed',
-                Rules\Password::defaults(),
-            ],
-
-            'rol' => 'required|exists:tbl_roles,id_rol',
-        ],
-        [
+            'rol' => ['required', 'exists:tbl_roles,id_rol'],
+        ], [
             'documento.unique' => 'Este DUI ya está registrado.',
             'documento.regex' => 'Ingresa un número de DUI válido.',
 
@@ -83,35 +77,66 @@ class UserController extends Controller
             'email.email' => 'Ingresa un correo electrónico válido.',
             'email.unique' => 'Este correo electrónico ya está registrado.',
 
-            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
+            'fecha_nacimiento.before_or_equal' =>
+                'Debes tener al menos 10 años para registrarte.',
         ]);
 
-        DB::beginTransaction();
+        // Contraseña temporal generada por SIDAN.
+        $passwordTemporal = Str::random(20);
+
         try {
-            $info = InformacionPersonal::create([
-                'nombres' => $validated['nombres'],
-                'apellidos' => $validated['apellidos'],
-                'documento' => $validated['documento'],
-                'telefono' => $validated['telefono'],
-                'fecha_nacimiento' => $validated['fecha_nacimiento'],
-                'genero' => $validated['genero'],
-                'ubicacion' => $validated['ubicacion'],
-            ]);
+            $user = DB::transaction(function () use ($validated, $passwordTemporal) {
 
-            User::create([
-                'id_informacion_personal' => $info->id_informacion_personal,
-                'id_rol' => $validated['rol'],
-                'correo' => $validated['email'],
-                'password_hash' => Hash::make($validated['password']),
-                'estado' => 'activo',
-                'must_change_password' => false,
-            ]);
+                $info = InformacionPersonal::create([
+                    'nombres' => $validated['nombres'],
+                    'apellidos' => $validated['apellidos'],
+                    'documento' => $validated['documento'] ?? null,
+                    'telefono' => $validated['telefono'] ?? null,
+                    'fecha_nacimiento' => $validated['fecha_nacimiento'] ?? null,
+                    'genero' => $validated['genero'] ?? null,
+                    'ubicacion' => $validated['ubicacion'] ?? null,
+                ]);
 
-            DB::commit();
-            return redirect()->route('admin.users.index')->with('success', 'Usuario creado correctamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error al crear el usuario: ' . $e->getMessage())->withInput();
+                return User::create([
+                    'id_informacion_personal' => $info->id_informacion_personal,
+                    'id_rol' => $validated['rol'],
+                    'correo' => $validated['email'],
+                    'password_hash' => Hash::make($passwordTemporal),
+                    'estado' => 'activo',
+                    'must_change_password' => true,
+                ]);
+            });
+
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->with('error', 'No fue posible crear el usuario.')
+                ->withInput($request->except('password', 'password_confirmation'));
+        }
+
+        // Enviar el correo después de confirmar la creación.
+        try {
+            $user->notify(
+                new UsuarioCreadoNotification($passwordTemporal)
+            );
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with(
+                    'success',
+                    'Usuario creado correctamente. Se enviaron sus credenciales al correo electrónico.'
+                );
+
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with(
+                    'warning',
+                    'El usuario fue creado, pero no se pudo enviar el correo. No lo crees nuevamente; será necesario habilitar el reenvío de credenciales.'
+                );
         }
     }
 

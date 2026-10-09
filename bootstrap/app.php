@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\ForcePasswordChange;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'rol' => \App\Http\Middleware\CheckRol::class,
             'user.status' => \App\Http\Middleware\CheckUserStatus::class,
+            'force.password.change' => ForcePasswordChange::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

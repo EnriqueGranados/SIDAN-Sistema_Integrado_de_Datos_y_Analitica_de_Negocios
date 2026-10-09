@@ -20,6 +20,7 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\WompiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\ForcePasswordChangeController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -55,34 +56,27 @@ Route::get('/actividades/{slug}/participar', [ActividadAccionController::class, 
 Route::get('/actividades/{slug}/comprar', [ActividadAccionController::class, 'comprar'])
     ->name('activities.comprar');
 
+
+// Cambio de contraseña.
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
-
-    Route::post('/profile/password/email', [ProfileController::class, 'sendPasswordLink'])
-        ->middleware('throttle:3,1')
-        ->name('profile.password.email');
+    Route::get('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'create',])->name('password.force.edit');
+    Route::post('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'store',])->name('password.force.update');
 });
 
-Route::middleware(['throttle:60,1'])
-    ->prefix('ubicaciones')
-    ->name('ubicaciones.')
-    ->group(function () {
-        Route::get('/paises', [UbicacionController::class, 'paises'])
-            ->name('paises');
+// Perfil
+Route::middleware(['auth', 'force.password.change'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/password/email', [ProfileController::class, 'sendPasswordLink'])->middleware('throttle:3,1')->name('profile.password.email');
+});
 
-        Route::get('/estados/{pais}', [UbicacionController::class, 'estados'])
-            ->name('estados');
-
-        Route::get('/ciudades/{pais}/{estado}', [UbicacionController::class, 'ciudades'])
-            ->name('ciudades');
-    });
+// Ubicación
+Route::middleware(['throttle:60,1'])->prefix('ubicaciones')->name('ubicaciones.')->group(function () {
+    Route::get('/paises', [UbicacionController::class, 'paises'])->name('paises');
+    Route::get('/estados/{pais}', [UbicacionController::class, 'estados'])->name('estados');
+    Route::get('/ciudades/{pais}/{estado}', [UbicacionController::class, 'ciudades'])->name('ciudades');
+});
 
 Route::get('/wompi/prueba', [WompiController::class, 'prueba'])
     ->middleware('auth')
@@ -104,13 +98,7 @@ Route::post('/wompi/webhook', [WompiController::class, 'webhook'])
     ->name('wompi.webhook');
 
 // Administradores
-Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('/dashboard', fn () => view('admin.dashboard'))
-            ->name('dashboard');
-
+Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'user.status'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/welcome', [WelcomeAdministracionController::class, 'index'])
             ->name('welcome.index');
 
@@ -308,10 +296,11 @@ Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])
             });
     });
 
-Route::middleware(['auth', 'rol:usuario', 'user.status'])
-    ->group(function () {
-        Route::get('/user/dashboard', fn () => view('user.dashboard'))
-            ->name('user.dashboard');
+// Usuario normal (Protegido)
+Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'])->group(function () {
+    Route::get('/user/dashboard', function () {
+        return view('user.dashboard');
+    })->name('user.dashboard');
 
         Route::get('/datos-personales', fn () => view('auth.datos-personales'))
             ->name('datos.personales');
@@ -334,16 +323,14 @@ Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])
 
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+
 Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])
     ->name('vincular.cuenta');
 
 Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])
     ->name('vincular.cuenta.procesar');
 
-Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])
-    ->middleware('auth')
-    ->name('profile.google.link');
 
-Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])
-    ->middleware('auth')
-    ->name('profile.google.unlink');
+// Google desde el perfil (Autenticado)
+Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])->middleware(['auth', 'force.password.change'])->name('profile.google.link');
+Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])->middleware(['auth', 'force.password.change'])->name('profile.google.unlink');

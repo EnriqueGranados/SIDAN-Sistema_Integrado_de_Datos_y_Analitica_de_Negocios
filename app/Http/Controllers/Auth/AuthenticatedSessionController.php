@@ -20,21 +20,37 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
-
         $usuario = Auth::user();
-        $rol = $usuario?->rol?->nombre;
 
-        $destinoPredeterminado = in_array($rol, ['admin', 'superadmin'], true)
+        // Cambio de contraseña.
+        if ($usuario->must_change_password) {
+            $request->session()->forget('url.intended');
+
+            return redirect()->route('password.force.edit')->with('warning', 'Por seguridad, debes cambiar tu contraseña temporal antes de continuar.');
+        }
+
+        // Obtener el nombre del rol mediante la relación del modelo.
+        $nombreRol = $usuario->rol?->nombre;
+
+        // Determinar si es administrador.
+        $esAdministrador = in_array(
+            $nombreRol,
+            ['admin', 'superadmin'],
+            true
+        );
+
+        // Establecer el destino predeterminado.
+        $destinoPredeterminado = $esAdministrador
             ? route('admin.dashboard')
             : route('user.dashboard');
 
-        $mensaje = in_array($rol, ['admin', 'superadmin'], true)
-            ? 'Se ha iniciado sesión como administrador.'
+        // Preparar el mensaje correspondiente.
+        $mensaje = $esAdministrador
+            ? 'Se ha iniciado sesión como administrador. Puedes gestionar el sistema desde aquí.'
             : 'Se ha iniciado sesión correctamente.';
 
-        return redirect()
-            ->intended($destinoPredeterminado)
-            ->with('success', $mensaje);
+        // Redirigir a la página solicitada anteriormente o al Dashboard correspondiente si no existe una.
+        return redirect()->intended($destinoPredeterminado)->with('success', $mensaje);
     }
 
     public function destroy(Request $request): RedirectResponse
