@@ -197,9 +197,9 @@ class ActividadController extends Controller
         );
     }
 
-    private function validarItem(Request $request): array
+    private function validarItem(Request $request, Actividad $actividad): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'item_nombre' => [
                 'required',
                 'string',
@@ -244,7 +244,6 @@ class ActividadController extends Controller
             'item_venta_hasta' => [
                 'nullable',
                 'date',
-                'after_or_equal:item_venta_desde',
             ],
             'item_min_por_inscripcion' => [
                 'required',
@@ -271,30 +270,85 @@ class ActividadController extends Controller
                 'nullable',
                 'boolean',
             ],
+        ], [
+            'item_nombre.required' => 'Ingresa el nombre del producto o servicio.',
+            'item_nombre.max' => 'El nombre no puede superar los 150 caracteres.',
+            'item_tipo.required' => 'Selecciona el tipo de elemento.',
+            'item_tipo.in' => 'El tipo seleccionado no es válido.',
+            'item_precio.required' => 'Ingresa el precio de venta.',
+            'item_precio.numeric' => 'El precio debe ser un valor numérico.',
+            'item_precio.min' => 'El precio no puede ser negativo.',
+            'item_costo_referencia.required' => 'Ingresa el costo de referencia.',
+            'item_costo_referencia.numeric' => 'El costo debe ser un valor numérico.',
+            'item_costo_referencia.min' => 'El costo no puede ser negativo.',
+            'item_stock_total.integer' => 'La cantidad disponible debe ser un número entero.',
+            'item_stock_total.min' => 'La cantidad disponible no puede ser negativa.',
+            'item_venta_desde.date' => 'La fecha de disponibilidad inicial no es válida.',
+            'item_venta_hasta.date' => 'La fecha de disponibilidad final no es válida.',
+            'item_min_por_inscripcion.required' => 'Ingresa el mínimo por compra.',
+            'item_min_por_inscripcion.integer' => 'El mínimo por compra debe ser un número entero.',
+            'item_min_por_inscripcion.min' => 'El mínimo por compra debe ser al menos 1.',
+            'item_max_por_inscripcion.integer' => 'El máximo por compra debe ser un número entero.',
+            'item_max_por_inscripcion.min' => 'El máximo por compra debe ser al menos 1.',
+            'item_max_por_inscripcion.gte' => 'El máximo por compra no puede ser menor que el mínimo.',
+            'item_imagen.image' => 'El archivo seleccionado debe ser una imagen.',
+            'item_imagen.mimes' => 'La imagen debe ser JPG, JPEG, PNG o WEBP.',
+            'item_imagen.max' => 'La imagen no puede superar los 5 MB.',
         ]);
+
+        $zonaHoraria = config('app.timezone');
+
+        $ventaDesde = !empty($validated['item_venta_desde'])
+            ? \Illuminate\Support\Carbon::parse(
+                $validated['item_venta_desde'],
+                $zonaHoraria
+            )
+            : null;
+
+        $ventaHasta = !empty($validated['item_venta_hasta'])
+            ? \Illuminate\Support\Carbon::parse(
+                $validated['item_venta_hasta'],
+                $zonaHoraria
+            )
+            : null;
+
+        if ($ventaDesde && $ventaHasta && $ventaHasta->lt($ventaDesde)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'item_venta_hasta' => [
+                    'La disponibilidad hasta no puede ser anterior a la disponibilidad desde.',
+                ],
+            ]);
+        }
+
+        return $validated;
     }
-        public function guardarItem(Request $request, Actividad $actividad)
+
+    public function guardarItem(Request $request, Actividad $actividad)
     {
         if (!in_array(
             $actividad->estado_publicacion,
             ['borrador', 'cambios_solicitados', 'aprobada'],
             true
         )) {
-            return back()->with(
-                'error',
-                'Esta actividad ya no puede modificar su configuración comercial en su estado actual.'
-            );
+            $mensaje = 'Esta actividad ya no puede modificar su configuración comercial en su estado actual.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $mensaje,
+                ], 422);
+            }
+
+            return back()->with('error', $mensaje);
         }
 
-        $validated = $this->validarItem($request);
-
-        if ($actividad->estado_publicacion === 'aprobada') {
-            $this->snapshotService->capturarSiAprobada($actividad);
-        }
-
+        $validated = $this->validarItem($request, $actividad);
         $rutaImagenNueva = null;
 
         try {
+            if ($actividad->estado_publicacion === 'aprobada') {
+                $this->snapshotService->capturarSiAprobada($actividad);
+            }
+
             DB::transaction(function () use (
                 $request,
                 $actividad,
@@ -352,10 +406,17 @@ class ActividadController extends Controller
                 $this->invalidarConfiguracionGeneral($actividad);
             });
 
-            return back()->with(
-                'success',
-                'Producto o servicio agregado correctamente.'
-            );
+            $mensaje = 'Producto o servicio agregado correctamente.';
+
+            if ($request->expectsJson()) {
+                session()->flash('success', $mensaje);
+
+                return response()->json([
+                    'message' => $mensaje,
+                ]);
+            }
+
+            return back()->with('success', $mensaje);
         } catch (\Throwable $e) {
             if ($rutaImagenNueva) {
                 Storage::disk('public')->delete($rutaImagenNueva);
@@ -363,12 +424,17 @@ class ActividadController extends Controller
 
             report($e);
 
+            $mensaje = 'No se pudo agregar el producto o servicio.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $mensaje,
+                ], 500);
+            }
+
             return back()
                 ->withInput()
-                ->with(
-                    'error',
-                    'No se pudo agregar el producto o servicio.'
-                );
+                ->with('error', $mensaje);
         }
     }
 
@@ -387,21 +453,26 @@ class ActividadController extends Controller
             ['borrador', 'cambios_solicitados', 'aprobada'],
             true
         )) {
-            return back()->with(
-                'error',
-                'Esta actividad ya no puede modificar su configuración comercial en su estado actual.'
-            );
+            $mensaje = 'Esta actividad ya no puede modificar su configuración comercial en su estado actual.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $mensaje,
+                ], 422);
+            }
+
+            return back()->with('error', $mensaje);
         }
 
-        $validated = $this->validarItem($request);
-
-        if ($actividad->estado_publicacion === 'aprobada') {
-            $this->snapshotService->capturarSiAprobada($actividad);
-        }
+        $validated = $this->validarItem($request, $actividad);
         $rutaImagenNueva = null;
         $rutaImagenAnterior = null;
 
         try {
+            if ($actividad->estado_publicacion === 'aprobada') {
+                $this->snapshotService->capturarSiAprobada($actividad);
+            }
+
             DB::transaction(function () use (
                 $request,
                 $actividad,
@@ -475,10 +546,17 @@ class ActividadController extends Controller
                 Storage::disk('public')->delete($rutaImagenAnterior);
             }
 
-            return back()->with(
-                'success',
-                'Producto o servicio actualizado correctamente.'
-            );
+            $mensaje = 'Producto o servicio actualizado correctamente.';
+
+            if ($request->expectsJson()) {
+                session()->flash('success', $mensaje);
+
+                return response()->json([
+                    'message' => $mensaje,
+                ]);
+            }
+
+            return back()->with('success', $mensaje);
         } catch (\Throwable $e) {
             if ($rutaImagenNueva) {
                 Storage::disk('public')->delete($rutaImagenNueva);
@@ -486,12 +564,17 @@ class ActividadController extends Controller
 
             report($e);
 
+            $mensaje = 'No se pudo actualizar el producto o servicio.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $mensaje,
+                ], 500);
+            }
+
             return back()
                 ->withInput()
-                ->with(
-                    'error',
-                    'No se pudo actualizar el producto o servicio.'
-                );
+                ->with('error', $mensaje);
         }
     }
 
@@ -519,6 +602,17 @@ class ActividadController extends Controller
             return back()->with(
                 'error',
                 'Primero debes eliminar las variantes asociadas a este elemento.'
+            );
+        }
+
+        if ($item->promociones()->exists()) {
+            $cantidadPromociones = $item->promociones()->count();
+
+            return back()->with(
+                'error',
+                $cantidadPromociones === 1
+                    ? 'Este producto o servicio está vinculado a una promoción. Quita primero esa relación desde la configuración de promociones.'
+                    : "Este producto o servicio está vinculado a {$cantidadPromociones} promociones. Quita primero esas relaciones desde la configuración de promociones."
             );
         }
 
@@ -1212,6 +1306,15 @@ class ActividadController extends Controller
                     100,
                 ]),
             ],
+            'tipo_participacion' => [
+                'required',
+                Rule::in([
+                    Actividad::PARTICIPACION_INFORMATIVA,
+                    Actividad::PARTICIPACION_REGISTRO_GRATUITO,
+                    Actividad::PARTICIPACION_REGISTRO_PAGO,
+                    Actividad::PARTICIPACION_VENTA_DIRECTA,
+                ]),
+            ],
             'habilita_inscripcion' => [
                 'nullable',
                 'boolean',
@@ -1228,6 +1331,15 @@ class ActividadController extends Controller
                 'nullable',
                 'integer',
                 'min:0',
+            ],
+            'precio_inscripcion' => [
+                'nullable',
+                'numeric',
+                'gt:0',
+                Rule::requiredIf(
+                    fn () => $request->input('tipo_participacion')
+                        === Actividad::PARTICIPACION_REGISTRO_PAGO
+                ),
             ],
             'inscripcion_desde' => [
                 'nullable',
@@ -1325,35 +1437,51 @@ class ActividadController extends Controller
             $validated['prioridad']
             ?? 50;
 
-        $actividad->habilita_inscripcion =
-            (bool) (
-                $validated['habilita_inscripcion']
-                ?? false
-            );
+        $tipoParticipacion =
+            $validated['tipo_participacion']
+            ?? Actividad::PARTICIPACION_INFORMATIVA;
+
+        $requiereInscripcionGeneral = in_array(
+            $tipoParticipacion,
+            [
+                Actividad::PARTICIPACION_REGISTRO_GRATUITO,
+                Actividad::PARTICIPACION_REGISTRO_PAGO,
+            ],
+            true
+        );
+
+        $actividad->tipo_participacion = $tipoParticipacion;
+        $actividad->habilita_inscripcion = $requiereInscripcionGeneral;
+
+        $actividad->precio_inscripcion =
+            $tipoParticipacion === Actividad::PARTICIPACION_REGISTRO_PAGO
+                ? (float) ($validated['precio_inscripcion'] ?? 0)
+                : null;
 
         $actividad->requiere_cuenta =
-            (bool) (
-                $validated['requiere_cuenta']
-                ?? false
-            );
+            $tipoParticipacion === Actividad::PARTICIPACION_INFORMATIVA
+                ? false
+                : (bool) ($validated['requiere_cuenta'] ?? false);
 
         $actividad->permite_lista_espera =
-            (bool) (
-                $validated['permite_lista_espera']
-                ?? false
-            );
+            $requiereInscripcionGeneral
+                ? (bool) ($validated['permite_lista_espera'] ?? false)
+                : false;
 
         $actividad->cupo_total =
-            $validated['cupo_total']
-            ?? null;
+            $requiereInscripcionGeneral
+                ? ($validated['cupo_total'] ?? null)
+                : null;
 
         $actividad->inscripcion_desde =
-            $validated['inscripcion_desde']
-            ?? null;
+            $requiereInscripcionGeneral
+                ? ($validated['inscripcion_desde'] ?? null)
+                : null;
 
         $actividad->inscripcion_hasta =
-            $validated['inscripcion_hasta']
-            ?? null;
+            $requiereInscripcionGeneral
+                ? ($validated['inscripcion_hasta'] ?? null)
+                : null;
 
         $actividad->visible_desde =
             $validated['visible_desde']

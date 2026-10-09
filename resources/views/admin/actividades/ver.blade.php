@@ -127,6 +127,8 @@
         'rechazada' => 'Rechazada',
         'retirada' => 'Revisión retirada',
         'reabierta' => 'Reabierta',
+        'publicada' => 'Publicada',
+        'retirada_publicacion' => 'Retirada de publicación',
     ];
 
     $accionRevisionClases = [
@@ -136,7 +138,18 @@
         'rechazada' => 'border-red-500/20 bg-red-500/10 text-red-300',
         'retirada' => 'border-slate-500/20 bg-slate-500/10 text-slate-300',
         'reabierta' => 'border-violet-500/20 bg-violet-500/10 text-violet-300',
+        'publicada' => 'border-violet-500/20 bg-violet-500/10 text-violet-300',
+        'retirada_publicacion' => 'border-amber-500/20 bg-amber-500/10 text-amber-300',
     ];
+
+    $ahora = now();
+    $visiblePortal = $actividad->estaVisibleEnPortal();
+    $estadoPortal = match (true) {
+        $actividad->visibilidad !== 'publica' => ['label' => 'No visible', 'clase' => 'border-amber-500/20 bg-amber-500/10 text-amber-300', 'mensaje' => 'La actividad no aparecerá en el portal porque su visibilidad no está configurada como pública.'],
+        $actividad->visible_desde && $actividad->visible_desde->gt($ahora) => ['label' => 'Programada', 'clase' => 'border-sky-500/20 bg-sky-500/10 text-sky-300', 'mensaje' => 'La actividad aparecerá en el portal a partir del '.$formatoFecha($actividad->visible_desde).'.'],
+        $actividad->visible_hasta && $actividad->visible_hasta->lt($ahora) => ['label' => 'Período vencido', 'clase' => 'border-amber-500/20 bg-amber-500/10 text-amber-300', 'mensaje' => 'El período de visibilidad finalizó el '.$formatoFecha($actividad->visible_hasta).'.'],
+        default => ['label' => 'Visible ahora', 'clase' => 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300', 'mensaje' => 'La actividad está dentro de su período de visibilidad y puede mostrarse en el portal.'],
+    };
 
     $historialPorRevision = $actividad->revisiones
         ->sortByDesc('id_revision')
@@ -176,6 +189,44 @@
                 </p>
             </div>
         </div>
+
+        @if (session('success'))
+            <div class="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200">{{ session('success') }}</div>
+        @endif
+
+        @if ($errors->has('publicacion'))
+            <div class="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-200">{{ $errors->first('publicacion') }}</div>
+        @endif
+
+        @if (in_array($actividad->estado_publicacion, ['aprobada', 'publicada'], true))
+            <div class="mb-6 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <p class="text-sm font-bold text-white">{{ $actividad->estado_publicacion === 'publicada' ? 'Publicación del portal' : 'Actividad aprobada' }}</p>
+                        <span class="rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide {{ $estadoPortal['clase'] }}">{{ $estadoPortal['label'] }}</span>
+                    </div>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-gray-400">
+                        @if ($actividad->estado_publicacion === 'publicada')
+                            {{ $visiblePortal ? 'Está publicada y visible actualmente.' : $estadoPortal['mensaje'] }}
+                        @else
+                            Está aprobada y lista para publicarse. {{ $estadoPortal['mensaje'] }}
+                        @endif
+                    </p>
+                </div>
+
+                @if ($actividad->estado_publicacion === 'aprobada')
+                    <form action="{{ route('admin.actividades.publicar', $actividad) }}" method="POST" class="shrink-0" onsubmit="return confirm('¿Publicar esta actividad en el portal?')">
+                        @csrf
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-600 sm:w-auto">Publicar actividad</button>
+                    </form>
+                @else
+                    <form action="{{ route('admin.actividades.retirar-publicacion', $actividad) }}" method="POST" class="shrink-0" onsubmit="return confirm('¿Retirar esta actividad del portal público?')">
+                        @csrf
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-3 text-sm font-bold text-amber-200 transition hover:bg-amber-500/20 sm:w-auto">Retirar publicación</button>
+                    </form>
+                @endif
+            </div>
+        @endif
 
         <div class="mb-6 sm:hidden">
             <label for="paso-visualizacion" class="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -804,10 +855,21 @@
             </div>
 
             <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-                <h3 class="text-base font-bold text-white">Inscripciones</h3>
+                <h3 class="text-base font-bold text-white">Participación e inscripción</h3>
                 <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    @php
+                        $tipoParticipacionTexto = match ($actividad->tipo_participacion) {
+                            'registro_gratuito' => 'Inscripción gratuita',
+                            'registro_pago' => 'Inscripción con pago',
+                            'venta_directa' => 'Venta directa',
+                            default => 'Acceso libre / informativa',
+                        };
+                    @endphp
                     @foreach ([
-                        'Habilitadas' => $actividad->habilita_inscripcion ? 'Sí' : 'No',
+                        'Modalidad' => $tipoParticipacionTexto,
+                        'Precio inscripción' => $actividad->tipo_participacion === 'registro_pago'
+                            ? '$'.number_format((float) $actividad->precio_inscripcion, 2)
+                            : ($actividad->tipo_participacion === 'registro_gratuito' ? 'Gratis' : 'No aplica'),
                         'Requiere cuenta' => $actividad->requiere_cuenta ? 'Sí' : 'No',
                         'Lista de espera' => $actividad->permite_lista_espera ? 'Sí' : 'No',
                         'Cupo total' => $actividad->cupo_total ?? 'Sin límite',

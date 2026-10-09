@@ -32,6 +32,7 @@
 </head>
 
 <body class="min-h-screen bg-[#f6f8fb] font-sans text-slate-900 antialiased transition-colors duration-300 dark:bg-sidan-950 dark:text-white">
+    <x-toast />
     @yield('content')
 </body>
 </html>

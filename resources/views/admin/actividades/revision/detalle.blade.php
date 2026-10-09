@@ -1817,12 +1817,34 @@
             ])
 
             <div class="content-card programming-block">
-                <h3>Inscripción</h3>
+                <h3>Participación e inscripción</h3>
+
+                @php
+                    $tipoParticipacionRevision = match ($actividad->tipo_participacion) {
+                        'registro_gratuito' => 'Inscripción gratuita',
+                        'registro_pago' => 'Inscripción con pago',
+                        'venta_directa' => 'Venta directa',
+                        default => 'Acceso libre / informativa',
+                    };
+                @endphp
 
                 <div class="info-grid">
                     <article class="info-card">
-                        <span class="info-label">Inscripción</span>
-                        <strong>{{ $actividad->habilita_inscripcion ? 'Habilitada' : 'Deshabilitada' }}</strong>
+                        <span class="info-label">Modalidad</span>
+                        <strong>{{ $tipoParticipacionRevision }}</strong>
+                    </article>
+
+                    <article class="info-card">
+                        <span class="info-label">Precio inscripción</span>
+                        <strong>
+                            @if ($actividad->tipo_participacion === 'registro_pago')
+                                ${{ number_format((float) $actividad->precio_inscripcion, 2) }}
+                            @elseif ($actividad->tipo_participacion === 'registro_gratuito')
+                                Gratis
+                            @else
+                                No aplica
+                            @endif
+                        </strong>
                     </article>
 
                     <article class="info-card">

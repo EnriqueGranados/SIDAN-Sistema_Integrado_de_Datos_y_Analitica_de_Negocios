@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,7 @@ class Promocion extends Model
         'limite_por_persona',
         'monto_minimo',
         'activo',
+        'creado_por',
     ];
 
     protected function casts(): array
@@ -61,5 +63,43 @@ class Promocion extends Model
             'id_promocion',
             'id_item_actividad'
         );
+    }
+
+    public function scopePublicables(Builder $query): Builder
+    {
+        $ahora = now();
+
+        return $query
+            ->where('activo', true)
+            ->where(function (Builder $subquery) use ($ahora) {
+                $subquery
+                    ->whereNull('vigente_hasta')
+                    ->orWhere('vigente_hasta', '>=', $ahora);
+            });
+    }
+
+    public function estaVigente(): bool
+    {
+        $ahora = now();
+
+        return $this->activo
+            && (!$this->vigente_desde || !$ahora->lt($this->vigente_desde))
+            && (!$this->vigente_hasta || !$ahora->gt($this->vigente_hasta));
+    }
+
+    public function esProxima(): bool
+    {
+        return $this->activo
+            && $this->vigente_desde
+            && now()->lt($this->vigente_desde);
+    }
+
+    public function textoDescuento(): string
+    {
+        if ($this->tipo_descuento === 'porcentaje') {
+            return rtrim(rtrim(number_format((float) $this->valor, 2), '0'), '.') . '%';
+        }
+
+        return '$' . number_format((float) $this->valor, 2);
     }
 }

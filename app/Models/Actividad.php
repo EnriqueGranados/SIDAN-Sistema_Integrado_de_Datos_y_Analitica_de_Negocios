@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,6 +15,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Actividad extends Model
 {
     use HasFactory, SoftDeletes;
+
+    public const ESTADO_BORRADOR = 'borrador';
+    public const ESTADO_PENDIENTE_REVISION = 'pendiente_revision';
+    public const ESTADO_CAMBIOS_SOLICITADOS = 'cambios_solicitados';
+    public const ESTADO_APROBADA = 'aprobada';
+    public const ESTADO_RECHAZADA = 'rechazada';
+    public const ESTADO_PUBLICADA = 'publicada';
+
+    public const PARTICIPACION_INFORMATIVA = 'informativa';
+    public const PARTICIPACION_REGISTRO_GRATUITO = 'registro_gratuito';
+    public const PARTICIPACION_REGISTRO_PAGO = 'registro_pago';
+    public const PARTICIPACION_VENTA_DIRECTA = 'venta_directa';
 
     protected $table = 'tbl_actividades';
     protected $primaryKey = 'id_actividad';
@@ -35,10 +47,12 @@ class Actividad extends Model
         'revision_actual',
         'destacada',
         'prioridad',
+        'tipo_participacion',
         'habilita_inscripcion',
         'requiere_cuenta',
         'permite_lista_espera',
         'cupo_total',
+        'precio_inscripcion',
         'inscripcion_desde',
         'inscripcion_hasta',
         'visible_desde',
@@ -57,6 +71,7 @@ class Actividad extends Model
             'requiere_cuenta' => 'boolean',
             'permite_lista_espera' => 'boolean',
             'cupo_total' => 'integer',
+            'precio_inscripcion' => 'decimal:2',
             'inscripcion_desde' => 'datetime',
             'inscripcion_hasta' => 'datetime',
             'visible_desde' => 'datetime',
@@ -84,7 +99,6 @@ class Actividad extends Model
             'id_espacio'
         );
     }
-
 
     public function etiquetas(): BelongsToMany
     {
@@ -185,37 +199,6 @@ class Actividad extends Model
         );
     }
 
-    public function getPrioridadTextoAttribute(): string
-    {
-        return match ((int) $this->prioridad) {
-            100 => 'Alta',
-            75 => 'Media',
-            50 => 'Regular',
-            25 => 'Baja',
-            default => 'Sin definir',
-        };
-    }
-
-    public function scopeVisiblesPara(Builder $query, User $usuario): Builder
-    {
-        $rol = $usuario->rol?->nombre;
-
-        if (in_array($rol, ['superadmin', 'admin'], true)) {
-            return $query;
-        }
-
-        return $query->where(
-            $this->qualifyColumn('creado_por'),
-            $usuario->getAuthIdentifier()
-        );
-    }
-
-    public function perteneceA(User $usuario): bool
-    {
-        return (int) $this->creado_por
-            === (int) $usuario->getAuthIdentifier();
-    }
-
     public function items(): HasMany
     {
         return $this->hasMany(
@@ -241,5 +224,149 @@ class Actividad extends Model
             'id_actividad',
             'id_actividad'
         );
+    }
+
+
+    public function requiereInscripcionGeneral(): bool
+    {
+        return in_array(
+            $this->tipo_participacion,
+            [
+                self::PARTICIPACION_REGISTRO_GRATUITO,
+                self::PARTICIPACION_REGISTRO_PAGO,
+            ],
+            true
+        );
+    }
+
+    public function participacionConPago(): bool
+    {
+        return $this->tipo_participacion === self::PARTICIPACION_REGISTRO_PAGO;
+    }
+
+    public function esVentaDirecta(): bool
+    {
+        return $this->tipo_participacion === self::PARTICIPACION_VENTA_DIRECTA;
+    }
+
+    public function getPrioridadTextoAttribute(): string
+    {
+        return match ((int) $this->prioridad) {
+            100 => 'Alta',
+            75 => 'Media',
+            50 => 'Regular',
+            25 => 'Baja',
+            default => 'Sin definir',
+        };
+    }
+
+    public function scopeVisiblesPara(Builder $query, User $usuario): Builder
+    {
+        $rol = $usuario->rol?->nombre;
+
+        if (in_array($rol, ['superadmin', 'admin'], true)) {
+            return $query;
+        }
+
+        return $query->where(
+            $this->qualifyColumn('creado_por'),
+            $usuario->getAuthIdentifier()
+        );
+    }
+
+    public function scopePublicadas(Builder $query): Builder
+    {
+        return $query->where(
+            $this->qualifyColumn('estado_publicacion'),
+            self::ESTADO_PUBLICADA
+        );
+    }
+
+    public function scopeVisiblesEnPortal(Builder $query): Builder
+    {
+        $ahora = now();
+
+        return $query
+            ->publicadas()
+            ->where($this->qualifyColumn('visibilidad'), 'publica')
+            ->where(function (Builder $subquery) use ($ahora) {
+                $subquery
+                    ->whereNull($this->qualifyColumn('visible_desde'))
+                    ->orWhere(
+                        $this->qualifyColumn('visible_desde'),
+                        '<=',
+                        $ahora
+                    );
+            })
+            ->where(function (Builder $subquery) use ($ahora) {
+                $subquery
+                    ->whereNull($this->qualifyColumn('visible_hasta'))
+                    ->orWhere(
+                        $this->qualifyColumn('visible_hasta'),
+                        '>=',
+                        $ahora
+                    );
+            });
+    }
+
+    public function scopeOrdenPortal(Builder $query): Builder
+    {
+        return $query
+            ->orderByDesc($this->qualifyColumn('destacada'))
+            ->orderByDesc($this->qualifyColumn('prioridad'))
+            ->orderByRaw(
+                $this->qualifyColumn('realizacion_desde') . ' IS NULL'
+            )
+            ->orderBy($this->qualifyColumn('realizacion_desde'))
+            ->orderByDesc($this->qualifyColumn('id_actividad'));
+    }
+
+    public function perteneceA(User $usuario): bool
+    {
+        return (int) $this->creado_por
+            === (int) $usuario->getAuthIdentifier();
+    }
+
+    public function puedePublicarse(): bool
+    {
+        return $this->estado_publicacion === self::ESTADO_APROBADA;
+    }
+
+    public function puedeRetirarseDePublicacion(): bool
+    {
+        return $this->estado_publicacion === self::ESTADO_PUBLICADA;
+    }
+
+    public function estaPublicada(): bool
+    {
+        return $this->estado_publicacion === self::ESTADO_PUBLICADA;
+    }
+
+    public function estaVisibleEnPortal(): bool
+    {
+        if (
+            !$this->estaPublicada()
+            || $this->visibilidad !== 'publica'
+        ) {
+            return false;
+        }
+
+        $ahora = now();
+
+        if (
+            $this->visible_desde
+            && $this->visible_desde->gt($ahora)
+        ) {
+            return false;
+        }
+
+        if (
+            $this->visible_hasta
+            && $this->visible_hasta->lt($ahora)
+        ) {
+            return false;
+        }
+
+        return true;
     }
 }

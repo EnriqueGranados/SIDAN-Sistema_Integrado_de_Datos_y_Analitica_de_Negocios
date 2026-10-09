@@ -440,6 +440,42 @@
         </div>
     @endif
 
+    <div class="overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/[0.03]">
+        <details class="group">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-xs font-bold text-amber-300">%</span>
+                        <h3 class="font-semibold text-white">Promociones</h3>
+                        <span class="rounded-full bg-white/[0.05] px-2.5 py-1 text-xs font-semibold text-gray-400">Opcional</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">{{ $actividad->promociones->count() }} promoción{{ $actividad->promociones->count() === 1 ? '' : 'es' }} configurada{{ $actividad->promociones->count() === 1 ? '' : 's' }}</p>
+                </div>
+                <span class="text-gray-500 transition group-open:rotate-180">⌄</span>
+            </summary>
+            <div class="border-t border-white/10 p-4 sm:p-5">
+                @if ($actividad->promociones->isEmpty())
+                    <p class="text-sm text-gray-400">No configuraste promociones para esta actividad.</p>
+                @else
+                    <div class="space-y-2">
+                        @foreach ($actividad->promociones->take(5) as $promocion)
+                            <div class="flex flex-col gap-2 rounded-xl border border-white/10 bg-black/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="font-semibold text-white">{{ $promocion->nombre }}</p>
+                                    <p class="mt-1 text-xs text-gray-500">{{ $promocion->codigo ?: 'Automática' }} · {{ $promocion->tipo_descuento === 'porcentaje' ? number_format((float) $promocion->valor, 2).'%' : '$'.number_format((float) $promocion->valor, 2) }}</p>
+                                </div>
+                                <span class="text-xs font-semibold {{ $promocion->activo ? 'text-emerald-400' : 'text-gray-500' }}">{{ $promocion->activo ? 'Activa' : 'Inactiva' }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+                <div class="mt-4">
+                    <a href="{{ route('admin.actividades.promociones.index', $actividad) }}" class="inline-flex rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-500/15">Administrar promociones</a>
+                </div>
+            </div>
+        </details>
+    </div>
+
     <div class="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
         <details class="group">
             <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5">

@@ -324,42 +324,57 @@ class ActividadRevisionController extends Controller
         Request $request,
         Actividad $actividad
     ): JsonResponse|RedirectResponse {
-        if ($actividad->estado_publicacion !== 'pendiente_revision') {
-            return $this->respuestaError(
-                $request,
-                'Esta actividad ya no está pendiente de revisión.'
-            );
-        }
-
         $data = $request->validate([
             'observacion' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $revisionActual = $this->obtenerRevisionActual($actividad);
-        abort_unless($revisionActual, 404);
+        try {
+            DB::transaction(function () use ($actividad, $data) {
+                $bloqueada = Actividad::query()
+                    ->whereKey($actividad->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        if ($this->consultaObservacionesPendientes($actividad)->exists()) {
+                if ($bloqueada->estado_publicacion !== Actividad::ESTADO_PENDIENTE_REVISION) {
+                    throw new \DomainException('Esta actividad ya no está pendiente de revisión.');
+                }
+
+                $revisionActual = $this->obtenerRevisionActual($bloqueada);
+
+                if (!$revisionActual) {
+                    throw new \DomainException('No se encontró la revisión activa de esta actividad.');
+                }
+
+                if ($this->consultaObservacionesPendientes($bloqueada)->exists()) {
+                    throw new \DomainException('No puedes aprobar mientras existan observaciones pendientes.');
+                }
+
+                $bloqueada->estado_publicacion = Actividad::ESTADO_APROBADA;
+                $bloqueada->actualizado_por = Auth::id();
+                $bloqueada->save();
+
+                $this->registrarRevision(
+                    $bloqueada,
+                    'aprobada',
+                    filled($data['observacion'] ?? null)
+                        ? trim($data['observacion'])
+                        : 'Actividad aprobada.'
+                );
+            });
+        } catch (\DomainException $e) {
+            return $this->respuestaError($request, $e->getMessage(), 409);
+        } catch (\Throwable $e) {
+            report($e);
+
             return $this->respuestaError(
                 $request,
-                'No puedes aprobar mientras existan observaciones pendientes.'
+                'No se pudo aprobar la actividad. Intenta nuevamente.',
+                500
             );
         }
 
-        DB::transaction(function () use ($actividad, $data) {
-            $actividad->estado_publicacion = 'aprobada';
-            $actividad->actualizado_por = Auth::id();
-            $actividad->save();
-
-            $this->registrarRevision(
-                $actividad,
-                'aprobada',
-                filled($data['observacion'] ?? null)
-                    ? trim($data['observacion'])
-                    : 'Actividad aprobada.'
-            );
-        });
-
         try {
+            $actividad->refresh();
             $this->snapshotService->limpiarTrasAprobacion($actividad);
         } catch (\Throwable $e) {
             report($e);
@@ -384,49 +399,62 @@ class ActividadRevisionController extends Controller
         Request $request,
         Actividad $actividad
     ): JsonResponse|RedirectResponse {
-        if ($actividad->estado_publicacion !== 'pendiente_revision') {
-            return $this->respuestaError(
-                $request,
-                'Esta actividad ya no está pendiente de revisión.'
-            );
-        }
-
         $data = $request->validate([
             'observacion' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $revisionActual = $this->obtenerRevisionActual($actividad);
-        abort_unless($revisionActual, 404);
-
-        $tieneEspecificas = $this
-            ->consultaObservacionesPendientes($actividad)
-            ->exists();
-
         $observacionGeneral = trim((string) ($data['observacion'] ?? ''));
 
-        if (!$tieneEspecificas && $observacionGeneral === '') {
+        try {
+            DB::transaction(function () use ($actividad, $observacionGeneral) {
+                $bloqueada = Actividad::query()
+                    ->whereKey($actividad->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($bloqueada->estado_publicacion !== Actividad::ESTADO_PENDIENTE_REVISION) {
+                    throw new \DomainException('Esta actividad ya no está pendiente de revisión.');
+                }
+
+                $revisionActual = $this->obtenerRevisionActual($bloqueada);
+
+                if (!$revisionActual) {
+                    throw new \DomainException('No se encontró la revisión activa de esta actividad.');
+                }
+
+                $tieneEspecificas = $this
+                    ->consultaObservacionesPendientes($bloqueada)
+                    ->exists();
+
+                if (!$tieneEspecificas && $observacionGeneral === '') {
+                    throw new \DomainException(
+                        'Agrega una observación general o al menos una observación específica para solicitar cambios.'
+                    );
+                }
+
+                $bloqueada->estado_publicacion = Actividad::ESTADO_CAMBIOS_SOLICITADOS;
+                $bloqueada->actualizado_por = Auth::id();
+                $bloqueada->save();
+
+                $this->registrarRevision(
+                    $bloqueada,
+                    'cambios_solicitados',
+                    $observacionGeneral !== ''
+                        ? $observacionGeneral
+                        : 'Se solicitaron correcciones específicas.'
+                );
+            });
+        } catch (\DomainException $e) {
+            return $this->respuestaError($request, $e->getMessage(), 409);
+        } catch (\Throwable $e) {
+            report($e);
+
             return $this->respuestaError(
                 $request,
-                'Agrega una observación general o al menos una observación específica para solicitar cambios.'
+                'No se pudieron solicitar los cambios. Intenta nuevamente.',
+                500
             );
         }
-
-        DB::transaction(function () use (
-            $actividad,
-            $observacionGeneral
-        ) {
-            $actividad->estado_publicacion = 'cambios_solicitados';
-            $actividad->actualizado_por = Auth::id();
-            $actividad->save();
-
-            $this->registrarRevision(
-                $actividad,
-                'cambios_solicitados',
-                $observacionGeneral !== ''
-                    ? $observacionGeneral
-                    : 'Se solicitaron correcciones específicas.'
-            );
-        });
 
         $redirect = route('admin.actividades.revision.index');
 
@@ -440,59 +468,69 @@ class ActividadRevisionController extends Controller
 
         return redirect()
             ->route('admin.actividades.revision.index')
-            ->with(
-                'success',
-                'Los cambios fueron solicitados correctamente.'
-            );
+            ->with('success', 'Los cambios fueron solicitados correctamente.');
     }
 
     public function rechazar(
         Request $request,
         Actividad $actividad
     ): JsonResponse|RedirectResponse {
-        if ($actividad->estado_publicacion !== 'pendiente_revision') {
-            return $this->respuestaError(
-                $request,
-                'Esta actividad ya no está pendiente de revisión.'
-            );
-        }
-
         $data = $request->validate([
             'observacion' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $revisionActual = $this->obtenerRevisionActual($actividad);
-        abort_unless($revisionActual, 404);
-
-        $tieneEspecificas = $this
-            ->consultaObservacionesPendientes($actividad)
-            ->exists();
-
         $observacionGeneral = trim((string) ($data['observacion'] ?? ''));
 
-        if (!$tieneEspecificas && $observacionGeneral === '') {
+        try {
+            DB::transaction(function () use ($actividad, $observacionGeneral) {
+                $bloqueada = Actividad::query()
+                    ->whereKey($actividad->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($bloqueada->estado_publicacion !== Actividad::ESTADO_PENDIENTE_REVISION) {
+                    throw new \DomainException('Esta actividad ya no está pendiente de revisión.');
+                }
+
+                $revisionActual = $this->obtenerRevisionActual($bloqueada);
+
+                if (!$revisionActual) {
+                    throw new \DomainException('No se encontró la revisión activa de esta actividad.');
+                }
+
+                $tieneEspecificas = $this
+                    ->consultaObservacionesPendientes($bloqueada)
+                    ->exists();
+
+                if (!$tieneEspecificas && $observacionGeneral === '') {
+                    throw new \DomainException(
+                        'Debes justificar el rechazo con una observación general o específica.'
+                    );
+                }
+
+                $bloqueada->estado_publicacion = Actividad::ESTADO_RECHAZADA;
+                $bloqueada->actualizado_por = Auth::id();
+                $bloqueada->save();
+
+                $this->registrarRevision(
+                    $bloqueada,
+                    'rechazada',
+                    $observacionGeneral !== ''
+                        ? $observacionGeneral
+                        : 'Actividad rechazada con observaciones específicas.'
+                );
+            });
+        } catch (\DomainException $e) {
+            return $this->respuestaError($request, $e->getMessage(), 409);
+        } catch (\Throwable $e) {
+            report($e);
+
             return $this->respuestaError(
                 $request,
-                'Debes justificar el rechazo con una observación general o específica.'
+                'No se pudo rechazar la actividad. Intenta nuevamente.',
+                500
             );
         }
-
-        DB::transaction(function () use (
-            $actividad,
-            $observacionGeneral
-        ) {
-            $actividad->estado_publicacion = 'rechazada';
-            $actividad->actualizado_por = Auth::id();
-            $actividad->save();
-
-            $this->registrarRevision(
-                $actividad,
-                'rechazada',
-                $observacionGeneral !== ''
-                    ? $observacionGeneral
-                    : 'Actividad rechazada con observaciones específicas.'
-            );
-        });
 
         $redirect = route('admin.actividades.revision.index');
 
@@ -736,6 +774,7 @@ class ActividadRevisionController extends Controller
 
         return back()
             ->withInput()
+            ->with('error', $mensaje)
             ->withErrors([
                 'observacion' => $mensaje,
             ]);

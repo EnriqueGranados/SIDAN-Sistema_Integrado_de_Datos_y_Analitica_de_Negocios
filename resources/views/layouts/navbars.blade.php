@@ -69,6 +69,8 @@
     x-data="{ sidebarOpen: false }"
     x-cloak>
 
+    <x-toast />
+
     <div class="min-h-screen p-2 lg:flex lg:gap-2">
 
         <aside
@@ -255,6 +257,14 @@
                                 </svg>
 
                                 Roles del Sistema
+                            </a>
+
+                            <a href="{{ route('admin.welcome.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition {{ request()->routeIs('admin.welcome.*') ? 'bg-sidan-500 text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5' }}">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5Z"/>
+                                    <path d="M3 9h18M8 9v12"/>
+                                </svg>
+                                <span>Administrar Welcome</span>
                             </a>
 
                         @endif

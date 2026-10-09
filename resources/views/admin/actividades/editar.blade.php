@@ -26,15 +26,6 @@
         }
     };
 
-    $espacioSeleccionado = old('id_espacio', $actividad->id_espacio);
-    $ubicacionExternaActual = old('ubicacion_externa', $actividad->ubicacion_externa);
-
-    $tipoUbicacionInicial = old(
-        'tipo_ubicacion',
-        $espacioSeleccionado
-            ? 'registrada'
-            : ($ubicacionExternaActual ? 'externa' : '')
-    );
 @endphp
 <div class="w-full min-w-0 max-w-full overflow-x-hidden">
     <div class="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
@@ -137,7 +128,7 @@
                 @foreach ([
                     1 => 'Información',
                     2 => 'Presentación',
-                    3 => 'Inscripciones',
+                    3 => 'Participación',
                     4 => 'Confirmación'
                 ] as $numero => $titulo)
 
@@ -453,57 +444,7 @@
                         </div>
                     </div>
 
-                {{-- UBICACIÓN GENERAL --}}
-                <div class="rounded-2xl border border-white/10 bg-white/[0.03]">
-                    <div class="border-b border-white/10 px-4 py-5 sm:px-6"><h2 class="text-lg font-semibold text-white">Ubicación general</h2><p class="mt-1 text-sm text-gray-500">Define dónde se realizará principalmente la actividad. Las sesiones podrán precisar esta ubicación después.</p></div>
-                    <div class="space-y-4 p-4 sm:p-6">
-                        <div class="flex flex-wrap gap-4">
-                            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300">
-                                <input type="radio" name="tipo_ubicacion" value="registrada" class="tipo-ubicacion" @checked($tipoUbicacionInicial === 'registrada')>
-                                Espacio registrado
-                            </label>
-                            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-300">
-                                <input type="radio" name="tipo_ubicacion" value="externa" class="tipo-ubicacion" @checked($tipoUbicacionInicial === 'externa')>
-                                Otro / lugar externo
-                            </label>
-                        </div>
-
-                        <div id="bloqueEspacioRegistrado" class="{{ $tipoUbicacionInicial === 'registrada' ? '' : 'hidden' }}">
-                            <label for="id_espacio" class="mb-2 block text-sm font-medium text-gray-300">Espacio</label>
-
-                            <select id="id_espacio" name="id_espacio" class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none focus:border-emerald-500">
-                                <option value="">Seleccionar espacio</option>
-
-                                @foreach($espacios as $espacio)
-                                    <option
-                                        value="{{ $espacio->id_espacio }}"
-                                        data-capacidad="{{ $espacio->capacidad }}"
-                                        @selected((string) $espacioSeleccionado === (string) $espacio->id_espacio)
-                                    >
-                                        {{ $espacio->nombre }}@if($espacio->contenedor) — dentro de {{ $espacio->contenedor->nombre }}@endif
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <p id="informacionCapacidadEspacio" class="mt-2 hidden text-xs text-cyan-300">
-                                Capacidad registrada: <span id="capacidadEspacioTexto"></span>
-                            </p>
-                        </div>
-
-                        <div id="bloqueUbicacionExterna" class="{{ $tipoUbicacionInicial === 'externa' ? '' : 'hidden' }}">
-                            <label for="ubicacion_externa" class="mb-2 block text-sm font-medium text-gray-300">Lugar externo</label>
-
-                            <input
-                                id="ubicacion_externa"
-                                name="ubicacion_externa"
-                                value="{{ $ubicacionExternaActual }}"
-                                maxlength="300"
-                                placeholder="Ej. Hotel, auditorio externo o dirección"
-                                class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500"
-                            >
-                        </div>
-                    </div>
-                </div>
+                @include('admin.actividades.partials.selector-espacio')
 
                 {{-- PERÍODO REAL DE LA ACTIVIDAD --}}
                 <div class="rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.04]">
@@ -818,202 +759,13 @@
                 </div>
             </section>
 
-            {{-- ===================================================== --}}
-            {{-- PASO 3 --}}
-            {{-- ===================================================== --}}
+            {-- ===================================================== --}
+            {-- PASO 3 --}
+            {-- ===================================================== --}
             <section class="form-step hidden" data-step="3">
-                @if ($modoCorreccion && $correccionesInscripcion->isNotEmpty())
-                    <div class="mb-5 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-4 sm:p-5">
-                        <div class="flex items-start gap-3">
-                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-sm font-black text-amber-300">
-                                !
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h2 class="font-semibold text-amber-200">Cambios solicitados en las inscripciones</h2>
-                                <div class="mt-3 space-y-2">
-                                    @foreach ($correccionesInscripcion as $observacion)
-                                        <div class="rounded-xl border border-white/10 bg-black/10 p-3">
-                                            <span class="text-[10px] font-semibold uppercase tracking-wide text-amber-400">
-                                                Revisión #{{ $observacion->revision?->numero_revision ?? $actividad->revision_actual }}
-                                            </span>
-                                            <p class="mt-1.5 text-sm leading-6 text-gray-300">{{ $observacion->observacion }}</p>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-                <div class="rounded-2xl border border-white/10 bg-white/[0.03]">
-                    <div class="border-b border-white/10 px-4 py-5 sm:px-6">
-                        <h2 class="text-lg font-semibold text-white">
-                            Inscripciones
-                        </h2>
-
-                        <p class="mt-1 text-sm leading-6 text-gray-500">
-                            Configura cómo podrán registrarse las personas interesadas.
-                        </p>
-                    </div>
-
-                    <div class="space-y-6 p-4 sm:p-6">
-
-                        <div class="rounded-xl border border-white/10 bg-black/10 p-4">
-                            <input type="hidden" name="habilita_inscripcion" value="0">
-
-                            <label class="flex cursor-pointer items-start gap-3">
-                                <input type="checkbox" id="habilita_inscripcion" name="habilita_inscripcion" value="1"
-                                    @checked(old('habilita_inscripcion',$actividad->habilita_inscripcion ? '1' : '0') == '1')
-                                    class="mt-1 h-5 w-5 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
-
-                                <span class="min-w-0">
-                                    <span class="flex flex-wrap items-center gap-2 text-sm font-semibold text-white">
-                                        ¿La actividad requiere inscripción general?
-
-                                        <button type="button"
-                                            class="help-button flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/15 text-[11px] font-bold text-gray-400"
-                                            data-help="Activa esta opción cuando las personas deban registrarse a la actividad completa. Las reservas de talleres, turnos u otras sesiones se configurarán después de forma independiente."
-                                            aria-label="Información sobre inscripciones">
-                                            i
-                                        </button>
-                                    </span>
-
-                                    <span class="mt-1 block break-words text-xs leading-5 text-gray-500">
-                                        Desactívalo para actividades abiertas que no necesitan registro.
-                                    </span>
-                                </span>
-                            </label>
-                        </div>
-
-                        <div id="configuracionInscripcion" class="space-y-6">
-
-                            {{-- CUPO --}}
-                            <div>
-                                <div class="mb-2 flex items-center gap-2">
-                                    <label for="cupo_total" class="text-sm font-medium text-gray-300">
-                                        Cupo máximo
-                                    </label>
-
-                                    <button type="button"
-                                        class="help-button flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/15 text-[11px] font-bold text-gray-400"
-                                        data-help="Indica el número máximo de personas que podrán inscribirse. Si no existe un límite, deja el campo vacío."
-                                        aria-label="Información sobre cupo">
-                                        i
-                                    </button>
-                                </div>
-
-                                <input type="number" id="cupo_total" name="cupo_total" value="{{ old('cupo_total',$actividad->cupo_total) }}" min="0"
-                                    placeholder="Ej. 100"
-                                    class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:max-w-sm sm:text-sm">
-                            </div>
-
-                            {{-- OPCIONES --}}
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div class="rounded-xl border border-white/10 bg-black/10 p-4">
-                                    <input type="hidden" name="requiere_cuenta" value="0">
-
-                                    <label class="flex cursor-pointer items-start gap-3">
-                                        <input type="checkbox" id="requiere_cuenta" name="requiere_cuenta" value="1"
-                                            @checked(old('requiere_cuenta',$actividad->requiere_cuenta ? '1' : '0') == '1')
-                                            class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
-
-                                        <span class="min-w-0">
-                                            <span class="flex flex-wrap items-center gap-2 text-sm font-medium text-gray-300">
-                                                Requerir inicio de sesión
-
-                                                <button type="button"
-                                                    class="help-button flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/15 text-[11px] font-bold text-gray-400"
-                                                    data-help="Si activas esta opción, la persona deberá tener una cuenta e iniciar sesión antes de poder inscribirse."
-                                                    aria-label="Información sobre inicio de sesión">
-                                                    i
-                                                </button>
-                                            </span>
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div class="rounded-xl border border-white/10 bg-black/10 p-4">
-                                    <input type="hidden" name="permite_lista_espera" value="0">
-
-                                    <label class="flex cursor-pointer items-start gap-3">
-                                        <input type="checkbox" id="permite_lista_espera" name="permite_lista_espera" value="1"
-                                            @checked(old('permite_lista_espera',$actividad->permite_lista_espera ? '1' : '0') == '1')
-                                            class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
-
-                                        <span class="min-w-0">
-                                            <span class="flex flex-wrap items-center gap-2 text-sm font-medium text-gray-300">
-                                                Permitir lista de espera
-
-                                                <button type="button"
-                                                    class="help-button flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/15 text-[11px] font-bold text-gray-400"
-                                                    data-help="Si se completa el cupo, las siguientes personas podrán registrarse como interesadas y quedar en lista de espera."
-                                                    aria-label="Información sobre lista de espera">
-                                                    i
-                                                </button>
-                                            </span>
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            {{-- FECHAS --}}
-                            <div>
-                                <div class="mb-3 flex items-center gap-2">
-                                    <p class="text-sm font-medium text-gray-300">
-                                        Período de inscripción
-                                    </p>
-
-                                    <button type="button"
-                                        class="help-button flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/15 text-[11px] font-bold text-gray-400"
-                                        data-help="Define desde qué momento se aceptarán inscripciones y cuándo dejarán de aceptarse. No podrás seleccionar fechas que ya hayan pasado."
-                                        aria-label="Información sobre período de inscripción">
-                                        i
-                                    </button>
-                                </div>
-
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div>
-                                        <label for="inscripcion_desde" class="mb-2 block text-xs font-medium text-gray-500">
-                                            Inscripciones desde
-                                        </label>
-
-                                        <input type="datetime-local" id="inscripcion_desde" name="inscripcion_desde"
-                                            value="{{ $formatoFechaInput(old('inscripcion_desde', $actividad->inscripcion_desde)) }}"
-                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
-
-                                        @error('inscripcion_desde')
-                                            <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <div>
-                                        <label for="inscripcion_hasta" class="mb-2 block text-xs font-medium text-gray-500">
-                                            Inscripciones hasta
-                                        </label>
-
-                                        <input type="datetime-local" id="inscripcion_hasta" name="inscripcion_hasta"
-                                            value="{{ $formatoFechaInput(old('inscripcion_hasta', $actividad->inscripcion_hasta)) }}"
-                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
-
-                                        @error('inscripcion_hasta')
-                                            <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="mensajeSinInscripcion" class="hidden rounded-xl border border-blue-500/20 bg-blue-500/5 p-5">
-                            <p class="font-medium text-blue-300">
-                                Esta actividad no tendrá inscripción general.
-                            </p>
-
-                            <p class="mt-1 text-sm leading-6 text-gray-500">
-                                Las personas podrán consultar la actividad sin pasar por un proceso de registro.
-                                Aun así, posteriormente podrás solicitar reservas o inscripciones en sesiones específicas.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                @include('admin.actividades.partials.participacion', [
+                    'actividadParticipacion' => $actividad,
+                ])
             </section>
 
             {{-- ===================================================== --}}
@@ -1164,18 +916,23 @@
 
                         <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
                             <h3 class="font-semibold text-white">
-                                Inscripciones
+                                Participación
                             </h3>
 
                             <div class="mt-5 space-y-4 text-sm">
                                 <div class="flex items-start justify-between gap-3 border-b border-white/5 pb-3">
-                                    <span class="text-gray-500">Requiere inscripción</span>
+                                    <span class="text-gray-500">Modalidad principal</span>
                                     <span id="resumenInscripcion" class="text-right font-medium text-gray-300">Sí</span>
                                 </div>
 
                                 <div class="flex items-start justify-between gap-3 border-b border-white/5 pb-3">
                                     <span class="text-gray-500">Cupo</span>
                                     <span id="resumenCupo" class="text-right font-medium text-gray-300">Sin límite</span>
+                                </div>
+
+                                <div class="flex items-start justify-between gap-3 border-b border-white/5 pb-3">
+                                    <span class="text-gray-500">Costo de inscripción</span>
+                                    <span id="resumenPrecioInscripcion" class="text-right font-medium text-gray-300">No aplica</span>
                                 </div>
 
                                 <div class="flex items-start justify-between gap-3 border-b border-white/5 pb-3">
@@ -1282,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const titulos = {
         1: 'Información',
         2: 'Presentación',
-        3: 'Inscripciones',
+        3: 'Participación',
         4: 'Confirmación'
     };
 
@@ -1738,9 +1495,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 : '';
 
         const registrationEnabled = habilitaInscripcion.checked;
+        const tipoParticipacion = document.querySelector('input[name="tipo_participacion"]:checked')?.value || 'informativa';
+        const etiquetasParticipacion = {
+            informativa: 'Acceso libre / informativa',
+            registro_gratuito: 'Inscripción gratuita',
+            registro_pago: 'Inscripción con pago',
+            venta_directa: 'Venta directa'
+        };
+        const precioInscripcion = document.getElementById('precio_inscripcion')?.value || '';
 
         document.getElementById('resumenInscripcion').textContent =
-            registrationEnabled ? 'Sí' : 'No';
+            etiquetasParticipacion[tipoParticipacion] || 'Acceso libre / informativa';
+
+        const resumenPrecio = document.getElementById('resumenPrecioInscripcion');
+        if (resumenPrecio) {
+            resumenPrecio.textContent = tipoParticipacion === 'registro_pago'
+                ? (precioInscripcion ? `$${Number(precioInscripcion).toFixed(2)}` : 'Pendiente')
+                : (tipoParticipacion === 'registro_gratuito' ? 'Gratis' : 'No aplica');
+        }
 
         document.getElementById('resumenCupo').textContent =
             registrationEnabled
@@ -1748,7 +1520,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 : 'No aplica';
 
         document.getElementById('resumenCuenta').textContent =
-            registrationEnabled
+            tipoParticipacion !== 'informativa'
                 ? (requiereCuenta ? 'Sí' : 'No')
                 : 'No aplica';
 
@@ -1811,21 +1583,5 @@ document.addEventListener('DOMContentLoaded', function () {
     mostrarPaso(1);
 });
 
-    const tiposUbicacion=document.querySelectorAll('.tipo-ubicacion');
-    const bloqueEspacioRegistrado=document.getElementById('bloqueEspacioRegistrado');
-    const bloqueUbicacionExterna=document.getElementById('bloqueUbicacionExterna');
-    const espacioSelect=document.getElementById('id_espacio');
-    const ubicacionExterna=document.getElementById('ubicacion_externa');
-    const informacionCapacidadEspacio=document.getElementById('informacionCapacidadEspacio');
-    const capacidadEspacioTexto=document.getElementById('capacidadEspacioTexto');
-    const cupoTotalUbicacion=document.getElementById('cupo_total');
-    function actualizarCapacidadEspacio(){const option=espacioSelect?.options[espacioSelect.selectedIndex];const capacidad=option?.dataset?.capacidad||'';informacionCapacidadEspacio?.classList.toggle('hidden',!capacidad);if(capacidad){capacidadEspacioTexto.textContent=`${capacidad} personas`;if(cupoTotalUbicacion)cupoTotalUbicacion.max=capacidad;}else{if(capacidadEspacioTexto)capacidadEspacioTexto.textContent='';if(cupoTotalUbicacion)cupoTotalUbicacion.removeAttribute('max');}}
-    function actualizarTipoUbicacion(){const tipo=document.querySelector('.tipo-ubicacion:checked')?.value||'';bloqueEspacioRegistrado?.classList.toggle('hidden',tipo!=='registrada');bloqueUbicacionExterna?.classList.toggle('hidden',tipo!=='externa');if(tipo==='registrada'&&ubicacionExterna)ubicacionExterna.value='';if(tipo==='externa'&&espacioSelect){espacioSelect.value='';actualizarCapacidadEspacio();}}
-    tiposUbicacion.forEach(radio=>radio.addEventListener('change',actualizarTipoUbicacion));
-    espacioSelect?.addEventListener('change',actualizarCapacidadEspacio);
-    const ubicacionAnterior=document.getElementById('ubicacion_externa')?.value||'';
-    const espacioAnterior=document.getElementById('id_espacio')?.value||'';
-    if(espacioAnterior){const radio=document.querySelector('.tipo-ubicacion[value="registrada"]');if(radio)radio.checked=true;}else if(ubicacionAnterior){const radio=document.querySelector('.tipo-ubicacion[value="externa"]');if(radio)radio.checked=true;}
-    actualizarTipoUbicacion();actualizarCapacidadEspacio();
 </script>
 @endsection
