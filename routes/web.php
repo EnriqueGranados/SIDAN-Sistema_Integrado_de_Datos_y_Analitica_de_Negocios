@@ -34,7 +34,7 @@ Route::get('/actividades/sugerencias', [WelcomeController::class, 'sugerencias']
 Route::get('/actividades/{slug}', [WelcomeController::class, 'show'])
     ->name('activities.show');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Route::get('/dashboard', function (Request $request) {
     $rol = $request->user()?->rol?->nombre;
@@ -97,204 +97,209 @@ Route::get('/tunnel-test', function () {
 Route::post('/wompi/webhook', [WompiController::class, 'webhook'])
     ->name('wompi.webhook');
 
+
 // Administradores
 Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'user.status'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/welcome', [WelcomeAdministracionController::class, 'index'])
-            ->name('welcome.index');
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
 
-        Route::get('/welcome/actividades', [WelcomeAdministracionController::class, 'buscarActividades'])
-            ->middleware('throttle:120,1')
-            ->name('welcome.actividades.buscar');
+    Route::get('/welcome', [WelcomeAdministracionController::class, 'index'])
+        ->name('welcome.index');
 
-        Route::post('/welcome/espacios', [WelcomeAdministracionController::class, 'crearEspacio'])
-            ->name('welcome.espacios.store');
+    Route::get('/welcome/actividades', [WelcomeAdministracionController::class, 'buscarActividades'])
+        ->middleware('throttle:120,1')
+        ->name('welcome.actividades.buscar');
 
-        Route::put('/welcome/destacada', [WelcomeAdministracionController::class, 'establecerDestacada'])
-            ->name('welcome.destacada.actualizar');
+    Route::post('/welcome/espacios', [WelcomeAdministracionController::class, 'crearEspacio'])
+        ->name('welcome.espacios.store');
 
-        Route::delete('/welcome/destacada', [WelcomeAdministracionController::class, 'quitarDestacada'])
-            ->name('welcome.destacada.quitar');
+    Route::put('/welcome/destacada', [WelcomeAdministracionController::class, 'establecerDestacada'])
+        ->name('welcome.destacada.actualizar');
 
-        Route::patch('/welcome/destacada/{actividad}/prioridad', [WelcomeAdministracionController::class, 'actualizarPrioridad'])
-            ->name('welcome.destacada.prioridad');
+    Route::delete('/welcome/destacada', [WelcomeAdministracionController::class, 'quitarDestacada'])
+        ->name('welcome.destacada.quitar');
 
-        Route::put('/welcome/espacios/{espacio}/actividad', [WelcomeAdministracionController::class, 'asignar'])
-            ->name('welcome.espacios.asignar');
+    Route::patch('/welcome/destacada/{actividad}/prioridad', [WelcomeAdministracionController::class, 'actualizarPrioridad'])
+        ->name('welcome.destacada.prioridad');
 
-        Route::delete('/welcome/espacios/{espacio}/actividad', [WelcomeAdministracionController::class, 'quitar'])
-            ->name('welcome.espacios.quitar');
+    Route::put('/welcome/espacios/{espacio}/actividad', [WelcomeAdministracionController::class, 'asignar'])
+        ->name('welcome.espacios.asignar');
 
-        Route::patch('/welcome/espacios/{espacio}/mover', [WelcomeAdministracionController::class, 'mover'])
-            ->name('welcome.espacios.mover');
+    Route::delete('/welcome/espacios/{espacio}/actividad', [WelcomeAdministracionController::class, 'quitar'])
+        ->name('welcome.espacios.quitar');
 
-        Route::delete('/welcome/espacios/{espacio}', [WelcomeAdministracionController::class, 'eliminarEspacio'])
-            ->name('welcome.espacios.destroy');
+    Route::patch('/welcome/espacios/{espacio}/mover', [WelcomeAdministracionController::class, 'mover'])
+        ->name('welcome.espacios.mover');
 
-        Route::get('/revisiones-actividades', [ActividadRevisionController::class, 'index'])
-            ->name('actividades.revision.index');
+    Route::delete('/welcome/espacios/{espacio}', [WelcomeAdministracionController::class, 'eliminarEspacio'])
+        ->name('welcome.espacios.destroy');
 
-        Route::get('/revisiones-actividades/{actividad}', [ActividadRevisionController::class, 'show'])
-            ->name('actividades.revision.show');
+    Route::get('/revisiones-actividades', [ActividadRevisionController::class, 'index'])
+        ->name('actividades.revision.index');
 
-        Route::post('/revisiones-actividades/{actividad}/observaciones', [ActividadRevisionController::class, 'guardarObservacion'])
-            ->name('actividades.revision.observaciones.store');
+    Route::get('/revisiones-actividades/{actividad}', [ActividadRevisionController::class, 'show'])
+        ->name('actividades.revision.show');
 
-        Route::delete('/revisiones-actividades/{actividad}/observaciones/{observacion}', [ActividadRevisionController::class, 'eliminarObservacion'])
-            ->name('actividades.revision.observaciones.destroy');
+    Route::post('/revisiones-actividades/{actividad}/observaciones', [ActividadRevisionController::class, 'guardarObservacion'])
+        ->name('actividades.revision.observaciones.store');
 
-        Route::post('/revisiones-actividades/{actividad}/aprobar', [ActividadRevisionController::class, 'aprobar'])
-            ->name('actividades.revision.aprobar');
+    Route::delete('/revisiones-actividades/{actividad}/observaciones/{observacion}', [ActividadRevisionController::class, 'eliminarObservacion'])
+        ->name('actividades.revision.observaciones.destroy');
 
-        Route::post('/revisiones-actividades/{actividad}/solicitar-cambios', [ActividadRevisionController::class, 'solicitarCambios'])
-            ->name('actividades.revision.solicitar-cambios');
+    Route::post('/revisiones-actividades/{actividad}/aprobar', [ActividadRevisionController::class, 'aprobar'])
+        ->name('actividades.revision.aprobar');
 
-        Route::post('/revisiones-actividades/{actividad}/rechazar', [ActividadRevisionController::class, 'rechazar'])
-            ->name('actividades.revision.rechazar');
+    Route::post('/revisiones-actividades/{actividad}/solicitar-cambios', [ActividadRevisionController::class, 'solicitarCambios'])
+        ->name('actividades.revision.solicitar-cambios');
 
-        Route::post('actividades/{actividad}/publicar', [ActividadPublicacionController::class, 'publicar'])
-            ->name('actividades.publicar');
+    Route::post('/revisiones-actividades/{actividad}/rechazar', [ActividadRevisionController::class, 'rechazar'])
+        ->name('actividades.revision.rechazar');
 
-        Route::post('actividades/{actividad}/retirar-publicacion', [ActividadPublicacionController::class, 'retirar'])
-            ->name('actividades.retirar-publicacion');
+    Route::post('actividades/{actividad}/publicar', [ActividadPublicacionController::class, 'publicar'])
+        ->name('actividades.publicar');
 
-        Route::resource('actividades', ActividadController::class)
-            ->parameters([
-                'actividades' => 'actividad',
-            ]);
+    Route::post('actividades/{actividad}/retirar-publicacion', [ActividadPublicacionController::class, 'retirar'])
+        ->name('actividades.retirar-publicacion');
 
-        Route::get('actividades/{actividad}/configurar', [ActividadConfiguracionController::class, 'show'])
-            ->name('actividades.configurar');
+    Route::resource('actividades', ActividadController::class)
+        ->parameters([
+            'actividades' => 'actividad',
+        ]);
 
-        Route::post('actividades/{actividad}/items', [ActividadController::class, 'guardarItem'])
-            ->name('actividades.items.store');
+    Route::get('actividades/{actividad}/configurar', [ActividadConfiguracionController::class, 'show'])
+        ->name('actividades.configurar');
 
-        Route::put('actividades/{actividad}/items/{item}', [ActividadController::class, 'actualizarItem'])
-            ->name('actividades.items.update');
+    Route::post('actividades/{actividad}/items', [ActividadController::class, 'guardarItem'])
+        ->name('actividades.items.store');
 
-        Route::delete('actividades/{actividad}/items/{item}', [ActividadController::class, 'eliminarItem'])
-            ->name('actividades.items.destroy');
+    Route::put('actividades/{actividad}/items/{item}', [ActividadController::class, 'actualizarItem'])
+        ->name('actividades.items.update');
 
-        Route::post('actividades/{actividad}/productos/configuracion', [ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
-            ->name('actividades.productos.configuracion');
+    Route::delete('actividades/{actividad}/items/{item}', [ActividadController::class, 'eliminarItem'])
+        ->name('actividades.items.destroy');
 
-        Route::post('actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
-            ->name('actividades.enviar-revision');
+    Route::post('actividades/{actividad}/productos/configuracion', [ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
+        ->name('actividades.productos.configuracion');
 
-        Route::post('actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
-            ->name('actividades.retirar-revision');
+    Route::post('actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
+        ->name('actividades.enviar-revision');
 
-        Route::post('actividades/{actividad}/items/{item}/datos-pedido', [ActividadConfiguracionController::class, 'guardarDatosPedido'])
-            ->name('actividades.datos-pedido.store');
+    Route::post('actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
+        ->name('actividades.retirar-revision');
 
-        Route::post('actividades/{actividad}/items/{item}/ajustes-precio', [ActividadConfiguracionController::class, 'guardarAjustesPrecio'])
-            ->name('actividades.ajustes-precio.store');
+    Route::post('actividades/{actividad}/items/{item}/datos-pedido', [ActividadConfiguracionController::class, 'guardarDatosPedido'])
+        ->name('actividades.datos-pedido.store');
 
-        Route::get('actividades/{actividad}/promociones', [ActividadPromocionController::class, 'index'])
-            ->name('actividades.promociones.index');
+    Route::post('actividades/{actividad}/items/{item}/ajustes-precio', [ActividadConfiguracionController::class, 'guardarAjustesPrecio'])
+        ->name('actividades.ajustes-precio.store');
 
-        Route::post('actividades/{actividad}/promociones', [ActividadPromocionController::class, 'store'])
-            ->name('actividades.promociones.store');
+    Route::get('actividades/{actividad}/promociones', [ActividadPromocionController::class, 'index'])
+        ->name('actividades.promociones.index');
 
-        Route::patch('actividades/{actividad}/promociones/{promocion}', [ActividadPromocionController::class, 'update'])
-            ->name('actividades.promociones.update');
+    Route::post('actividades/{actividad}/promociones', [ActividadPromocionController::class, 'store'])
+        ->name('actividades.promociones.store');
 
-        Route::patch('actividades/{actividad}/promociones/{promocion}/estado', [ActividadPromocionController::class, 'toggle'])
-            ->name('actividades.promociones.toggle');
+    Route::patch('actividades/{actividad}/promociones/{promocion}', [ActividadPromocionController::class, 'update'])
+        ->name('actividades.promociones.update');
 
-        Route::delete('actividades/{actividad}/promociones/{promocion}', [ActividadPromocionController::class, 'destroy'])
-            ->name('actividades.promociones.destroy');
+    Route::patch('actividades/{actividad}/promociones/{promocion}/estado', [ActividadPromocionController::class, 'toggle'])
+        ->name('actividades.promociones.toggle');
 
-        Route::post('actividades/{actividad}/sesiones/configuracion', [ActividadConfiguracionController::class, 'guardarSesiones'])
-            ->name('actividades.sesiones.configuracion');
+    Route::delete('actividades/{actividad}/promociones/{promocion}', [ActividadPromocionController::class, 'destroy'])
+        ->name('actividades.promociones.destroy');
 
-        Route::post('actividades/{actividad}/configuracion/finalizar', [ActividadConfiguracionController::class, 'finalizarConfiguracion'])
-            ->name('actividades.configuracion.finalizar');
+    Route::post('actividades/{actividad}/sesiones/configuracion', [ActividadConfiguracionController::class, 'guardarSesiones'])
+        ->name('actividades.sesiones.configuracion');
 
-        Route::post('actividades/{actividad}/presentacion', [ActividadConfiguracionController::class, 'guardarPresentacion'])
-            ->name('actividades.presentacion.store');
+    Route::post('actividades/{actividad}/configuracion/finalizar', [ActividadConfiguracionController::class, 'finalizarConfiguracion'])
+        ->name('actividades.configuracion.finalizar');
 
-        Route::patch('actividades/{actividad}/medios/{medio}/portada', [ActividadConfiguracionController::class, 'establecerPortada'])
-            ->name('actividades.medios.portada');
+    Route::post('actividades/{actividad}/presentacion', [ActividadConfiguracionController::class, 'guardarPresentacion'])
+        ->name('actividades.presentacion.store');
 
-        Route::delete('actividades/{actividad}/medios/{medio}', [ActividadConfiguracionController::class, 'eliminarMedio'])
-            ->name('actividades.medios.destroy');
+    Route::patch('actividades/{actividad}/medios/{medio}/portada', [ActividadConfiguracionController::class, 'establecerPortada'])
+        ->name('actividades.medios.portada');
 
-        Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
-            ->name('categorias.reorder');
+    Route::delete('actividades/{actividad}/medios/{medio}', [ActividadConfiguracionController::class, 'eliminarMedio'])
+        ->name('actividades.medios.destroy');
 
-        Route::resource('categorias', CategoriaController::class)
-            ->except(['show'])
-            ->parameters([
-                'categorias' => 'categoria',
-            ]);
+    Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
+        ->name('categorias.reorder');
 
-        Route::resource('etiquetas', EtiquetaController::class)
-            ->except(['show'])
-            ->parameters([
-                'etiquetas' => 'etiqueta',
-            ]);
+    Route::resource('categorias', CategoriaController::class)
+        ->except(['show'])
+        ->parameters([
+            'categorias' => 'categoria',
+        ]);
 
-        Route::resource('recursos', RecursoController::class)
-            ->except(['show'])
-            ->parameters([
-                'recursos' => 'recurso',
-            ]);
+    Route::resource('etiquetas', EtiquetaController::class)
+        ->except(['show'])
+        ->parameters([
+            'etiquetas' => 'etiqueta',
+        ]);
 
-        Route::get('espacios/buscar', [EspacioController::class, 'buscar'])
-            ->name('espacios.buscar');
+    Route::resource('recursos', RecursoController::class)
+        ->except(['show'])
+        ->parameters([
+            'recursos' => 'recurso',
+        ]);
 
-        Route::post('espacios/crear-rapido', [EspacioController::class, 'crearRapido'])
-            ->name('espacios.crear-rapido');
+    Route::get('espacios/buscar', [EspacioController::class, 'buscar'])
+        ->name('espacios.buscar');
 
-        Route::get('espacios/{espacio}/descendientes', [EspacioController::class, 'descendientes'])
-            ->name('espacios.descendientes');
+    Route::post('espacios/crear-rapido', [EspacioController::class, 'crearRapido'])
+        ->name('espacios.crear-rapido');
 
-        Route::resource('espacios', EspacioController::class)
-            ->except(['show'])
-            ->parameters([
-                'espacios' => 'espacio',
-            ]);
+    Route::get('espacios/{espacio}/descendientes', [EspacioController::class, 'descendientes'])
+        ->name('espacios.descendientes');
 
-        Route::get('/users/banned', [UserController::class, 'banned'])
-            ->name('users.banned');
+    Route::resource('espacios', EspacioController::class)
+        ->except(['show'])
+        ->parameters([
+            'espacios' => 'espacio',
+        ]);
 
-        Route::get('/users/deleted', [UserController::class, 'deleted'])
-            ->name('users.deleted');
+    Route::get('/users/banned', [UserController::class, 'banned'])
+        ->name('users.banned');
 
-        Route::get('/users/search', [UserController::class, 'search'])
-            ->name('users.search');
+    Route::get('/users/deleted', [UserController::class, 'deleted'])
+        ->name('users.deleted');
 
-        Route::patch('/users/{user}/restore', [UserController::class, 'restore'])
-            ->name('users.restore');
+    Route::get('/users/search', [UserController::class, 'search'])
+        ->name('users.search');
 
-        Route::patch('/users/{user}/toggle', [UserController::class, 'toggleEstado'])
-            ->name('users.toggle');
+    Route::patch('/users/{user}/restore', [UserController::class, 'restore'])
+        ->name('users.restore');
 
-        Route::resource('users', UserController::class);
+    Route::patch('/users/{user}/toggle', [UserController::class, 'toggleEstado'])
+        ->name('users.toggle');
 
-        Route::middleware('rol:superadmin')
-            ->prefix('roles')
-            ->name('roles.')
-            ->group(function () {
-                Route::get('/', [RolController::class, 'index'])
-                    ->name('index');
+    Route::resource('users', UserController::class);
 
-                Route::get('/crear', [RolController::class, 'create'])
-                    ->name('create');
+    Route::middleware('rol:superadmin')
+        ->prefix('roles')
+        ->name('roles.')
+        ->group(function () {
+            Route::get('/', [RolController::class, 'index'])
+                ->name('index');
 
-                Route::post('/', [RolController::class, 'store'])
-                    ->name('store');
+            Route::get('/crear', [RolController::class, 'create'])
+                ->name('create');
 
-                Route::get('/{rol}/editar', [RolController::class, 'edit'])
-                    ->name('edit');
+            Route::post('/', [RolController::class, 'store'])
+                ->name('store');
 
-                Route::put('/{rol}', [RolController::class, 'update'])
-                    ->name('update');
+            Route::get('/{rol}/editar', [RolController::class, 'edit'])
+                ->name('edit');
 
-                Route::delete('/{rol}', [RolController::class, 'destroy'])
-                    ->name('destroy');
-            });
-    });
+            Route::put('/{rol}', [RolController::class, 'update'])
+                ->name('update');
+
+            Route::delete('/{rol}', [RolController::class, 'destroy'])
+                ->name('destroy');
+        });
+});
 
 // Usuario normal (Protegido)
 Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'])->group(function () {
@@ -302,21 +307,21 @@ Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'
         return view('user.dashboard');
     })->name('user.dashboard');
 
-        Route::get('/datos-personales', fn () => view('auth.datos-personales'))
-            ->name('datos.personales');
+    Route::get('/datos-personales', fn() => view('auth.datos-personales'))
+        ->name('datos.personales');
 
-        Route::get('/omitir-perfil', function () {
-            return redirect()
-                ->route('user.dashboard')
-                ->with(
-                    'success',
-                    'Has omitido el registro. Puedes completar tus datos más tarde desde tu perfil.'
-                );
-        })->name('perfil.omitir');
+    Route::get('/omitir-perfil', function () {
+        return redirect()
+            ->route('user.dashboard')
+            ->with(
+                'success',
+                'Has omitido el registro. Puedes completar tus datos más tarde desde tu perfil.'
+            );
+    })->name('perfil.omitir');
 
-        Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])
-            ->name('perfil.guardar');
-    });
+    Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])
+        ->name('perfil.guardar');
+});
 
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])
     ->name('google.login');
