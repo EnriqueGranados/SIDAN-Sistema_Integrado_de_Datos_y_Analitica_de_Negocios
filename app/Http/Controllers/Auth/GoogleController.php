@@ -23,6 +23,15 @@ class GoogleController extends Controller
     // Redirigir al usuario a la página de autenticación de Google.
     public function redirectToGoogle()
     {
+        if (Auth::check() && Auth::user()->must_change_password) {
+            return redirect()
+                ->route('password.force.edit')
+                ->with(
+                    'warning',
+                    'Debes cambiar tu contraseña temporal antes de continuar.'
+                );
+        }
+
         session()->forget('google_oauth_intent');
 
         return Socialite::driver('google')->redirect();
@@ -56,9 +65,29 @@ class GoogleController extends Controller
         if ($googleAccount) {
             $usuario = $googleAccount->user;
 
-            Auth::login($usuario);
+            if (!$usuario || $usuario->eliminado || !$usuario->estado_activo) {
+                return redirect()
+                    ->route('login')
+                    ->with('error', 'Esta cuenta no está disponible.');
+            }
 
-            return redirect()->intended('/user/dashboard')->with('success', 'Has iniciado sesión con tu cuenta de Google.');
+            Auth::login($usuario);
+            request()->session()->regenerate();
+
+            if ($usuario->must_change_password) {
+                request()->session()->forget('url.intended');
+
+                return redirect()
+                    ->route('password.force.edit')
+                    ->with(
+                        'warning',
+                        'Debes actualizar tu contraseña antes de continuar en SIDAN.'
+                    );
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('success', 'Has iniciado sesión con tu cuenta de Google.');
         }
 
         // Escenario 2: El correo ya existe en SIDAN, pero Google no está vinculado.
@@ -197,8 +226,39 @@ class GoogleController extends Controller
     // Mostrar el formulario para vincular la cuenta de Google con una cuenta existente en SIDAN.
     public function showLinkAccountForm()
     {
-        if (!session()->has('temp_email')) {
-            return redirect('/login');
+        $googleEmail = session('temp_email');
+
+        if (!$googleEmail || !session('temp_google_id')) {
+            return redirect()->route('login');
+        }
+
+        $usuario = User::where('correo', $googleEmail)->first();
+
+        if (!$usuario) {
+            session()->forget([
+                'temp_email',
+                'temp_google_id',
+                'temp_avatar',
+            ]);
+
+            return redirect()
+                ->route('login')
+                ->with('error', 'No se encontró la cuenta que deseas vincular.');
+        }
+
+        if ($usuario->must_change_password) {
+            session()->forget([
+                'temp_email',
+                'temp_google_id',
+                'temp_avatar',
+            ]);
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'warning',
+                    'Primero debes iniciar sesión con tu contraseña temporal y cambiarla antes de vincular Google.'
+                );
         }
 
         return view('auth.vincular-cuenta');
@@ -237,6 +297,22 @@ class GoogleController extends Controller
         if (is_null($usuario->password_hash) || !Hash::check($request->password, $usuario->password_hash)) 
         {
             return back()->withErrors(['password' => 'La contraseña es incorrecta.',]);
+        }
+
+        // Impedir vincular Google mientras exista un cambio obligatorio de contraseña pendiente.
+        if ($usuario->must_change_password) {
+            session()->forget([
+                'temp_email',
+                'temp_google_id',
+                'temp_avatar',
+            ]);
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'warning',
+                    'Debes cambiar tu contraseña temporal antes de vincular tu cuenta de Google.'
+                );
         }
 
         // Comprobar que la cuenta de Google no esté ya vinculada a otro usuario.
@@ -330,6 +406,15 @@ class GoogleController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->must_change_password) {
+            return redirect()
+                ->route('password.force.edit')
+                ->with(
+                    'warning',
+                    'Primero debes cambiar tu contraseña temporal.'
+                );
+        }
+
         // El usuario ya tiene una cuenta de Google vinculada.
         if ($user->googleAccount()->exists()) {
             return redirect()->route('profile.edit')->with('error', 'Ya tienes una cuenta de Google vinculada.');
@@ -352,6 +437,15 @@ class GoogleController extends Controller
         }
 
         $user = Auth::user();
+
+        if ($user->must_change_password) {
+            return redirect()
+                ->route('password.force.edit')
+                ->with(
+                    'warning',
+                    'Primero debes cambiar tu contraseña temporal.'
+                );
+        }
 
         // El usuario SIDAN ya tiene Google vinculado.
         if ($user->googleAccount()->exists()) {

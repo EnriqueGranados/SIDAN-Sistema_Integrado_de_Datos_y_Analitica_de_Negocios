@@ -173,12 +173,6 @@ class UserController extends Controller
                 'unique:tbl_usuarios,correo,' . $user->id_usuario . ',id_usuario',
             ],
 
-            'password' => [
-                'nullable',
-                'confirmed',
-                Rules\Password::defaults(),
-            ],
-
             'rol' => 'required|exists:tbl_roles,id_rol',
         ]);
 
@@ -218,13 +212,6 @@ class UserController extends Controller
                     'id_rol' => $validated['rol'],
                 ];
 
-                // Actualizar contraseña solamente si se proporcionó.
-                if (!empty($validated['password'])) {
-                    $userData['password_hash'] = Hash::make(
-                        $validated['password']
-                    );
-                }
-
                 // Actualizar imagen de perfil.
                 if ($eliminarImagen) {
                     $userData['imagen_perfil'] = null;
@@ -256,6 +243,63 @@ class UserController extends Controller
         }
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
+    }
+
+    public function regenerarPassword(User $user)
+    {
+        // No permitir restablecer contraseñas de cuentas eliminadas.
+        if ($user->eliminado) {
+            return back()->with(
+                'error',
+                'No se puede generar una contraseña para un usuario eliminado.'
+            );
+        }
+
+        // Evitar que el administrador restablezca su propia contraseña.
+        if (auth()->id() === $user->getKey()) {
+            return back()->with(
+                'error',
+                'No puedes restablecer tu propia contraseña desde administración.'
+            );
+        }
+
+        // Generar una nueva contraseña temporal.
+        $passwordTemporal = Str::random(20);
+
+        try {
+            DB::transaction(function () use ($user, $passwordTemporal) {
+                $user->password_hash = Hash::make($passwordTemporal);
+                $user->must_change_password = true;
+                $user->remember_token = null;
+                $user->save();
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with(
+                'error',
+                'No fue posible generar la nueva contraseña.'
+            );
+        }
+
+        // Reutilizar la notificación que ya funciona.
+        try {
+            $user->notify(
+                new UsuarioCreadoNotification($passwordTemporal, true)
+            );
+
+            return back()->with(
+                'success',
+                'Se generó una nueva contraseña temporal y se enviaron las credenciales al correo del usuario.'
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with(
+                'warning',
+                'La contraseña fue actualizada, pero no se pudo enviar el correo. Puedes intentar generar una nueva contraseña.'
+            );
+        }
     }
 
     // Alterna el estado y devuelve JSON para Alpine.js

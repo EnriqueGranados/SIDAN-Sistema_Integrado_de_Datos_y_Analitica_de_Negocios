@@ -278,6 +278,8 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
     Route::patch('/users/{user}/toggle', [UserController::class, 'toggleEstado'])
         ->name('users.toggle');
 
+    Route::post('/users/{user}/regenerar-password', [UserController::class, 'regenerarPassword'])->middleware('throttle:3,1')->name('users.regenerar-password');
+
     Route::resource('users', UserController::class);
 
     Route::middleware('rol:superadmin')

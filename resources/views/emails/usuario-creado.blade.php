@@ -43,7 +43,9 @@
                             </p>
 
                             <h1 style="margin:0; color:#0f172a; font-size:28px; line-height:36px; font-weight:800;">
-                                Tu cuenta ha sido creada
+                                {{ ($esRestablecimiento ?? false)
+                                    ? 'Se ha generado una nueva contraseña'
+                                    : 'Tu cuenta ha sido creada' }}
                             </h1>
 
                             <p style="margin:24px 0 0; color:#475569; font-size:15px; line-height:24px;">
@@ -51,7 +53,10 @@
                             </p>
 
                             <p style="margin:12px 0 0; color:#475569; font-size:15px; line-height:24px;">
-                                Un administrador ha creado una cuenta para ti en el
+                                
+                                {{ ($esRestablecimiento ?? false)
+                                    ? 'Un administrador ha creado una nueva contraseña temporal para ti'
+                                    : 'Un administrador ha creado una cuenta para ti en el' }}
                                 <strong style="color:#0f172a;">Sistema Integrado de Datos y Analítica de Negocios (SIDAN)</strong>.
                             </p>
 

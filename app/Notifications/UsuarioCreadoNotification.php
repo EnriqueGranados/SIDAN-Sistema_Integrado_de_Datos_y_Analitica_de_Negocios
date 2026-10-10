@@ -11,7 +11,8 @@ class UsuarioCreadoNotification extends Notification
     use Queueable;
 
     public function __construct(
-        private string $passwordTemporal
+        private string $passwordTemporal,
+        private bool $esRestablecimiento = false
     ) {}
 
     public function via(object $notifiable): array
@@ -24,6 +25,7 @@ class UsuarioCreadoNotification extends Notification
         return (new MailMessage)
             ->subject('Bienvenido a SIDAN | Credenciales de acceso')
             ->view('emails.usuario-creado', [
+                'esRestablecimiento' => $this->esRestablecimiento,
                 'nombre' => $notifiable->informacion_personal?->nombres ?? '',
                 'correo' => $notifiable->correo,
                 'passwordTemporal' => $this->passwordTemporal,

@@ -748,40 +748,34 @@
 
                                 </div>
 
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Contraseña
+                                    </label>
 
-                                <div class="grid gap-5 sm:grid-cols-2">
-                                    <div>
-                                        <label for="password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            Contraseña
-                                        </label>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 mt-2 dark:border-white/10 dark:bg-white/5">
+                                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <h3 class="text-sm font-black text-sidan-900 dark:text-white">
+                                                    Seguridad de la cuenta
+                                                </h3>
 
-                                        <input
-                                            id="password"
-                                            name="password"
-                                            type="password"
-                                            x-model="password"
-                                            placeholder="********"
-                                            @input="validatePasswordMatch()"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                        >
+                                                <p class="mt-2 max-w-lg text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                                    Genera una nueva contraseña temporal para este usuario.
+                                                    La recibirá por correo electrónico y deberá cambiarla
+                                                    cuando vuelva a iniciar sesión.
+                                                </p>
+                                            </div>
 
-                                    </div>
+                                            <button
+                                                type="button"
+                                                @click="confirmarRegeneracionPassword()"
+                                                class="shrink-0 rounded-xl border border-sidan-500 px-5 py-3 text-sm font-black text-sidan-600 transition hover:bg-sidan-500 hover:text-white dark:text-green-400"
+                                            >
+                                                Generar nueva contraseña
+                                            </button>
 
-                                    <div>
-                                        <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            Confirmar contraseña
-                                        </label>
-
-                                        <input
-                                            id="password_confirmation"
-                                            name="password_confirmation"
-                                            type="password"
-                                            x-model="passwordConfirmation"
-                                            placeholder="********"
-                                            @input="validatePasswordMatch()"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                        >
-
+                                        </div>
                                     </div>
                                 </div>
 
@@ -980,15 +974,6 @@
                                         <div class="mt-4">
 
                                             <span class="text-sm text-slate-400">
-                                                Contraseña
-                                            </span>
-                                            
-                                            <p class="mt-1 font-bold text-slate-700 dark:text-slate-200" x-text="password ? 'Actualizada' : 'No modificada'"></p>
-                                        </div>
-
-                                        <div class="mt-4">
-
-                                            <span class="text-sm text-slate-400">
                                                 Rol
                                             </span>
 
@@ -1026,6 +1011,15 @@
 
                     </div>
 
+                </form>
+
+                <form
+                    x-ref="formRegenerarPassword"
+                    action="{{ route('admin.users.regenerar-password', $user) }}"
+                    method="POST"
+                    class="hidden"
+                >
+                    @csrf
                 </form>
 
                 <div class="my-7 flex items-center gap-4">
@@ -1079,9 +1073,6 @@
                 genero: @js(old('genero', $user->informacion_personal->genero ?? '')),
                 email: @js(old('email', $user->correo ?? '')),
                 rol: @js(old('rol', $user->id_rol ?? '')),
-
-                password: '',
-                passwordConfirmation: '',
 
                 imagenPreview: @js($user->imagen_perfil ? asset('storage/' . $user->imagen_perfil) : asset('images/usuario.png')),
                 eliminarImagenPerfil: false,
@@ -1333,19 +1324,6 @@
                     const section = document.getElementById(`register-step-${this.step}`);
                     if (!section) return false;
 
-                    if (this.step === 2) {
-                        const password = document.getElementById('password');
-                        const confirmation = document.getElementById('password_confirmation');
-                        confirmation.setCustomValidity('');
-
-                        if (password.value !== confirmation.value) {
-                            confirmation.setCustomValidity('Las contraseñas no coinciden.');
-                            confirmation.reportValidity();
-                            confirmation.focus();
-                            return false;
-                        }
-                    }
-
                     const fields = section.querySelectorAll('input, select, textarea');
                     for (const field of fields) {
                         if (!field.checkValidity()) {
@@ -1402,7 +1380,7 @@
                     }
                 },
 
-                async showConfirm(title, message) {
+                async showConfirm(title, message, confirmText = 'Actualizar usuario') {
                     return new Promise((resolve) => {
                         const overlay = document.createElement('div');
 
@@ -1459,7 +1437,7 @@
                                                 data-confirm
                                                 class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:bg-green-600"
                                             >
-                                                Actualizar usuario
+                                                ${confirmText}
                                             </button>
                                         </div>
                                     </div>
@@ -1507,6 +1485,17 @@
 
                         document.addEventListener('keydown', handleKeydown);
                     });
+                },
+
+                async confirmarRegeneracionPassword() {
+                    const confirmado = await this.showConfirm(
+                        '¿Generar nueva contraseña?',
+                        'Se reemplazará la contraseña actual del usuario por una nueva contraseña temporal. Las credenciales se enviarán a su correo electrónico y deberá cambiar la contraseña al iniciar sesión.'
+                    );
+
+                    if (confirmado) {
+                        this.$refs.formRegenerarPassword.submit();
+                    }
                 },
 
                 fullName() {

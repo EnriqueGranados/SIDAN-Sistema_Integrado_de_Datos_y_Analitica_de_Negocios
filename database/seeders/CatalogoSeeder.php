@@ -171,7 +171,5 @@ class CatalogoSeeder extends Seeder
                 $idsEspacios[$nombreEspacio]->recursos()->syncWithoutDetaching($pivot);
             }
         });
-
-        $this->command?->info('Catálogos UES cargados sin eliminar los datos existentes.');
     }
 }

@@ -40,13 +40,13 @@
             <div class="w-full max-w-md">
                 <div class="mb-8 text-center">
                     <h1 class="text-2xl font-black text-sidan-900 dark:text-white">
-                        Establece tu contraseña
+                        Actualiza tu contraseña
                     </h1>
 
-                    <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">
-                        Tu cuenta fue creada por un administrador.
-                        Por seguridad, debes cambiar la contraseña temporal
-                        antes de continuar en SIDAN.
+                    <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                        Se ha generado una contraseña temporal para tu cuenta.
+                        Por seguridad, debes establecer una contraseña personal
+                        antes de continuar utilizando SIDAN.
                     </p>
                 </div>
 
@@ -115,6 +115,35 @@
                                 autocomplete="new-password"
                                 class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror"
                             >
+                        </div>
+
+                        <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-500/20 dark:bg-green-500/10">
+                            <div class="flex items-start gap-3">
+                                <svg
+                                    class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"
+                                    />
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m9 12 2 2 4-4"
+                                    />
+                                </svg>
+
+                                <p class="text-xs leading-5 text-green-800 dark:text-green-300">
+                                    Tu nueva contraseña reemplazará la contraseña temporal.
+                                    Procura utilizar una contraseña segura que no hayas usado
+                                    anteriormente y no la compartas con otras personas.
+                                </p>
+                            </div>
                         </div>
 
                         <button
