@@ -21,6 +21,9 @@ use App\Http\Controllers\WompiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
+use App\Http\Controllers\InscripcionController;
+use App\Http\Controllers\OrdenController;
+use App\Http\Controllers\PagoController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -334,6 +337,39 @@ Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])
 
 Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])
     ->name('vincular.cuenta.procesar');
+
+
+// Mostrar formulario.
+Route::get(
+    '/actividades/{slug}/inscripcion',
+    [InscripcionController::class, 'create']
+)->name('sidan.inscripciones.create');
+
+// Registrar inscripción.
+Route::post(
+    '/actividades/{slug}/inscripciones',
+    [InscripcionController::class, 'store']
+)->middleware('throttle:8,1')
+    ->name('sidan.inscripciones.store');
+
+// Consultar inscripción.
+Route::get(
+    '/inscripciones/{inscripcion}',
+    [InscripcionController::class, 'show']
+)->name('sidan.inscripciones.show');
+
+// Ver resumen de orden.
+Route::get(
+    '/ordenes/{orden}',
+    [OrdenController::class, 'show']
+)->name('sidan.ordenes.show');
+
+// Iniciar pago con Wompi.
+Route::post(
+    '/ordenes/{orden}/pagar',
+    [PagoController::class, 'iniciar']
+)->middleware('throttle:5,1')
+    ->name('sidan.pagos.iniciar');
 
 
 // Google desde el perfil (Autenticado)

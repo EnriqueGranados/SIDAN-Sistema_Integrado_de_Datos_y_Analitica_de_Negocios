@@ -37,19 +37,9 @@ class ActividadAccionController extends Controller
                 );
         }
 
-        $url = route('activities.show', [
+        return redirect()->route('sidan.inscripciones.create', [
             'slug' => $actividad->slug,
-            'accion' => 'participar',
-        ]) . '#participar';
-
-        return redirect($url)
-            ->with('accion_actividad', 'participar')
-            ->with(
-                'info',
-                $actividad->participacionConPago()
-                    ? 'La actividad requiere inscripción con pago. Revisa el cronograma y las condiciones antes de continuar.'
-                    : 'La inscripción es gratuita. Revisa el cronograma y los detalles antes de continuar.'
-            );
+        ]);
     }
 
     public function comprar(Request $request, string $slug): RedirectResponse
@@ -122,8 +112,8 @@ class ActividadAccionController extends Controller
                 ->with(
                     'error',
                     $usuario->eliminado
-                        ? 'Tu cuenta ha sido eliminada del sistema. Contacta al administrador.'
-                        : 'Tu cuenta está bloqueada. Contacta al administrador para reactivarla.'
+                    ? 'Tu cuenta ha sido eliminada del sistema. Contacta al administrador.'
+                    : 'Tu cuenta está bloqueada. Contacta al administrador para reactivarla.'
                 );
         }
 
