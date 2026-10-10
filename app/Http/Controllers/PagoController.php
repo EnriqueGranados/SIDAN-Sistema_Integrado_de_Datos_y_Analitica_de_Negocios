@@ -19,7 +19,7 @@ class PagoController extends Controller
         $propietario = $usuario
             && $orden->id_usuario !== null
             && (int) $orden->id_usuario
-                === (int) $usuario->id_usuario;
+            === (int) $usuario->id_usuario;
 
         $sesion = $request->session()->has(
             'sidan.ordenes.' . $orden->id_orden
@@ -31,8 +31,17 @@ class PagoController extends Controller
             $usuario && ($usuario->eliminado || !$usuario->estado_activo),
             403
         );
-
+        \Log::info('SIDAN: iniciando pago Wompi', [
+            'id_orden' => $orden->id_orden,
+            'estado' => $orden->estado,
+            'total' => $orden->total,
+            'vigente' => $orden->expira_en?->isFuture(),
+        ]);
         $url = $pagos->iniciar($orden);
+        \Log::info('SIDAN: enlace Wompi generado', [
+            'id_orden' => $orden->id_orden,
+            'enlace_generado' => !empty($url),
+        ]);
 
         return redirect()->away($url);
     }

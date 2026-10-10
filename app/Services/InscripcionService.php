@@ -50,11 +50,7 @@ class InscripcionService
         ?int $idUsuario,
         array $datos
     ): Inscripcion {
-        return DB::transaction(function () use (
-            $actividad,
-            $idUsuario,
-            $datos
-        ) {
+        return DB::transaction(function () use ($actividad, $idUsuario, $datos) {
             // Bloqueamos la actividad para proteger el último cupo.
             $actividad = Actividad::query()
                 ->whereKey($actividad->id_actividad)
@@ -67,7 +63,7 @@ class InscripcionService
             $vencidas = Inscripcion::query()
                 ->where('id_actividad', $actividad->id_actividad)
                 ->where('estado', 'pendiente_pago')
-                ->where('expira_en', '<=', now())
+                ->where('expira_en', '<=', now('UTC'))
                 ->pluck('id_inscripcion');
 
             if ($vencidas->isNotEmpty()) {
@@ -116,7 +112,7 @@ class InscripcionService
                     ])->orWhere(function ($pendiente) {
                         $pendiente
                             ->where('estado', 'pendiente_pago')
-                            ->where('expira_en', '>', now());
+                            ->where('expira_en', '>', now('UTC'));
                     });
                 })
                 ->count();
@@ -134,7 +130,8 @@ class InscripcionService
             $conPago = $actividad->participacionConPago();
 
             // Una inscripción pagada reserva cupo durante 30 minutos.
-            $expira = $conPago ? now()->addMinutes(30) : null;
+            // Guardar el vencimiento en UTC para PostgreSQL.
+            $expira = $conPago ? now('UTC')->addMinutes(30) : null;
 
             $inscripcion = Inscripcion::create([
                 'id_actividad' => $actividad->id_actividad,

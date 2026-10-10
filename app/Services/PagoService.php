@@ -15,7 +15,8 @@ class PagoService
 {
     public function __construct(
         private readonly WompiService $wompi
-    ) {}
+    ) {
+    }
 
     // Crear o recuperar un enlace para una orden pendiente.
     public function iniciar(Orden $orden): string
@@ -110,44 +111,33 @@ class PagoService
                 );
             }
 
+
+
+
+
             $respuesta = $this->wompi->crearEnlacePago([
-                'identificadorEnlaceComercio' =>
-                    $intento->referencia_comercio,
-
+                'identificadorEnlaceComercio' => $intento->referencia_comercio,
                 'monto' => (float) $orden->total,
-
-                'nombreProducto' =>
-                    'Inscripción: ' . $orden->actividad->nombre,
+                'nombreProducto' => 'Inscripción: ' . $orden->actividad->nombre,
 
                 'configuracion' => [
-                    'urlWebhook' => $webhookUrl,
+                    'urlWebhook' => config('services.wompi.webhook_url'),
 
-                    'urlRedirect' => route(
-                        'sidan.ordenes.show',
-                        $orden->id_orden
-                    ),
+                    // Correo administrativo que recibirá el aviso.
+                    'emailsNotificacion' => config('services.wompi.notification_email'),
 
-                    'esMontoEditable' => false,
-                    'esCantidadEditable' => false,
-                    'cantidadPorDefecto' => 1,
-                    'notificarTransaccionCliente' => false,
-                ],
-
-                'vigencia' => [
-                    'fechaFin' => $orden->expira_en
-                        ?->toIso8601String(),
-                ],
-
-                'limitesDeUso' => [
-                    'cantidadMaximaPagosExitosos' => 1,
+                    // Correo para el cliente que paga.
+                    'notificarTransaccionCliente' => true,
                 ],
             ]);
 
+
+
             if (
                 !isset(
-                    $respuesta['idEnlace'],
-                    $respuesta['urlEnlace']
-                )
+                $respuesta['idEnlace'],
+                $respuesta['urlEnlace']
+            )
             ) {
                 throw new RuntimeException(
                     'Wompi no devolvió el enlace completo.'
@@ -202,12 +192,7 @@ class PagoService
             );
         }
 
-        DB::transaction(function () use (
-            $datos,
-            $referencia,
-            $idEnlace,
-            $idTransaccion
-        ) {
+        DB::transaction(function () use ($datos, $referencia, $idEnlace, $idTransaccion) {
             $intento = IntentoPagoWompi::query()
                 ->where('referencia_comercio', $referencia)
                 ->lockForUpdate()
@@ -236,10 +221,10 @@ class PagoService
             // Comparar cantidades monetarias usando centavos enteros.
             if (
                 $this->centavos($datos['Monto'] ?? null)
-                    !== $this->centavos($intento->monto_solicitado)
+                !== $this->centavos($intento->monto_solicitado)
                 ||
                 $this->centavos($pago->monto)
-                    !== $this->centavos($orden->total)
+                !== $this->centavos($orden->total)
             ) {
                 throw new RuntimeException(
                     'El monto recibido no coincide con la orden.'
@@ -271,10 +256,12 @@ class PagoService
             }
 
             // Webhook repetido: no volver a confirmar ni cobrar.
-            if (in_array($intento->estado, [
-                'aprobado',
-                'aprobado_prueba',
-            ], true)) {
+            if (
+                in_array($intento->estado, [
+                    'aprobado',
+                    'aprobado_prueba',
+                ], true)
+            ) {
                 return;
             }
 
