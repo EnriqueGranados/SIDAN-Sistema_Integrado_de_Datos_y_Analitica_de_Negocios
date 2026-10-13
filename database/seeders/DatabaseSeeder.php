@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RolSeeder::class,
             UserSeeder::class,
             CatalogoSeeder::class,
+            ActividadesPruebaUESSeeder::class,
         ]);
     }
 }

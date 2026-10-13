@@ -64,6 +64,16 @@ Route::get('/actividades/{slug}/comprar', [ActividadAccionController::class, 'co
 Route::middleware('auth')->group(function () {
     Route::get('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'create',])->name('password.force.edit');
     Route::post('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'store',])->name('password.force.update');
+
+    Route::get('/user/inscripciones', [\App\Http\Controllers\MisInscripcionesController::class, 'index'])
+        ->name('user.inscripciones.index');
+    Route::patch('/user/inscripciones/{inscripcion}/cancelar', [\App\Http\Controllers\MisInscripcionesController::class, 'cancelar'])
+        ->name('user.inscripciones.cancelar');
+
+        Route::get(
+    '/user/inscripciones/{inscripcion}/detalle',
+    [\App\Http\Controllers\MisInscripcionesController::class, 'detalle']
+)->name('user.inscripciones.detalle');
 });
 
 // Perfil
@@ -326,6 +336,8 @@ Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'
 
     Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])
         ->name('perfil.guardar');
+
+    
 });
 
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])

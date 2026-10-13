@@ -117,6 +117,15 @@ class ActividadAccionController extends Controller
                 );
         }
 
+        if ($usuario->must_change_password) {
+            return redirect()
+                ->route('password.force.edit')
+                ->with(
+                    'warning',
+                    'Por seguridad, debes cambiar tu contraseña temporal antes de continuar.'
+                );
+        }
+
         return null;
     }
 

@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class WelcomeController extends Controller
 {
@@ -183,13 +184,52 @@ class WelcomeController extends Controller
             ->firstOrFail();
 
         $actividad = $this->mapearActividad($actividadModelo, $modoPreview);
+
+        // Configuración dinámica de productos almacenada en MongoDB.
+        $contenido = DB::connection('mongodb')
+            ->table('activity_content')
+            ->where('id_actividad_pg', (int) $actividadModelo->id_actividad)
+            ->first();
+
+        $decodificar = static function ($valor): array {
+            if (is_array($valor)) {
+                return $valor;
+            }
+
+            if (!is_string($valor)) {
+                return [];
+            }
+
+            $resultado = json_decode($valor, true);
+
+            return is_array($resultado) ? $resultado : [];
+        };
+
+        $camposPorItem = collect(
+            $decodificar($contenido->purchase_fields ?? null)
+        )
+            ->filter(fn ($config) => is_array($config)
+                && !empty($config['enabled'])
+                && isset($config['id_item_pg']))
+            ->keyBy('id_item_pg');
+
+        $preciosPorItem = collect(
+            $decodificar($contenido->pricing_configuration ?? null)
+        )
+            ->filter(fn ($config) => is_array($config)
+                && !empty($config['enabled'])
+                && isset($config['id_item_pg']))
+            ->keyBy('id_item_pg');
+
         $accionSolicitada = $request->query('accion');
 
         return view('activities.show', compact(
             'actividad',
             'actividadModelo',
             'accionSolicitada',
-            'modoPreview'
+            'modoPreview',
+            'camposPorItem',
+            'preciosPorItem'
         ));
     }
 

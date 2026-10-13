@@ -322,59 +322,299 @@
                     </section>
                 @endif
 
+                
                 @if ($items->isNotEmpty())
-                    <section class="sidan-panel hidden" data-panel="productos" id="productos">
-                        <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
-                            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                                <div>
-                                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Productos y servicios</p>
-                                    <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white sm:text-3xl">Descubre la oferta</h2>
-                                </div>
-                                <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600 dark:bg-white/10 dark:text-slate-300">{{ $items->count() }} disponible{{ $items->count() === 1 ? '' : 's' }}</span>
-                            </div>
+<section class="sidan-panel hidden" data-panel="productos" id="productos">
+    <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
 
-                            <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                                @foreach ($items as $item)
+        <div class="mb-7 rounded-xl bg-slate-100 px-5 py-4 dark:bg-white/10">
+            <h2 class="text-xl font-black uppercase text-sidan-900 dark:text-white">
+                Productos y servicios
+            </h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                Personaliza cada producto y prepara tus selecciones.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            @foreach ($items as $item)
+                @php
+                    $medioItem = $item->medios->firstWhere('es_portada', true)
+                        ?: $item->medios->first();
+
+                    $imagenItem = $urlMedio($medioItem?->url)
+                        ?: $actividad['imagen'];
+
+                    $variantes = $item->variantes
+                        ->where('activo', true)
+                        ->sortBy('orden')
+                        ->values();
+
+                    $configuracionCampos = ($camposPorItem ?? collect())
+                        ->get($item->id_item_actividad);
+
+                    $configuracionPrecio = ($preciosPorItem ?? collect())
+                        ->get($item->id_item_actividad);
+
+                    $campos = collect($configuracionCampos['fields'] ?? [])
+                        ->filter(fn ($campo) => is_array($campo) && !empty($campo['key']))
+                        ->values();
+
+                    $reglasPrecio = collect($configuracionPrecio['rules'] ?? [])
+                        ->filter(fn ($regla) => is_array($regla))
+                        ->values();
+
+                    $ahora = now();
+
+                    $disponible = (bool) $item->activo
+                        && (!$item->venta_desde || $ahora->gte($item->venta_desde))
+                        && (!$item->venta_hasta || $ahora->lte($item->venta_hasta));
+
+                    $minimo = max(1, (int) ($item->min_por_inscripcion ?? 1));
+
+                    $maximo = $item->max_por_inscripcion !== null
+                        ? (int) $item->max_por_inscripcion
+                        : null;
+
+                    $stockItem = $item->stock_total !== null
+                        ? (int) $item->stock_total
+                        : null;
+
+                    $limite = $maximo;
+
+                    if ($stockItem !== null) {
+                        $limite = $limite === null
+                            ? $stockItem
+                            : min($limite, $stockItem);
+                    }
+
+                    $puedeConfigurar = $disponible
+                        && ($limite === null || $limite >= $minimo);
+
+                @endphp
+
+                <article
+                    class="sidan-producto flex flex-col rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_5px_25px_rgba(0,0,0,0.09)] dark:border-white/10 dark:bg-sidan-900 {{ $loop->index >= 6 ? 'hidden' : '' }}"
+                    data-producto-config
+                    data-item-id="{{ $item->id_item_actividad }}"
+                    data-precio-base="{{ (float) $item->precio }}"
+                    data-minimo="{{ $minimo }}"
+                    data-maximo="{{ $limite ?? '' }}"
+                    data-stock="{{ $stockItem ?? '' }}"
+                    data-reglas='@json($reglasPrecio->all())'
+                >
+                    <div class="flex h-44 items-center justify-center rounded-xl bg-slate-50 p-3 dark:bg-white/5">
+                        <img
+                            src="{{ $imagenItem }}"
+                            alt="{{ $item->nombre }}"
+                            loading="lazy"
+                            class="h-full w-full object-contain"
+                        >
+                    </div>
+
+                    <div class="mt-4 flex flex-1 flex-col">
+                        <span class="text-[11px] font-bold uppercase tracking-wide text-sidan-500">
+                            {{ ucfirst($item->tipo) }}
+                        </span>
+
+                        <h3 class="mt-1 text-lg font-black text-sidan-900 dark:text-white">
+                            {{ $item->nombre }}
+                        </h3>
+
+                        @if ($item->descripcion)
+                            <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                {{ $item->descripcion }}
+                            </p>
+                        @endif
+
+                        
+
+                        @if ($campos->isNotEmpty())
+                            <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                @foreach ($campos as $campo)
                                     @php
-                                        $medioItem = $item->medios->firstWhere('es_portada', true) ?: $item->medios->first();
-                                        $imagenItem = $urlMedio($medioItem?->url) ?: $actividad['imagen'];
-                                        $ahoraItem = now();
-                                        $disponibleItem = (!$item->venta_desde || !$ahoraItem->lt($item->venta_desde))
-                                            && (!$item->venta_hasta || !$ahoraItem->gt($item->venta_hasta));
+                                        $clave = (string) $campo['key'];
+                                        $tipoCampo = (string) ($campo['type'] ?? 'texto');
+                                        $requerido = (bool) ($campo['required'] ?? false);
+
+                                        $opciones = is_array($campo['options'] ?? null)
+                                            ? $campo['options']
+                                            : [];
+
+                                        $idCampo = 'producto-'
+                                            . $item->id_item_actividad
+                                            . '-campo-'
+                                            . $loop->index;
                                     @endphp
-                                    <article class="sidan-producto overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/50 dark:border-white/10 dark:bg-white/[0.025] {{ $loop->index >= 6 ? 'hidden' : '' }}" data-product-index="{{ $loop->index }}">
-                                        <div class="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-white/5">
-                                            <img src="{{ $imagenItem }}" alt="{{ $item->nombre }}" class="h-full w-full object-cover transition duration-300 hover:scale-[1.03]" loading="lazy">
-                                            <span class="absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-black backdrop-blur {{ $disponibleItem ? 'bg-emerald-500/90 text-white' : 'bg-slate-900/75 text-white' }}">{{ $disponibleItem ? 'Disponible' : 'Fuera de fecha' }}</span>
-                                        </div>
-                                        <div class="p-4">
-                                            <p class="text-[11px] font-black uppercase tracking-wide text-sidan-500">{{ ucfirst($item->tipo) }}</p>
-                                            <h3 class="mt-1 line-clamp-2 font-black text-sidan-900 dark:text-white">{{ $item->nombre }}</h3>
-                                            @if ($item->descripcion)
-                                                <p class="mt-2 line-clamp-2 text-sm leading-5 text-slate-500 dark:text-slate-400">{{ $item->descripcion }}</p>
+
+                                    <div class="{{ $tipoCampo === 'texto' ? 'sm:col-span-2' : '' }}">
+                                        <label
+                                            for="{{ $idCampo }}"
+                                            class="mb-1.5 block text-sm font-bold text-sidan-900 dark:text-white"
+                                        >
+                                            {{ $campo['label'] ?? ucfirst($clave) }}
+
+                                            @if ($requerido)
+                                                <span class="text-red-600">*</span>
                                             @endif
-                                            <div class="mt-4 flex items-end justify-between gap-3 border-t border-slate-200 pt-4 dark:border-white/10">
-                                                <div>
-                                                    <p class="text-[10px] font-bold uppercase text-slate-400">Desde</p>
-                                                    <p class="text-lg font-black text-sidan-900 dark:text-white">${{ number_format((float) $item->precio, 2) }}</p>
-                                                </div>
-                                                @if ($item->variantes->isNotEmpty())
-                                                    <span class="text-xs font-bold text-slate-400">{{ $item->variantes->count() }} variante{{ $item->variantes->count() === 1 ? '' : 's' }}</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </article>
+                                        </label>
+
+                                        @if ($tipoCampo === 'lista')
+                                            <select
+                                                id="{{ $idCampo }}"
+                                                data-campo-clave="{{ $clave }}"
+                                                data-requerido="{{ $requerido ? '1' : '0' }}"
+                                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-white/20 dark:bg-sidan-950 dark:text-white"
+                                                @disabled(!$puedeConfigurar)
+                                            >
+                                                <option value="">Selecciona una opción</option>
+
+                                                @foreach ($opciones as $opcion)
+                                                    <option value="{{ $opcion }}">
+                                                        {{ $opcion }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+
+                                        @elseif ($tipoCampo === 'texto')
+                                            <input
+                                                id="{{ $idCampo }}"
+                                                type="text"
+                                                maxlength="200"
+                                                data-campo-clave="{{ $clave }}"
+                                                data-requerido="{{ $requerido ? '1' : '0' }}"
+                                                placeholder="Escribe {{ strtolower($campo['label'] ?? $clave) }}"
+                                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-white/20 dark:bg-sidan-950 dark:text-white"
+                                                @disabled(!$puedeConfigurar)
+                                            >
+
+                                        @else
+                                            <p class="text-xs text-amber-700">
+                                                Tipo de campo no disponible:
+                                                {{ $tipoCampo }}
+                                            </p>
+                                        @endif
+                                    </div>
                                 @endforeach
                             </div>
+                        @endif
 
-                            @if ($items->count() > 6)
-                                <div class="mt-6 text-center">
-                                    <button type="button" id="btnMasProductos" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-black text-sidan-900 transition hover:border-sidan-500 hover:text-sidan-500 dark:border-white/10 dark:text-white">Mostrar más productos</button>
+                        <div class="mt-auto pt-5">
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/10">
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                        Precio unitario
+                                    </p>
+
+                                    <p
+                                        class="text-2xl font-black text-red-700 dark:text-red-400"
+                                        data-precio-unitario
+                                    >
+                                        ${{ number_format((float) $item->precio, 2) }}
+                                    </p>
                                 </div>
-                            @endif
+
+                                <div
+                                    class="flex items-center rounded-full border border-slate-200 dark:border-white/20"
+                                    data-cantidad-control
+                                >
+                                    <button
+                                        type="button"
+                                        data-restar
+                                        disabled
+                                        class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
+                                        aria-label="Restar cantidad"
+                                    >
+                                        −
+                                    </button>
+
+                                    <output
+                                        data-cantidad
+                                        class="min-w-7 text-center text-sm font-black dark:text-white"
+                                    >
+                                        0
+                                    </output>
+
+                                    <button
+                                        type="button"
+                                        data-sumar
+                                        class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
+                                        @disabled(!$puedeConfigurar)
+                                        aria-label="Sumar cantidad"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p
+                                class="mt-2 text-xs text-slate-500 dark:text-slate-400"
+                                data-disponibilidad
+                            >
+                                {{ $puedeConfigurar
+                                    ? 'Configura el producto para continuar.'
+                                    : 'No disponible actualmente.' }}
+                            </p>
+
+                            <p
+                                class="mt-2 hidden text-xs font-semibold text-red-600"
+                                data-error
+                                role="alert"
+                            ></p>
+
+                            <button
+                                type="button"
+                                data-agregar-configuracion
+                                class="mt-4 w-full rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                @disabled(!$puedeConfigurar)
+                            >
+                                Agregar configuración
+                            </button>
+
+                            <div
+                                class="mt-4 hidden rounded-xl bg-slate-50 p-3 dark:bg-white/5"
+                                data-resumen-configuraciones
+                            >
+                                <p class="mb-2 text-sm font-black text-sidan-900 dark:text-white">
+                                    Configuraciones preparadas
+                                </p>
+
+                                <div
+                                    class="space-y-2"
+                                    data-lineas-configuracion
+                                ></div>
+
+                                <p class="mt-3 border-t border-slate-200 pt-2 text-sm font-black text-sidan-900 dark:border-white/10 dark:text-white">
+                                    Subtotal:
+                                    <span data-subtotal>$0.00</span>
+                                </p>
+                            </div>
                         </div>
-                    </section>
-                @endif
+                    </div>
+                </article>
+            @endforeach
+        </div>
+
+        @if ($items->count() > 6)
+            <div class="mt-7 text-center">
+                <button
+                    type="button"
+                    id="btnMasProductos"
+                    class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-black text-sidan-900 dark:text-white"
+                >
+                    Mostrar más productos
+                </button>
+            </div>
+        @endif
+
+        <p class="mt-6 text-xs leading-5 text-slate-500 dark:text-slate-400">
+            Las configuraciones de esta pantalla son una preparación visual:
+            aún no generan una orden ni reservan existencias.
+        </p>
+    </div>
+</section>
+@endif
+
 
                 @if ($promociones->isNotEmpty())
                     <section class="sidan-panel hidden" data-panel="promociones">
@@ -548,6 +788,295 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     configurarMostrarMas('.sidan-producto', 'btnMasProductos', 6);
+
+    // Configurador visual de productos.
+    // No registra pedidos ni persiste selecciones.
+    document.querySelectorAll('[data-producto-config]').forEach(tarjeta => {
+
+        const reglas = JSON.parse(tarjeta.dataset.reglas || '[]');
+        const variantes = JSON.parse(tarjeta.dataset.variantes || '[]');
+
+        const selectorVariante = tarjeta.querySelector('[data-variante]');
+        const campos = Array.from(
+            tarjeta.querySelectorAll('[data-campo-clave]')
+        );
+
+        const sumar = tarjeta.querySelector('[data-sumar]');
+        const restar = tarjeta.querySelector('[data-restar]');
+        const cantidadTexto = tarjeta.querySelector('[data-cantidad]');
+        const precioTexto = tarjeta.querySelector('[data-precio-unitario]');
+        const errorTexto = tarjeta.querySelector('[data-error]');
+        const botonAgregar = tarjeta.querySelector('[data-agregar-configuracion]');
+
+        const contenedorResumen = tarjeta.querySelector(
+            '[data-resumen-configuraciones]'
+        );
+
+        const lineasContenedor = tarjeta.querySelector(
+            '[data-lineas-configuracion]'
+        );
+
+        const subtotalTexto = tarjeta.querySelector('[data-subtotal]');
+
+        const disponibilidadTexto = tarjeta.querySelector(
+            '[data-disponibilidad]'
+        );
+
+        const limiteItem = tarjeta.dataset.maximo === ''
+            ? Infinity
+            : Number(tarjeta.dataset.maximo);
+
+        const stockItem = tarjeta.dataset.stock === ''
+            ? Infinity
+            : Number(tarjeta.dataset.stock);
+
+        const minimo = Number(tarjeta.dataset.minimo || 1);
+
+        const configuraciones = [];
+
+        let cantidad = 0;
+
+        const dinero = valor => '$' + Number(valor).toFixed(2);
+
+        const varianteElegida = () => variantes.find(
+            variante => String(variante.id) === selectorVariante?.value
+        );
+
+        const unidadesPreparadas = () => configuraciones.reduce(
+            (total, linea) => total + linea.cantidad,
+            0
+        );
+
+        const stockVariantePreparado = id => configuraciones
+            .filter(linea => linea.varianteId === id)
+            .reduce((total, linea) => total + linea.cantidad, 0);
+
+        function precioActual() {
+            let precio = Number(tarjeta.dataset.precioBase);
+
+            const valores = Object.fromEntries(
+                campos.map(campo => [
+                    campo.dataset.campoClave,
+                    campo.value
+                ])
+            );
+
+            reglas.forEach(regla => {
+                if (
+                    String(valores[regla.field_key] ?? '') ===
+                    String(regla.option ?? '')
+                ) {
+                    precio += Number(regla.price_increment || 0);
+                }
+            });
+
+            return Math.max(0, Math.round(precio * 100) / 100);
+        }
+
+        function limiteActual() {
+            return Math.max(
+                0,
+                Math.min(limiteItem, stockItem) - unidadesPreparadas()
+            );
+        }
+
+        function validar() {
+            for (const campo of campos) {
+                if (
+                    campo.dataset.requerido === '1' &&
+                    !campo.value.trim()
+                ) {
+                    return `Completa el campo ${campo.dataset.campoClave}.`;
+                }
+            }
+
+            return '';
+        }
+
+        function mostrarError(mensaje) {
+            errorTexto.textContent = mensaje;
+            errorTexto.classList.toggle('hidden', !mensaje);
+        }
+
+        function refrescar() {
+            precioTexto.textContent = dinero(precioActual());
+
+            const limite = limiteActual();
+
+            if (cantidad > limite) {
+                cantidad = limite >= minimo ? limite : 0;
+            }
+
+            cantidadTexto.textContent = cantidad;
+
+            restar.disabled = cantidad === 0;
+
+            sumar.disabled =
+                sumar.dataset.bloqueado === '1'
+                || limite < minimo
+                || cantidad >= limite;
+        }
+
+        function renderResumen() {
+            lineasContenedor.replaceChildren();
+
+            configuraciones.forEach((linea, indice) => {
+                const fila = document.createElement('div');
+
+                fila.className =
+                    'flex items-start justify-between gap-2 ' +
+                    'rounded-lg border border-slate-200 p-2 ' +
+                    'text-xs dark:border-white/10';
+
+                const texto = document.createElement('span');
+
+                const detalle = Object.entries(linea.campos)
+                    .map(([clave, valor]) => `${clave}: ${valor}`)
+                    .join(' · ');
+
+                texto.textContent =
+                    `${linea.cantidad} × ` +
+                    `${detalle} — ` +
+                    dinero(linea.precio * linea.cantidad);
+
+                const quitar = document.createElement('button');
+
+                quitar.type = 'button';
+                quitar.className = 'shrink-0 font-black text-red-700';
+                quitar.textContent = 'Quitar';
+
+                quitar.addEventListener('click', () => {
+                    configuraciones.splice(indice, 1);
+
+                    renderResumen();
+                    refrescar();
+                });
+
+                fila.append(texto, quitar);
+                lineasContenedor.append(fila);
+            });
+
+            contenedorResumen.classList.toggle(
+                'hidden',
+                configuraciones.length === 0
+            );
+
+            const subtotal = configuraciones.reduce(
+                (total, linea) => total + linea.precio * linea.cantidad,
+                0
+            );
+
+            subtotalTexto.textContent = dinero(subtotal);
+
+            const unidades = unidadesPreparadas();
+
+            if (disponibilidadTexto && botonAgregar.disabled === false) {
+                disponibilidadTexto.textContent = unidades > 0
+                    ? `${unidades} unidad${unidades === 1 ? '' : 'es'} preparada${unidades === 1 ? '' : 's'}.`
+                    : 'Configura el producto para continuar.';
+            }
+        }
+
+        sumar.dataset.bloqueado = sumar.disabled ? '1' : '0';
+
+        sumar.addEventListener('click', () => {
+            mostrarError('');
+
+            if (cantidad === 0) {
+                if (limiteActual() >= minimo) {
+                    cantidad = minimo;
+                }
+            } else if (cantidad < limiteActual()) {
+                cantidad++;
+            }
+
+            refrescar();
+        });
+
+        restar.addEventListener('click', () => {
+            cantidad = cantidad <= minimo
+                ? 0
+                : cantidad - 1;
+
+            refrescar();
+        });
+
+        [...campos, selectorVariante]
+            .filter(Boolean)
+            .forEach(campo => {
+                campo.addEventListener('change', () => {
+                    mostrarError('');
+                    refrescar();
+                });
+            });
+
+        campos.forEach(campo => {
+            campo.addEventListener('change', () => {
+                mostrarError('');
+                refrescar();
+            });
+
+            campo.addEventListener('input', () => {
+                mostrarError('');
+                refrescar();
+            });
+        });
+
+        botonAgregar.addEventListener('click', () => {
+            const error = validar();
+
+            if (error) {
+                mostrarError(error);
+                return;
+            }
+
+            if (cantidad < minimo) {
+                mostrarError(
+                    `Selecciona al menos ${minimo} unidad(es).`
+                );
+                return;
+            }
+
+            if (cantidad > limiteActual()) {
+                mostrarError(
+                    'La cantidad supera el stock o límite disponible.'
+                );
+
+                refrescar();
+                return;
+            }
+
+            const variante = varianteElegida();
+
+            configuraciones.push({
+                idItem: Number(tarjeta.dataset.itemId),
+                campos: Object.fromEntries(
+                    campos.map(campo => [
+                        campo.dataset.campoClave,
+                        campo.value.trim()
+                    ])
+                ),
+                cantidad,
+                precio: precioActual()
+            });
+
+            cantidad = 0;
+
+            campos.forEach(campo => {
+                campo.value = '';
+            });
+
+            if (selectorVariante) {
+                selectorVariante.value = '';
+            }
+
+            mostrarError('');
+            renderResumen();
+            refrescar();
+        });
+
+        refrescar();
+    });
 
     const tabsDia = Array.from(document.querySelectorAll('.sidan-dia-tab'));
     const panelesDia = Array.from(document.querySelectorAll('.sidan-dia-panel'));
