@@ -1,0 +1,1433 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Actividad;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+
+class CompraActividadController extends Controller
+{
+    public function store(
+        Request $request,
+        Actividad $actividad
+    ) {
+        $usuario = $request->user();
+
+        if (!$usuario) {
+            return redirect()
+                ->route('login')
+                ->with(
+                    'error',
+                    'Debés iniciar sesión para realizar una compra.'
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validar actividad
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $actividad->estado_publicacion !== 'publicada' ||
+            $actividad->visibilidad !== 'publica'
+        ) {
+            throw ValidationException::withMessages([
+                'compra' =>
+                    'La actividad no está disponible.',
+            ]);
+        }
+
+        if (
+            $actividad->estado_operativo !== 'normal'
+        ) {
+            throw ValidationException::withMessages([
+                'compra' =>
+                    'La actividad no acepta compras en este momento.',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Recibir selecciones
+        |--------------------------------------------------------------------------
+        */
+
+        $selecciones = json_decode(
+            (string) $request->input(
+                'selecciones',
+                ''
+            ),
+            true
+        );
+
+        if (
+            !is_array($selecciones) ||
+            count($selecciones) === 0
+        ) {
+            throw ValidationException::withMessages([
+                'compra' =>
+                    'Agregá al menos un producto antes de continuar.',
+            ]);
+        }
+
+        Validator::make(
+            [
+                'selecciones' =>
+                    $selecciones,
+            ],
+            [
+                'selecciones' => [
+                    'required',
+                    'array',
+                    'min:1',
+                    'max:50',
+                ],
+
+                'selecciones.*.id_item' => [
+                    'required',
+                    'integer',
+                    'min:1',
+                ],
+
+                'selecciones.*.id_variante' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                ],
+
+                'selecciones.*.cantidad' => [
+                    'required',
+                    'integer',
+                    'min:1',
+                ],
+
+                'selecciones.*.campos' => [
+                    'nullable',
+                    'array',
+                    'max:20',
+                ],
+            ]
+        )->validate();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Datos del usuario
+        |--------------------------------------------------------------------------
+        */
+
+        $usuario->loadMissing(
+            'informacion_personal'
+        );
+
+        $correoUsuario = strtolower(
+            trim(
+                (string) $usuario->correo
+            )
+        );
+
+        $idUsuario =
+            (int) $usuario->id_usuario;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Crear orden
+        |--------------------------------------------------------------------------
+        */
+
+        $resultado = DB::transaction(
+            function () use ($actividad, $selecciones, $correoUsuario, $idUsuario) {
+                $ahoraUtc =
+                    now('UTC');
+
+                /*
+                |--------------------------------------------------------------------------
+                | Bloquear actividad durante la operación
+                |--------------------------------------------------------------------------
+                */
+
+                $actividadBloqueada =
+                    DB::table(
+                        'tbl_actividades'
+                    )
+                        ->where(
+                            'id_actividad',
+                            $actividad->id_actividad
+                        )
+                        ->lockForUpdate()
+                        ->first();
+
+                if (!$actividadBloqueada) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            'La actividad ya no existe.',
+                    ]);
+                }
+
+                if (
+                    $actividadBloqueada->estado_publicacion !==
+                    'publicada' ||
+                    $actividadBloqueada->estado_operativo !==
+                    'normal'
+                ) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            'La actividad ya no acepta compras.',
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Buscar inscripción CONFIRMADA
+                |--------------------------------------------------------------------------
+                |
+                | La compra de productos nunca crea una inscripción nueva.
+                |
+                | Primero debe existir una inscripción:
+                |
+                | confirmada
+                | confirmada_prueba
+                |
+                */
+
+                $inscripcion =
+                    DB::table(
+                        'tbl_inscripciones'
+                    )
+                        ->where(
+                            'id_actividad',
+                            $actividad->id_actividad
+                        )
+                        ->where(
+                            function ($query) use ($idUsuario, $correoUsuario) {
+                                $query
+                                    ->where(
+                                        'id_usuario',
+                                        $idUsuario
+                                    )
+                                    ->orWhereRaw(
+                                        'lower(correo_participante) = ?',
+                                        [
+                                            $correoUsuario,
+                                        ]
+                                    );
+                            }
+                        )
+                        ->whereIn(
+                            'estado',
+                            [
+                                'confirmada',
+                                'confirmada_prueba',
+                            ]
+                        )
+                        ->orderByDesc(
+                            'id_inscripcion'
+                        )
+                        ->lockForUpdate()
+                        ->first();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Si todavía no está confirmada
+                |--------------------------------------------------------------------------
+                */
+
+                if (!$inscripcion) {
+                    $inscripcionPendiente =
+                        DB::table(
+                            'tbl_inscripciones'
+                        )
+                            ->where(
+                                'id_actividad',
+                                $actividad->id_actividad
+                            )
+                            ->where(
+                                function ($query) use ($idUsuario, $correoUsuario) {
+                                    $query
+                                        ->where(
+                                            'id_usuario',
+                                            $idUsuario
+                                        )
+                                        ->orWhereRaw(
+                                            'lower(correo_participante) = ?',
+                                            [
+                                                $correoUsuario,
+                                            ]
+                                        );
+                                }
+                            )
+                            ->whereIn(
+                                'estado',
+                                [
+                                    'pendiente_pago',
+                                    'revision_cupo',
+                                ]
+                            )
+                            ->orderByDesc(
+                                'id_inscripcion'
+                            )
+                            ->first();
+
+                    if (
+                        $inscripcionPendiente &&
+                        $inscripcionPendiente->estado ===
+                        'pendiente_pago'
+                    ) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                'Primero debés completar el pago de tu inscripción antes de comprar productos.',
+                        ]);
+                    }
+
+                    if (
+                        $inscripcionPendiente &&
+                        $inscripcionPendiente->estado ===
+                        'revision_cupo'
+                    ) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                'Tu inscripción está en revisión. Esperá su confirmación antes de comprar productos.',
+                        ]);
+                    }
+
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            'Primero debés inscribirte en la actividad antes de comprar productos.',
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Marcar órdenes de productos vencidas
+                |--------------------------------------------------------------------------
+                |
+                | Esto permite volver a realizar una compra cuando la orden anterior
+                | ya superó sus 30 minutos.
+                |
+                */
+
+                DB::table(
+                    'tbl_ordenes'
+                )
+                    ->where(
+                        'id_inscripcion',
+                        $inscripcion->id_inscripcion
+                    )
+                    ->where(
+                        'tipo_orden',
+                        'productos'
+                    )
+                    ->where(
+                        'estado',
+                        'pendiente_pago'
+                    )
+                    ->whereNotNull(
+                        'expira_en'
+                    )
+                    ->where(
+                        'expira_en',
+                        '<=',
+                        $ahoraUtc
+                    )
+                    ->update([
+                        'estado' =>
+                            'vencida',
+
+                        'updated_at' =>
+                            $ahoraUtc,
+                    ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Revisar si ya existe una compra pendiente
+                |--------------------------------------------------------------------------
+                |
+                | Evitamos crear dos órdenes de productos activas simultáneamente
+                | para la misma inscripción.
+                |
+                */
+
+                $ordenPendiente =
+                    DB::table(
+                        'tbl_ordenes'
+                    )
+                        ->where(
+                            'id_inscripcion',
+                            $inscripcion->id_inscripcion
+                        )
+                        ->where(
+                            'tipo_orden',
+                            'productos'
+                        )
+                        ->where(
+                            'estado',
+                            'pendiente_pago'
+                        )
+                        ->where(
+                            function ($query) use ($ahoraUtc) {
+                                $query
+                                    ->whereNull(
+                                        'expira_en'
+                                    )
+                                    ->orWhere(
+                                        'expira_en',
+                                        '>',
+                                        $ahoraUtc
+                                    );
+                            }
+                        )
+                        ->orderByDesc(
+                            'id_orden'
+                        )
+                        ->first();
+
+                if ($ordenPendiente) {
+                    return [
+                        'id_orden' =>
+                            $ordenPendiente->id_orden,
+
+                        'existente' =>
+                            true,
+                    ];
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Obtener productos
+                |--------------------------------------------------------------------------
+                */
+
+                $idsItems =
+                    collect($selecciones)
+                        ->pluck(
+                            'id_item'
+                        )
+                        ->map(
+                            fn($id) =>
+                                (int) $id
+                        )
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                $items =
+                    DB::table(
+                        'tbl_items_actividad'
+                    )
+                        ->where(
+                            'id_actividad',
+                            $actividad->id_actividad
+                        )
+                        ->whereIn(
+                            'id_item_actividad',
+                            $idsItems
+                        )
+                        ->where(
+                            'activo',
+                            true
+                        )
+                        ->lockForUpdate()
+                        ->get()
+                        ->keyBy(
+                            'id_item_actividad'
+                        );
+
+                if (
+                    $items->count() !==
+                    count($idsItems)
+                ) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            'Uno de los productos seleccionados ya no está disponible.',
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Obtener variantes
+                |--------------------------------------------------------------------------
+                */
+
+                $variantes =
+                    DB::table(
+                        'tbl_variantes_item'
+                    )
+                        ->whereIn(
+                            'id_item_actividad',
+                            $idsItems
+                        )
+                        ->where(
+                            'activo',
+                            true
+                        )
+                        ->lockForUpdate()
+                        ->get()
+                        ->groupBy(
+                            'id_item_actividad'
+                        );
+
+                $lineas = [];
+
+                $cantidadesPorItem = [];
+
+                $cantidadesPorVariante = [];
+
+                /*
+                |--------------------------------------------------------------------------
+                | Validar cada producto seleccionado
+                |--------------------------------------------------------------------------
+                */
+
+                foreach (
+                    $selecciones as $seleccion
+                ) {
+                    $idItem =
+                        (int) $seleccion[
+                            'id_item'
+                        ];
+
+                    $cantidad =
+                        (int) $seleccion[
+                            'cantidad'
+                        ];
+
+                    $item =
+                        $items->get(
+                            $idItem
+                        );
+
+                    if (!$item) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                'Producto inválido.',
+                        ]);
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Fechas de venta
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $item->venta_desde &&
+                        $ahoraUtc->lt(
+                            Carbon::parse(
+                                $item->venta_desde
+                            )
+                        )
+                    ) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                "El producto {$item->nombre} todavía no está a la venta.",
+                        ]);
+                    }
+
+                    if (
+                        $item->venta_hasta &&
+                        $ahoraUtc->gt(
+                            Carbon::parse(
+                                $item->venta_hasta
+                            )
+                        )
+                    ) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                "La venta de {$item->nombre} ya finalizó.",
+                        ]);
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Cantidad mínima
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $minimo = max(
+                        1,
+                        (int) (
+                            $item->min_por_inscripcion
+                            ?? 1
+                        )
+                    );
+
+                    if (
+                        $cantidad <
+                        $minimo
+                    ) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                "{$item->nombre} requiere al menos {$minimo} unidad(es).",
+                        ]);
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Acumular cantidad del producto
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $cantidadesPorItem[
+                        $idItem
+                    ] =
+                        (
+                            $cantidadesPorItem[
+                                $idItem
+                            ]
+                            ?? 0
+                        ) +
+                        $cantidad;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Variante
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $variantesItem =
+                        $variantes->get(
+                            $idItem,
+                            collect()
+                        );
+
+                    $idVariante =
+                        !empty(
+                        $seleccion[
+                            'id_variante'
+                        ]
+                    )
+                        ? (int) $seleccion[
+                            'id_variante'
+                        ]
+                        : null;
+
+                    $variante =
+                        null;
+
+                    if (
+                        $variantesItem->isNotEmpty()
+                    ) {
+                        if (!$idVariante) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    "Seleccioná una variante para {$item->nombre}.",
+                            ]);
+                        }
+
+                        $variante =
+                            $variantesItem
+                                ->firstWhere(
+                                    'id_variante_item',
+                                    $idVariante
+                                );
+
+                        if (!$variante) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    "La variante seleccionada para {$item->nombre} no es válida.",
+                            ]);
+                        }
+
+                        $cantidadesPorVariante[
+                            $idVariante
+                        ] =
+                            (
+                                $cantidadesPorVariante[
+                                    $idVariante
+                                ]
+                                ?? 0
+                            ) +
+                            $cantidad;
+                    } elseif ($idVariante) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                "{$item->nombre} no utiliza variantes.",
+                        ]);
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Campos configurables
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $campos =
+                        $this->limpiarCampos(
+                            $seleccion[
+                                'campos'
+                            ]
+                            ?? []
+                        );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Precio REAL
+                    |--------------------------------------------------------------------------
+                    |
+                    | No usamos ningún precio enviado por JavaScript.
+                    |
+                    | El precio sale de:
+                    |
+                    | tbl_variantes_item
+                    | o
+                    | tbl_items_actividad
+                    |
+                    */
+
+                    $precioUnitario =
+                        $variante &&
+                        $variante->precio !==
+                        null
+                        ? (float) $variante
+                            ->precio
+                        : (float) $item
+                            ->precio;
+
+                    $subtotal =
+                        round(
+                            $precioUnitario *
+                            $cantidad,
+                            2
+                        );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Nombre del concepto
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $nombreConcepto =
+                        $item->nombre;
+
+                    if ($variante) {
+                        $nombreConcepto .=
+                            ' - ' .
+                            $variante
+                                ->nombre_variante;
+                    }
+
+                    if (
+                        count($campos) > 0
+                    ) {
+                        $descripcion =
+                            collect($campos)
+                                ->map(
+                                    fn(
+                                    $valor,
+                                    $clave
+                                ) =>
+                                        $clave .
+                                        ': ' .
+                                        $valor
+                                )
+                                ->implode(
+                                    ', '
+                                );
+
+                        $nombreConcepto .=
+                            ' (' .
+                            $descripcion .
+                            ')';
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Tipo de concepto
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $tipoConcepto =
+                        in_array(
+                            $item->tipo,
+                            [
+                                'producto',
+                                'servicio',
+                            ],
+                            true
+                        )
+                        ? $item->tipo
+                        : 'producto';
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Preparar línea
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $lineas[] = [
+                        'id_item_actividad' =>
+                            $idItem,
+
+                        'id_variante_item' =>
+                            $variante
+                            ? (int) $variante
+                                ->id_variante_item
+                            : null,
+
+                        'tipo_concepto' =>
+                            $tipoConcepto,
+
+                        'nombre_concepto' =>
+                            $nombreConcepto,
+
+                        'cantidad' =>
+                            $cantidad,
+
+                        'precio_unitario' =>
+                            number_format(
+                                $precioUnitario,
+                                2,
+                                '.',
+                                ''
+                            ),
+
+                        'subtotal' =>
+                            number_format(
+                                $subtotal,
+                                2,
+                                '.',
+                                ''
+                            ),
+
+                        'configuracion' =>
+                            count($campos) > 0
+                            ? json_encode(
+                                $campos,
+                                JSON_UNESCAPED_UNICODE
+                            )
+                            : null,
+                    ];
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Validar máximos y stock
+                |--------------------------------------------------------------------------
+                */
+
+                foreach (
+                    $cantidadesPorItem
+                    as $idItem =>
+                    $cantidadSolicitada
+                ) {
+                    $item =
+                        $items->get(
+                            $idItem
+                        );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Máximo acumulado de la inscripción
+                    |--------------------------------------------------------------------------
+                    |
+                    | Si el usuario compra el mismo producto en varias órdenes,
+                    | seguimos respetando max_por_inscripcion.
+                    |
+                    */
+
+                    $compradoEnInscripcion =
+                        $this
+                            ->cantidadComprometidaInscripcionItem(
+                                (int) $inscripcion
+                                    ->id_inscripcion,
+                                $idItem
+                            );
+
+                    if (
+                        $item->max_por_inscripcion !==
+                        null &&
+                        (
+                            $compradoEnInscripcion +
+                            $cantidadSolicitada
+                        ) >
+                        (int) $item
+                            ->max_por_inscripcion
+                    ) {
+                        throw ValidationException::withMessages([
+                            'compra' =>
+                                "Superaste el máximo permitido de {$item->nombre} para esta inscripción.",
+                        ]);
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Stock global del producto
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $item->stock_total !==
+                        null
+                    ) {
+                        $comprometido =
+                            $this
+                                ->cantidadComprometidaItem(
+                                    $idItem
+                                );
+
+                        $disponible =
+                            (int) $item
+                                ->stock_total -
+                            $comprometido;
+
+                        if (
+                            $cantidadSolicitada >
+                            $disponible
+                        ) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    "No hay suficiente stock de {$item->nombre}.",
+                            ]);
+                        }
+                    }
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Stock de variantes
+                |--------------------------------------------------------------------------
+                */
+
+                foreach (
+                    $cantidadesPorVariante
+                    as $idVariante =>
+                    $cantidadSolicitada
+                ) {
+                    $variante =
+                        $variantes
+                            ->flatten(1)
+                            ->firstWhere(
+                                'id_variante_item',
+                                $idVariante
+                            );
+
+                    if (
+                        $variante &&
+                        $variante->stock_total !==
+                        null
+                    ) {
+                        $comprometido =
+                            $this
+                                ->cantidadComprometidaVariante(
+                                    $idVariante
+                                );
+
+                        $disponible =
+                            (int) $variante
+                                ->stock_total -
+                            $comprometido;
+
+                        if (
+                            $cantidadSolicitada >
+                            $disponible
+                        ) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    "No hay suficiente stock de {$variante->nombre_variante}.",
+                            ]);
+                        }
+                    }
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Calcular total
+                |--------------------------------------------------------------------------
+                */
+
+                $subtotalOrden =
+                    round(
+                        collect(
+                            $lineas
+                        )->sum(
+                                fn($linea) =>
+                                    (float) $linea[
+                                        'subtotal'
+                                    ]
+                            ),
+                        2
+                    );
+
+                if (
+                    $subtotalOrden <= 0
+                ) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            'La compra no tiene un monto válido.',
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Vencimiento
+                |--------------------------------------------------------------------------
+                |
+                | MUY IMPORTANTE:
+                |
+                | Utilizamos UTC para que coincida con el tratamiento de
+                | timestampTz y con el flujo de inscripciones.
+                |
+                */
+
+                $expiraEn =
+                    $ahoraUtc
+                        ->copy()
+                        ->addMinutes(
+                            30
+                        );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Crear orden de productos
+                |--------------------------------------------------------------------------
+                */
+
+                $idOrden =
+                    DB::table(
+                        'tbl_ordenes'
+                    )
+                        ->insertGetId(
+                            [
+                                'id_actividad' =>
+                                    $actividad
+                                        ->id_actividad,
+
+                                /*
+                                 * Relacionamos esta compra
+                                 * con la inscripción existente.
+                                 */
+                                'id_inscripcion' =>
+                                    $inscripcion
+                                        ->id_inscripcion,
+
+                                'id_usuario' =>
+                                    $idUsuario,
+
+                                'tipo_orden' =>
+                                    'productos',
+
+                                'correo_contacto' =>
+                                    $correoUsuario,
+
+                                'moneda' =>
+                                    'USD',
+
+                                'subtotal' =>
+                                    number_format(
+                                        $subtotalOrden,
+                                        2,
+                                        '.',
+                                        ''
+                                    ),
+
+                                'descuento_total' =>
+                                    '0.00',
+
+                                'total' =>
+                                    number_format(
+                                        $subtotalOrden,
+                                        2,
+                                        '.',
+                                        ''
+                                    ),
+
+                                'estado' =>
+                                    'pendiente_pago',
+
+                                'expira_en' =>
+                                    $expiraEn,
+
+                                'created_at' =>
+                                    $ahoraUtc,
+
+                                'updated_at' =>
+                                    $ahoraUtc,
+                            ],
+                            'id_orden'
+                        );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Crear detalles de la orden
+                |--------------------------------------------------------------------------
+                */
+
+                foreach (
+                    $lineas as $linea
+                ) {
+                    DB::table(
+                        'tbl_detalles_orden'
+                    )->insert([
+                                'id_orden' =>
+                                    $idOrden,
+
+                                'id_item_actividad' =>
+                                    $linea[
+                                        'id_item_actividad'
+                                    ],
+
+                                'id_variante_item' =>
+                                    $linea[
+                                        'id_variante_item'
+                                    ],
+
+                                'tipo_concepto' =>
+                                    $linea[
+                                        'tipo_concepto'
+                                    ],
+
+                                'nombre_concepto' =>
+                                    $linea[
+                                        'nombre_concepto'
+                                    ],
+
+                                'cantidad' =>
+                                    $linea[
+                                        'cantidad'
+                                    ],
+
+                                'precio_unitario' =>
+                                    $linea[
+                                        'precio_unitario'
+                                    ],
+
+                                'subtotal' =>
+                                    $linea[
+                                        'subtotal'
+                                    ],
+
+                                'configuracion' =>
+                                    $linea[
+                                        'configuracion'
+                                    ],
+
+                                'created_at' =>
+                                    $ahoraUtc,
+
+                                'updated_at' =>
+                                    $ahoraUtc,
+                            ]);
+                }
+
+                return [
+                    'id_orden' =>
+                        $idOrden,
+
+                    'existente' =>
+                        false,
+                ];
+            },
+            3
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ir al resumen de compra
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route(
+                'sidan.ordenes.show',
+                $resultado[
+                    'id_orden'
+                ]
+            )
+            ->with(
+                'success',
+                $resultado[
+                    'existente'
+                ]
+                ? 'Ya tenés una compra pendiente para esta actividad.'
+                : 'Compra preparada correctamente. Revisá tu orden antes de pagar.'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Limpiar configuraciones recibidas
+    |--------------------------------------------------------------------------
+    */
+
+    private function limpiarCampos(
+        mixed $campos
+    ): array {
+        if (!is_array($campos)) {
+            return [];
+        }
+
+        $resultado = [];
+
+        foreach (
+            array_slice(
+                $campos,
+                0,
+                20,
+                true
+            ) as $clave => $valor
+        ) {
+            if (
+                !is_string($clave) ||
+                (
+                    !is_string($valor) &&
+                    !is_numeric($valor)
+                )
+            ) {
+                continue;
+            }
+
+            $claveLimpia =
+                mb_substr(
+                    trim($clave),
+                    0,
+                    100
+                );
+
+            $valorLimpio =
+                mb_substr(
+                    trim(
+                        (string) $valor
+                    ),
+                    0,
+                    200
+                );
+
+            if (
+                $claveLimpia === '' ||
+                $valorLimpio === ''
+            ) {
+                continue;
+            }
+
+            $resultado[
+                $claveLimpia
+            ] =
+                $valorLimpio;
+        }
+
+        return $resultado;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stock comprometido de un producto
+    |--------------------------------------------------------------------------
+    */
+
+    private function cantidadComprometidaItem(
+        int $idItem
+    ): int {
+        $ahoraUtc =
+            now('UTC');
+
+        return (int) DB::table(
+            'tbl_detalles_orden as detalle'
+        )
+            ->join(
+                'tbl_ordenes as orden',
+                'orden.id_orden',
+                '=',
+                'detalle.id_orden'
+            )
+            ->where(
+                'detalle.id_item_actividad',
+                $idItem
+            )
+            ->where(
+                function ($query) use ($ahoraUtc) {
+                    $query
+                        ->whereIn(
+                            'orden.estado',
+                            [
+                                'pagada',
+                                'pagada_prueba',
+                                'revision_cupo',
+                            ]
+                        )
+                        ->orWhere(
+                            function ($query) use ($ahoraUtc) {
+                                $query
+                                    ->where(
+                                        'orden.estado',
+                                        'pendiente_pago'
+                                    )
+                                    ->where(
+                                        function ($query) use ($ahoraUtc) {
+                                            $query
+                                                ->whereNull(
+                                                    'orden.expira_en'
+                                                )
+                                                ->orWhere(
+                                                    'orden.expira_en',
+                                                    '>',
+                                                    $ahoraUtc
+                                                );
+                                        }
+                                    );
+                            }
+                        );
+                }
+            )
+            ->sum(
+                'detalle.cantidad'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stock comprometido de una variante
+    |--------------------------------------------------------------------------
+    */
+
+    private function cantidadComprometidaVariante(
+        int $idVariante
+    ): int {
+        $ahoraUtc =
+            now('UTC');
+
+        return (int) DB::table(
+            'tbl_detalles_orden as detalle'
+        )
+            ->join(
+                'tbl_ordenes as orden',
+                'orden.id_orden',
+                '=',
+                'detalle.id_orden'
+            )
+            ->where(
+                'detalle.id_variante_item',
+                $idVariante
+            )
+            ->where(
+                function ($query) use ($ahoraUtc) {
+                    $query
+                        ->whereIn(
+                            'orden.estado',
+                            [
+                                'pagada',
+                                'pagada_prueba',
+                                'revision_cupo',
+                            ]
+                        )
+                        ->orWhere(
+                            function ($query) use ($ahoraUtc) {
+                                $query
+                                    ->where(
+                                        'orden.estado',
+                                        'pendiente_pago'
+                                    )
+                                    ->where(
+                                        function ($query) use ($ahoraUtc) {
+                                            $query
+                                                ->whereNull(
+                                                    'orden.expira_en'
+                                                )
+                                                ->orWhere(
+                                                    'orden.expira_en',
+                                                    '>',
+                                                    $ahoraUtc
+                                                );
+                                        }
+                                    );
+                            }
+                        );
+                }
+            )
+            ->sum(
+                'detalle.cantidad'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cantidad comprada dentro de una inscripción
+    |--------------------------------------------------------------------------
+    |
+    | Ejemplo:
+    |
+    | Inscripción #5
+    |
+    | Orden #10
+    | Camiseta x1
+    |
+    | Orden #18
+    | Camiseta x1
+    |
+    | Total acumulado = 2
+    |
+    | Esto permite que max_por_inscripcion se respete entre diferentes órdenes.
+    |
+    */
+
+    private function cantidadComprometidaInscripcionItem(
+        int $idInscripcion,
+        int $idItem
+    ): int {
+        $ahoraUtc =
+            now('UTC');
+
+        return (int) DB::table(
+            'tbl_detalles_orden as detalle'
+        )
+            ->join(
+                'tbl_ordenes as orden',
+                'orden.id_orden',
+                '=',
+                'detalle.id_orden'
+            )
+            ->where(
+                'orden.id_inscripcion',
+                $idInscripcion
+            )
+            ->where(
+                'orden.tipo_orden',
+                'productos'
+            )
+            ->where(
+                'detalle.id_item_actividad',
+                $idItem
+            )
+            ->where(
+                function ($query) use ($ahoraUtc) {
+                    $query
+                        ->whereIn(
+                            'orden.estado',
+                            [
+                                'pagada',
+                                'pagada_prueba',
+                                'revision_cupo',
+                            ]
+                        )
+                        ->orWhere(
+                            function ($query) use ($ahoraUtc) {
+                                $query
+                                    ->where(
+                                        'orden.estado',
+                                        'pendiente_pago'
+                                    )
+                                    ->where(
+                                        function ($query) use ($ahoraUtc) {
+                                            $query
+                                                ->whereNull(
+                                                    'orden.expira_en'
+                                                )
+                                                ->orWhere(
+                                                    'orden.expira_en',
+                                                    '>',
+                                                    $ahoraUtc
+                                                );
+                                        }
+                                    );
+                            }
+                        );
+                }
+            )
+            ->sum(
+                'detalle.cantidad'
+            );
+    }
+}

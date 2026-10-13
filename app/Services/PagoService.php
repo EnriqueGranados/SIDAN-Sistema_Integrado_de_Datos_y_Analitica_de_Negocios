@@ -18,125 +18,351 @@ class PagoService
     ) {
     }
 
-    // Crear o recuperar un enlace para una orden pendiente.
-    public function iniciar(Orden $orden): string
-    {
-        $preparado = DB::transaction(function () use ($orden) {
-            $orden = Orden::whereKey($orden->id_orden)
-                ->lockForUpdate()
-                ->firstOrFail();
+    public function iniciar(
+        Orden $orden
+    ): string {
+        $preparado = DB::transaction(
+            function () use ($orden) {
+                $orden = Orden::whereKey(
+                    $orden->id_orden
+                )
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            if (
-                $orden->estado !== 'pendiente_pago' ||
-                ($orden->expira_en && $orden->expira_en->isPast())
-            ) {
-                throw ValidationException::withMessages([
-                    'pago' => 'Esta orden ya no acepta pagos.',
-                ]);
+                /*
+                |--------------------------------------------------------------------------
+                | Estado de orden
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $orden->estado !==
+                    'pendiente_pago' ||
+                    (
+                        $orden->expira_en &&
+                        $orden->expira_en
+                            ->isPast()
+                    )
+                ) {
+                    throw ValidationException::withMessages([
+                        'pago' =>
+                            'Esta orden ya no acepta pagos.',
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Validar tipo de orden
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    !in_array(
+                        $orden->tipo_orden,
+                        [
+                            'inscripcion',
+                            'productos',
+                        ],
+                        true
+                    )
+                ) {
+                    throw ValidationException::withMessages([
+                        'pago' =>
+                            'El tipo de orden no es válido.',
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Orden de productos
+                |--------------------------------------------------------------------------
+                |
+                | Solo puede pagarse si su inscripción continúa confirmada.
+                |
+                */
+
+                if (
+                    $orden->tipo_orden ===
+                    'productos'
+                ) {
+                    $inscripcion =
+                        $orden->inscripcion;
+
+                    if (
+                        !$inscripcion ||
+                        !in_array(
+                            $inscripcion->estado,
+                            [
+                                'confirmada',
+                                'confirmada_prueba',
+                            ],
+                            true
+                        )
+                    ) {
+                        throw ValidationException::withMessages([
+                            'pago' =>
+                                'Tu inscripción ya no permite realizar esta compra.',
+                        ]);
+                    }
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Orden de inscripción
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $orden->tipo_orden ===
+                    'inscripcion'
+                ) {
+                    $inscripcion =
+                        $orden->inscripcion;
+
+                    if (
+                        !$inscripcion ||
+                        $inscripcion->estado !==
+                        'pendiente_pago'
+                    ) {
+                        throw ValidationException::withMessages([
+                            'pago' =>
+                                'Esta inscripción ya no está pendiente de pago.',
+                        ]);
+                    }
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Un pago lógico por orden
+                |--------------------------------------------------------------------------
+                */
+
+                $pago =
+                    Pago::firstOrCreate(
+                        [
+                            'id_orden' =>
+                                $orden->id_orden,
+                        ],
+                        [
+                            'monto' =>
+                                $orden->total,
+
+                            'proveedor' =>
+                                'wompi',
+
+                            'estado' =>
+                                'pendiente',
+                        ]
+                    );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Reutilizar enlace vigente
+                |--------------------------------------------------------------------------
+                */
+
+                $existente =
+                    IntentoPagoWompi::query()
+                        ->where(
+                            'id_pago',
+                            $pago->id_pago
+                        )
+                        ->whereIn(
+                            'estado',
+                            [
+                                'creando',
+                                'pendiente',
+                            ]
+                        )
+                        ->orderByDesc(
+                            'id_intento'
+                        )
+                        ->first();
+
+                if (
+                    $existente &&
+                    $existente->url_enlace &&
+                    (
+                        !$existente->expira_en ||
+                        $existente->expira_en
+                            ->isFuture()
+                    )
+                ) {
+                    return [
+                        'url' =>
+                            $existente
+                                ->url_enlace,
+                    ];
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Evitar enlaces simultáneos
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $existente &&
+                    $existente->estado ===
+                    'creando' &&
+                    $existente->created_at
+                        ->gt(
+                            now()
+                                ->subMinutes(2)
+                        )
+                ) {
+                    throw ValidationException::withMessages([
+                        'pago' =>
+                            'Estamos preparando el enlace. Espera unos segundos.',
+                    ]);
+                }
+
+                if ($existente) {
+                    $existente->update([
+                        'estado' =>
+                            'fallido',
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Crear intento
+                |--------------------------------------------------------------------------
+                */
+
+                $intento =
+                    IntentoPagoWompi::create([
+                        'id_pago' =>
+                            $pago->id_pago,
+
+                        'referencia_comercio' =>
+                            'SIDAN-ORD-' .
+                            $orden->id_orden .
+                            '-' .
+                            Str::upper(
+                                Str::random(14)
+                            ),
+
+                        'monto_solicitado' =>
+                            $orden->total,
+
+                        'estado' =>
+                            'creando',
+
+                        'expira_en' =>
+                            $orden->expira_en,
+                    ]);
+
+                return [
+                    'intento' =>
+                        $intento
+                            ->id_intento,
+                ];
             }
+        );
 
-            // Un pago lógico por orden en esta primera versión.
-            $pago = Pago::firstOrCreate(
-                ['id_orden' => $orden->id_orden],
-                [
-                    'monto' => $orden->total,
-                    'proveedor' => 'wompi',
-                    'estado' => 'pendiente',
+        if (
+            isset(
+            $preparado['url']
+        )
+        ) {
+            return $preparado[
+                'url'
+            ];
+        }
+
+        $intento =
+            IntentoPagoWompi::findOrFail(
+                $preparado[
+                    'intento'
                 ]
             );
 
-            // Reutilizar un enlace vigente cuando ya existe.
-            $existente = IntentoPagoWompi::query()
-                ->where('id_pago', $pago->id_pago)
-                ->whereIn('estado', ['creando', 'pendiente'])
-                ->orderByDesc('id_intento')
-                ->first();
-
-            if (
-                $existente &&
-                $existente->url_enlace &&
-                (!$existente->expira_en || $existente->expira_en->isFuture())
-            ) {
-                return ['url' => $existente->url_enlace];
-            }
-
-            // Evitar generar varios enlaces simultáneamente.
-            if (
-                $existente &&
-                $existente->estado === 'creando' &&
-                $existente->created_at->gt(now()->subMinutes(2))
-            ) {
-                throw ValidationException::withMessages([
-                    'pago' => 'Estamos preparando el enlace. Espera unos segundos.',
-                ]);
-            }
-
-            if ($existente) {
-                $existente->update(['estado' => 'fallido']);
-            }
-
-            $intento = IntentoPagoWompi::create([
-                'id_pago' => $pago->id_pago,
-                'referencia_comercio' =>
-                    'SIDAN-ORD-' . $orden->id_orden . '-' .
-                    Str::upper(Str::random(14)),
-                'monto_solicitado' => $orden->total,
-                'estado' => 'creando',
-                'expira_en' => $orden->expira_en,
-            ]);
-
-            return ['intento' => $intento->id_intento];
-        });
-
-        if (isset($preparado['url'])) {
-            return $preparado['url'];
-        }
-
-        $intento = IntentoPagoWompi::findOrFail(
-            $preparado['intento']
-        );
-
-        $orden = Orden::with('actividad')
-            ->findOrFail($orden->id_orden);
+        $orden =
+            Orden::with(
+                'actividad'
+            )
+                ->findOrFail(
+                    $orden->id_orden
+                );
 
         try {
-            $webhookUrl = config('services.wompi.webhook_url');
+            /*
+            |--------------------------------------------------------------------------
+            | Webhook
+            |--------------------------------------------------------------------------
+            */
+
+            $webhookUrl =
+                config(
+                    'services.wompi.webhook_url'
+                );
 
             if (
                 !$webhookUrl ||
-                !filter_var($webhookUrl, FILTER_VALIDATE_URL)
+                !filter_var(
+                    $webhookUrl,
+                    FILTER_VALIDATE_URL
+                )
             ) {
                 throw new RuntimeException(
                     'La URL del webhook no está configurada.'
                 );
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Nombre enviado a Wompi
+            |--------------------------------------------------------------------------
+            */
 
+            $nombreProducto =
+                $orden->tipo_orden ===
+                'productos'
+                ? 'Compra: ' .
+                $orden->actividad
+                    ->nombre
+                : 'Inscripción: ' .
+                $orden->actividad
+                    ->nombre;
 
+            /*
+            |--------------------------------------------------------------------------
+            | Crear enlace Wompi
+            |--------------------------------------------------------------------------
+            */
 
+            $respuesta =
+                $this->wompi
+                    ->crearEnlacePago([
+                        'identificadorEnlaceComercio' =>
+                            $intento
+                                ->referencia_comercio,
 
-            $respuesta = $this->wompi->crearEnlacePago([
-                'identificadorEnlaceComercio' => $intento->referencia_comercio,
-                'monto' => (float) $orden->total,
-                'nombreProducto' => 'Inscripción: ' . $orden->actividad->nombre,
+                        'monto' =>
+                            (float) 
+                            $orden->total,
 
-                'configuracion' => [
-                    'urlWebhook' => config('services.wompi.webhook_url'),
+                        'nombreProducto' =>
+                            $nombreProducto,
 
-                    // Correo administrativo que recibirá el aviso.
-                    'emailsNotificacion' => config('services.wompi.notification_email'),
+                        'configuracion' => [
+                            'urlWebhook' =>
+                                $webhookUrl,
 
-                    // Correo para el cliente que paga.
-                    'notificarTransaccionCliente' => true,
-                ],
-            ]);
-
-
+                            'notificarTransaccionCliente' =>
+                                false,
+                        ],
+                    ]);
 
             if (
                 !isset(
-                $respuesta['idEnlace'],
-                $respuesta['urlEnlace']
+                $respuesta[
+                    'idEnlace'
+                ],
+                $respuesta[
+                    'urlEnlace'
+                ]
             )
             ) {
                 throw new RuntimeException(
@@ -145,46 +371,91 @@ class PagoService
             }
 
             $intento->update([
-                'id_enlace_wompi' => $respuesta['idEnlace'],
-                'url_enlace' => $respuesta['urlEnlace'],
-                'estado' => 'pendiente',
+                'id_enlace_wompi' =>
+                    $respuesta[
+                        'idEnlace'
+                    ],
+
+                'url_enlace' =>
+                    $respuesta[
+                        'urlEnlace'
+                    ],
+
+                'estado' =>
+                    'pendiente',
             ]);
 
-            return $respuesta['urlEnlace'];
-
+            return $respuesta[
+                'urlEnlace'
+            ];
         } catch (Throwable $e) {
-            // No borrar la operación: conservarla para diagnóstico.
-            $intento->update(['estado' => 'fallido']);
+            $intento->update([
+                'estado' =>
+                    'fallido',
+            ]);
 
             report($e);
 
             throw ValidationException::withMessages([
-                'pago' => 'No se pudo generar el enlace de Wompi.',
+                'pago' =>
+                    'No se pudo generar el enlace de Wompi.',
             ]);
         }
     }
 
-    // Se ejecuta solamente tras verificar la firma del webhook.
-    public function confirmarWebhook(array $datos): void
-    {
+    /*
+    |--------------------------------------------------------------------------
+    | Webhook confirmado
+    |--------------------------------------------------------------------------
+    */
+
+    public function confirmarWebhook(
+        array $datos
+    ): void {
         if (
-            ($datos['ResultadoTransaccion'] ?? null)
-            !== 'ExitosaAprobada'
+            (
+                $datos[
+                    'ResultadoTransaccion'
+                ]
+                ?? null
+            ) !==
+            'ExitosaAprobada'
         ) {
             return;
         }
 
         $referencia =
-            $datos['EnlacePago']['IdentificadorEnlaceComercio']
+            $datos[
+                'EnlacePago'
+            ][
+                'IdentificadorEnlaceComercio'
+            ]
             ?? null;
 
-        $idEnlace = $datos['EnlacePago']['Id'] ?? null;
-        $idTransaccion = $datos['IdTransaccion'] ?? null;
+        $idEnlace =
+            $datos[
+                'EnlacePago'
+            ][
+                'Id'
+            ]
+            ?? null;
+
+        $idTransaccion =
+            $datos[
+                'IdTransaccion'
+            ]
+            ?? null;
 
         if (
-            !is_string($referencia) ||
-            !is_scalar($idEnlace) ||
-            !is_string($idTransaccion) ||
+            !is_string(
+                $referencia
+            ) ||
+            !is_scalar(
+                $idEnlace
+            ) ||
+            !is_string(
+                $idTransaccion
+            ) ||
             $idTransaccion === ''
         ) {
             throw new RuntimeException(
@@ -192,169 +463,417 @@ class PagoService
             );
         }
 
-        DB::transaction(function () use ($datos, $referencia, $idEnlace, $idTransaccion) {
-            $intento = IntentoPagoWompi::query()
-                ->where('referencia_comercio', $referencia)
-                ->lockForUpdate()
-                ->firstOrFail();
+        DB::transaction(
+            function () use ($datos, $referencia, $idEnlace, $idTransaccion) {
+                /*
+                |--------------------------------------------------------------------------
+                | Recuperar intento, pago y orden
+                |--------------------------------------------------------------------------
+                */
 
-            $pago = Pago::whereKey($intento->id_pago)
-                ->lockForUpdate()
-                ->firstOrFail();
+                $intento =
+                    IntentoPagoWompi::query()
+                        ->where(
+                            'referencia_comercio',
+                            $referencia
+                        )
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
-            $orden = Orden::whereKey($pago->id_orden)
-                ->lockForUpdate()
-                ->firstOrFail();
+                $pago =
+                    Pago::whereKey(
+                        $intento->id_pago
+                    )
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
-            $inscripcion = $orden->inscripcion;
+                $orden =
+                    Orden::whereKey(
+                        $pago->id_orden
+                    )
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
-            // Validar que el enlace sea el generado por SIDAN.
-            if (
-                !$intento->id_enlace_wompi ||
-                (string) $intento->id_enlace_wompi !== (string) $idEnlace
-            ) {
-                throw new RuntimeException(
-                    'El identificador del enlace no coincide.'
-                );
-            }
+                $inscripcion =
+                    $orden->inscripcion;
 
-            // Comparar cantidades monetarias usando centavos enteros.
-            if (
-                $this->centavos($datos['Monto'] ?? null)
-                !== $this->centavos($intento->monto_solicitado)
-                ||
-                $this->centavos($pago->monto)
-                !== $this->centavos($orden->total)
-            ) {
-                throw new RuntimeException(
-                    'El monto recibido no coincide con la orden.'
-                );
-            }
+                /*
+                |--------------------------------------------------------------------------
+                | Validar enlace
+                |--------------------------------------------------------------------------
+                */
 
-            if (!is_bool($datos['EsProductiva'] ?? null)) {
-                throw new RuntimeException(
-                    'No es posible verificar el ambiente de Wompi.'
-                );
-            }
-
-            $productiva = $datos['EsProductiva'];
-
-            if (app()->environment('production') && !$productiva) {
-                throw new RuntimeException(
-                    'No se aceptan pagos de prueba en producción.'
-                );
-            }
-
-            // Evitar asociar varias transacciones al mismo intento.
-            if (
-                $intento->id_transaccion_wompi !== null &&
-                $intento->id_transaccion_wompi !== $idTransaccion
-            ) {
-                throw new RuntimeException(
-                    'El enlace ya tiene otra transacción registrada.'
-                );
-            }
-
-            // Webhook repetido: no volver a confirmar ni cobrar.
-            if (
-                in_array($intento->estado, [
-                    'aprobado',
-                    'aprobado_prueba',
-                ], true)
-            ) {
-                return;
-            }
-
-            $intento->update([
-                'id_transaccion_wompi' => $idTransaccion,
-                'estado' => $productiva
-                    ? 'aprobado'
-                    : 'aprobado_prueba',
-                'es_productiva' => $productiva,
-            ]);
-
-            $pago->update([
-                'estado' => $productiva
-                    ? 'confirmado'
-                    : 'confirmado_prueba',
-                'fecha_confirmacion' => now(),
-            ]);
-
-            // Confirmar la inscripción solo si el cupo
-            // provisional todavía estaba vigente.
-            $puedeConfirmar =
-                $orden->estado === 'pendiente_pago' &&
-                $inscripcion !== null &&
-                $inscripcion->estado === 'pendiente_pago' &&
-                $orden->expira_en !== null &&
-                !$orden->expira_en->isPast();
-
-            if ($puedeConfirmar) {
-                $orden->update([
-                    'estado' => $productiva
-                        ? 'pagada'
-                        : 'pagada_prueba',
-                ]);
-
-                $inscripcion->update([
-                    'estado' => $productiva
-                        ? 'confirmada'
-                        : 'confirmada_prueba',
-                    'fecha_confirmacion' => now(),
-                ]);
-            } else {
-                // Un pago tardío requiere conciliación.
-                // Nunca apropiarse automáticamente de otro cupo.
-                $orden->update([
-                    'estado' => 'revision_cupo',
-                ]);
-
-                if ($inscripcion) {
-                    $inscripcion->update([
-                        'estado' => 'revision_cupo',
-                    ]);
+                if (
+                    !$intento
+                        ->id_enlace_wompi ||
+                    (string) 
+                    $intento
+                        ->id_enlace_wompi !==
+                    (string) 
+                    $idEnlace
+                ) {
+                    throw new RuntimeException(
+                        'El identificador del enlace no coincide.'
+                    );
                 }
-            }
 
-            // Un único recibo interno por pago confirmado.
-            DB::table('tbl_comprobantes')->insertOrIgnore([
-                'id_pago' => $pago->id_pago,
-                'numero' => 'SIDAN-REC-' . $pago->id_pago,
-                'tipo' => 'recibo_interno',
-                'monto' => $pago->monto,
-                'fecha_emision' => now(),
-                'es_productiva' => $productiva,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }, 3);
+                /*
+                |--------------------------------------------------------------------------
+                | Validar monto
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $this->centavos(
+                        $datos[
+                            'Monto'
+                        ]
+                        ?? null
+                    ) !==
+                    $this->centavos(
+                        $intento
+                            ->monto_solicitado
+                    )
+                    ||
+                    $this->centavos(
+                        $pago->monto
+                    ) !==
+                    $this->centavos(
+                        $orden->total
+                    )
+                ) {
+                    throw new RuntimeException(
+                        'El monto recibido no coincide con la orden.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Ambiente
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    !is_bool(
+                        $datos[
+                            'EsProductiva'
+                        ]
+                        ?? null
+                    )
+                ) {
+                    throw new RuntimeException(
+                        'No es posible verificar el ambiente de Wompi.'
+                    );
+                }
+
+                $productiva =
+                    $datos[
+                        'EsProductiva'
+                    ];
+
+                if (
+                    app()->environment(
+                        'production'
+                    ) &&
+                    !$productiva
+                ) {
+                    throw new RuntimeException(
+                        'No se aceptan pagos de prueba en producción.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Evitar otra transacción
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $intento
+                        ->id_transaccion_wompi !==
+                    null &&
+                    $intento
+                        ->id_transaccion_wompi !==
+                    $idTransaccion
+                ) {
+                    throw new RuntimeException(
+                        'El enlace ya tiene otra transacción registrada.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Webhook repetido
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    in_array(
+                        $intento->estado,
+                        [
+                            'aprobado',
+                            'aprobado_prueba',
+                        ],
+                        true
+                    )
+                ) {
+                    return;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Confirmar intento y pago
+                |--------------------------------------------------------------------------
+                */
+
+                $intento->update([
+                    'id_transaccion_wompi' =>
+                        $idTransaccion,
+
+                    'estado' =>
+                        $productiva
+                        ? 'aprobado'
+                        : 'aprobado_prueba',
+
+                    'es_productiva' =>
+                        $productiva,
+                ]);
+
+                $pago->update([
+                    'estado' =>
+                        $productiva
+                        ? 'confirmado'
+                        : 'confirmado_prueba',
+
+                    'fecha_confirmacion' =>
+                        now(),
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | ORDEN DE INSCRIPCIÓN
+                |--------------------------------------------------------------------------
+                |
+                | Esta sí confirma la inscripción.
+                |
+                */
+
+                if (
+                    $orden->tipo_orden ===
+                    'inscripcion'
+                ) {
+                    $puedeConfirmar =
+                        $orden->estado ===
+                        'pendiente_pago'
+                        &&
+                        $inscripcion !==
+                        null
+                        &&
+                        $inscripcion->estado ===
+                        'pendiente_pago'
+                        &&
+                        $orden->expira_en !==
+                        null
+                        &&
+                        !$orden->expira_en
+                            ->isPast();
+
+                    if ($puedeConfirmar) {
+                        $orden->update([
+                            'estado' =>
+                                $productiva
+                                ? 'pagada'
+                                : 'pagada_prueba',
+                        ]);
+
+                        $inscripcion->update([
+                            'estado' =>
+                                $productiva
+                                ? 'confirmada'
+                                : 'confirmada_prueba',
+
+                            'fecha_confirmacion' =>
+                                now(),
+                        ]);
+                    } else {
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Pago tardío de inscripción
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $orden->update([
+                            'estado' =>
+                                'revision_cupo',
+                        ]);
+
+                        if ($inscripcion) {
+                            $inscripcion->update([
+                                'estado' =>
+                                    'revision_cupo',
+                            ]);
+                        }
+                    }
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | ORDEN DE PRODUCTOS
+                |--------------------------------------------------------------------------
+                |
+                | Esta NO modifica la inscripción.
+                |
+                */ elseif (
+                    $orden->tipo_orden ===
+                    'productos'
+                ) {
+                    $puedeConfirmar =
+                        $orden->estado ===
+                        'pendiente_pago'
+                        &&
+                        $orden->expira_en !==
+                        null
+                        &&
+                        !$orden->expira_en
+                            ->isPast()
+                        &&
+                        $inscripcion !==
+                        null
+                        &&
+                        in_array(
+                            $inscripcion
+                                ->estado,
+                            [
+                                'confirmada',
+                                'confirmada_prueba',
+                            ],
+                            true
+                        );
+
+                    if ($puedeConfirmar) {
+                        $orden->update([
+                            'estado' =>
+                                $productiva
+                                ? 'pagada'
+                                : 'pagada_prueba',
+                        ]);
+
+                        /*
+                         * La inscripción NO se toca.
+                         */
+                    } else {
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Pago tardío / stock a revisar
+                        |--------------------------------------------------------------------------
+                        |
+                        | Reutilizamos revision_cupo como estado administrativo
+                        | existente para revisión manual.
+                        |
+                        */
+
+                        $orden->update([
+                            'estado' =>
+                                'revision_cupo',
+                        ]);
+
+                        /*
+                         * La inscripción NO se modifica.
+                         */
+                    }
+                } else {
+                    throw new RuntimeException(
+                        'Tipo de orden desconocido.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Comprobante interno
+                |--------------------------------------------------------------------------
+                */
+
+                DB::table(
+                    'tbl_comprobantes'
+                )->insertOrIgnore([
+                            'id_pago' =>
+                                $pago->id_pago,
+
+                            'numero' =>
+                                'SIDAN-REC-' .
+                                $pago->id_pago,
+
+                            'tipo' =>
+                                'recibo_interno',
+
+                            'monto' =>
+                                $pago->monto,
+
+                            'fecha_emision' =>
+                                now(),
+
+                            'es_productiva' =>
+                                $productiva,
+
+                            'created_at' =>
+                                now(),
+
+                            'updated_at' =>
+                                now(),
+                        ]);
+            },
+            3
+        );
     }
 
-    private function centavos(mixed $monto): int
-    {
+    private function centavos(
+        mixed $monto
+    ): int {
         if (
             !is_string($monto) &&
             !is_int($monto) &&
             !is_float($monto)
         ) {
-            throw new RuntimeException('Monto inválido.');
+            throw new RuntimeException(
+                'Monto inválido.'
+            );
         }
 
-        $valor = (string) $monto;
+        $valor =
+            (string) $monto;
 
-        if (!preg_match('/^\d+(?:\.\d{1,2})?$/', $valor)) {
+        if (
+            !preg_match(
+                '/^\d+(?:\.\d{1,2})?$/',
+                $valor
+            )
+        ) {
             throw new RuntimeException(
                 'Formato monetario inválido.'
             );
         }
 
-        [$entero, $decimales] = array_pad(
-            explode('.', $valor, 2),
+        [
+            $entero,
+            $decimales,
+        ] = array_pad(
+            explode(
+                '.',
+                $valor,
+                2
+            ),
             2,
             ''
         );
 
-        return ((int) $entero * 100)
-            + (int) str_pad($decimales, 2, '0');
+        return (
+            (int) $entero *
+            100
+        ) +
+            (int) str_pad(
+                $decimales,
+                2,
+                '0'
+            );
     }
 }

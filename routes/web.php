@@ -24,6 +24,7 @@ use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\InscripcionController;
 use App\Http\Controllers\OrdenController;
 use App\Http\Controllers\PagoController;
+use App\Http\Controllers\CompraActividadController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -60,6 +61,21 @@ Route::get('/actividades/{slug}/comprar', [ActividadAccionController::class, 'co
     ->name('activities.comprar');
 
 
+Route::post(
+    '/actividades/{actividad:slug}/compra',
+    [
+        CompraActividadController::class,
+        'store'
+    ]
+)
+    ->middleware([
+        'auth',
+        'user.status'
+    ])
+    ->name(
+        'activities.compra.store'
+    );
+
 // Cambio de contraseña.
 Route::middleware('auth')->group(function () {
     Route::get('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'create',])->name('password.force.edit');
@@ -70,10 +86,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/user/inscripciones/{inscripcion}/cancelar', [\App\Http\Controllers\MisInscripcionesController::class, 'cancelar'])
         ->name('user.inscripciones.cancelar');
 
-        Route::get(
-    '/user/inscripciones/{inscripcion}/detalle',
-    [\App\Http\Controllers\MisInscripcionesController::class, 'detalle']
-)->name('user.inscripciones.detalle');
+    Route::get(
+        '/user/inscripciones/{inscripcion}/detalle',
+        [\App\Http\Controllers\MisInscripcionesController::class, 'detalle']
+    )->name('user.inscripciones.detalle');
 });
 
 // Perfil
@@ -337,7 +353,7 @@ Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'
     Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])
         ->name('perfil.guardar');
 
-    
+
 });
 
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])

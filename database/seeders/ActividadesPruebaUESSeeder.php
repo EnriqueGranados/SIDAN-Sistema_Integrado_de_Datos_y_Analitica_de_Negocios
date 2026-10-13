@@ -14,14 +14,12 @@ class ActividadesPruebaUESSeeder extends Seeder
 {
     public function run(): void
     {
-        // Evitar insertar datos ficticios en producción.
         if (!app()->environment(['local', 'testing'])) {
             throw new RuntimeException(
                 'Este seeder solo se ejecuta con APP_ENV=local o testing.'
             );
         }
 
-        // Buscar un administrador o cualquier usuario activo.
         $idCreador = DB::table('tbl_usuarios')
             ->where('correo', 'admin@sidan.test')
             ->where('estado_activo', true)
@@ -39,20 +37,27 @@ class ActividadesPruebaUESSeeder extends Seeder
         }
 
         DB::transaction(function () use ($idCreador) {
+            $ahora = now();
 
-            // 1. CATEGORÍAS DE PRUEBA
             $categorias = [];
 
             foreach ([
-                'DEMO SIDAN - Formación' =>
-                    'Cursos y talleres universitarios ficticios.',
-                'DEMO SIDAN - Cultura' =>
-                    'Actividades culturales ficticias.',
                 'DEMO SIDAN - Comercio' =>
-                    'Ferias y ventas ficticias.',
+                    'Actividades comerciales ficticias para pruebas.',
+
+                'DEMO SIDAN - Excursiones' =>
+                    'Excursiones ficticias para pruebas.',
+
+                'DEMO SIDAN - Formación' =>
+                    'Congresos y actividades académicas ficticias.',
+
+                'DEMO SIDAN - Cultura' =>
+                    'Actividades culturales ficticias para pruebas.',
             ] as $nombre => $descripcion) {
                 $categoria = Categoria::firstOrCreate(
-                    ['nombre' => $nombre],
+                    [
+                        'nombre' => $nombre,
+                    ],
                     [
                         'slug' => Str::slug($nombre),
                         'descripcion' => $descripcion,
@@ -60,542 +65,1227 @@ class ActividadesPruebaUESSeeder extends Seeder
                     ]
                 );
 
-                $categorias[$nombre] = $categoria->id_categoria;
+                $categorias[$nombre] =
+                    $categoria->id_categoria;
             }
 
-            // 2. ETIQUETAS DE PRUEBA
             $etiquetas = [];
 
             foreach ([
                 'Demo SIDAN',
-                'Demo gratuita',
+                'Demo inscripción obligatoria',
+                'Demo inscripción gratuita',
                 'Demo con pago',
-                'Demo informativa',
-                'Demo venta',
-                'Demo restriccion',
-                'Demo sesiones',
+                'Demo con productos',
             ] as $nombre) {
                 $etiqueta = Etiqueta::firstOrCreate(
-                    ['nombre' => $nombre],
+                    [
+                        'nombre' => $nombre,
+                    ],
                     [
                         'slug' => Str::slug($nombre),
                         'activo' => true,
                     ]
                 );
 
-                $etiquetas[$nombre] = $etiqueta->id_etiqueta;
+                $etiquetas[$nombre] =
+                    $etiqueta->id_etiqueta;
             }
 
-            // 3. ESPACIO EXISTENTE, SI ESTÁ DISPONIBLE
             $idEspacio = DB::table('tbl_espacios')
                 ->where('activo', true)
                 ->where('permite_actividades', true)
                 ->value('id_espacio');
 
-            // 4. FECHAS RELATIVAS PARA QUE LAS PRUEBAS
-            // PUEDAN REPETIRSE EN OTROS DÍAS.
-            $ahora = now();
+            $visibleDesde =
+                $ahora->copy()->subMinute();
 
-            $inscripcionInicio = $ahora->copy()->subDay();
-            $inscripcionFin = $ahora->copy()->addDays(7);
+            $visibleHasta =
+                $ahora->copy()->addDay();
 
-            $eventoInicio = $ahora->copy()
-                ->addDays(14)
-                ->setTime(9, 0);
+            $inscripcionDesde =
+                $ahora->copy()->subMinute();
 
-            $eventoFin = $eventoInicio->copy()->addHours(4);
+            $inscripcionHasta =
+                $ahora->copy()->addDay();
 
-            // 5. ESCENARIOS DE PRUEBA
-            // Formato:
-            // [codigo, nombre, tipo, precio, cupo, opciones]
+            $actividades = [
+                [
+                    'codigo' =>
+                        'camisetas',
 
-            $escenarios = [
-                [
-                    '01-informativa',
-                    'Charla de bienvenida FMO',
-                    'informativa', null, null, []
+                    'nombre' =>
+                        'Feria y venta de camisetas universitarias',
+
+                    'tipo_participacion' =>
+                        'registro_pago',
+
+                    'categoria' =>
+                        'DEMO SIDAN - Comercio',
+
+                    'precio_inscripcion' =>
+                        '3.00',
+
+                    'cupo_total' =>
+                        100,
+
+                    'duracion_horas' =>
+                        4,
+
+                    'resumen' =>
+                        'Actividad de prueba con inscripción obligatoria y venta de camisetas y recuerdos.',
+
+                    'descripcion' =>
+                        'Actividad ficticia creada para probar el flujo de inscripción, productos, órdenes y pagos de SIDAN.',
+
+                    'items' => [
+                        [
+                            'nombre' =>
+                                'Camiseta SIDAN clásica',
+
+                            'descripcion' =>
+                                'Camiseta oficial de demostración SIDAN.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '10.00',
+
+                            'stock' =>
+                                80,
+
+                            'maximo' =>
+                                3,
+
+                            'variantes' => [
+                                [
+                                    'nombre' =>
+                                        'Talla S',
+
+                                    'codigo' =>
+                                        'S',
+
+                                    'precio' =>
+                                        '10.00',
+
+                                    'stock' =>
+                                        20,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla M',
+
+                                    'codigo' =>
+                                        'M',
+
+                                    'precio' =>
+                                        '10.00',
+
+                                    'stock' =>
+                                        25,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla L',
+
+                                    'codigo' =>
+                                        'L',
+
+                                    'precio' =>
+                                        '10.00',
+
+                                    'stock' =>
+                                        25,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla XL',
+
+                                    'codigo' =>
+                                        'XL',
+
+                                    'precio' =>
+                                        '11.00',
+
+                                    'stock' =>
+                                        10,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Gorra SIDAN',
+
+                            'descripcion' =>
+                                'Gorra universitaria de demostración.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '6.00',
+
+                            'stock' =>
+                                40,
+
+                            'maximo' =>
+                                2,
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Bolsa reutilizable SIDAN',
+
+                            'descripcion' =>
+                                'Bolsa de tela reutilizable de demostración.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '4.00',
+
+                            'stock' =>
+                                50,
+
+                            'maximo' =>
+                                3,
+                        ],
+                    ],
                 ],
+
                 [
-                    '02-gratis-visitante',
-                    'Taller abierto de Git y GitHub',
-                    'registro_gratuito', null, 40, []
+                    'codigo' =>
+                        'excursion',
+
+                    'nombre' =>
+                        'Excursión académica universitaria',
+
+                    'tipo_participacion' =>
+                        'registro_pago',
+
+                    'categoria' =>
+                        'DEMO SIDAN - Excursiones',
+
+                    'precio_inscripcion' =>
+                        '15.00',
+
+                    'cupo_total' =>
+                        40,
+
+                    'duracion_horas' =>
+                        8,
+
+                    'resumen' =>
+                        'Excursión académica de prueba con inscripción obligatoria y productos adicionales.',
+
+                    'descripcion' =>
+                        'Actividad ficticia para probar inscripción de pago, productos opcionales y cobro mediante SIDAN.',
+
+                    'items' => [
+                        [
+                            'nombre' =>
+                                'Camiseta de la excursión',
+
+                            'descripcion' =>
+                                'Camiseta conmemorativa de la excursión.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '8.00',
+
+                            'stock' =>
+                                40,
+
+                            'maximo' =>
+                                2,
+
+                            'variantes' => [
+                                [
+                                    'nombre' =>
+                                        'Talla M',
+
+                                    'codigo' =>
+                                        'M',
+
+                                    'precio' =>
+                                        '8.00',
+
+                                    'stock' =>
+                                        15,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla L',
+
+                                    'codigo' =>
+                                        'L',
+
+                                    'precio' =>
+                                        '8.00',
+
+                                    'stock' =>
+                                        15,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla XL',
+
+                                    'codigo' =>
+                                        'XL',
+
+                                    'precio' =>
+                                        '9.00',
+
+                                    'stock' =>
+                                        10,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Kit de viaje',
+
+                            'descripcion' =>
+                                'Kit con refrigerio y artículos básicos para la excursión.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '5.00',
+
+                            'stock' =>
+                                40,
+
+                            'maximo' =>
+                                1,
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Botella reutilizable',
+
+                            'descripcion' =>
+                                'Botella reutilizable para la excursión.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '6.00',
+
+                            'stock' =>
+                                30,
+
+                            'maximo' =>
+                                2,
+                        ],
+                    ],
                 ],
+
                 [
-                    '03-gratis-cuenta',
-                    'Laboratorio de Laravel para estudiantes',
-                    'registro_gratuito', null, 25,
-                    ['requiere_cuenta' => true]
+                    'codigo' =>
+                        'congreso',
+
+                    'nombre' =>
+                        'Congreso estudiantil de Sistemas 2026',
+
+                    'tipo_participacion' =>
+                        'registro_pago',
+
+                    'categoria' =>
+                        'DEMO SIDAN - Formación',
+
+                    'precio_inscripcion' =>
+                        '20.00',
+
+                    'cupo_total' =>
+                        120,
+
+                    'duracion_horas' =>
+                        6,
+
+                    'resumen' =>
+                        'Congreso de prueba con inscripción obligatoria y productos opcionales.',
+
+                    'descripcion' =>
+                        'Congreso ficticio utilizado para probar inscripciones de pago, productos, órdenes y Wompi.',
+
+                    'items' => [
+                        [
+                            'nombre' =>
+                                'Camiseta oficial del congreso',
+
+                            'descripcion' =>
+                                'Camiseta oficial de demostración del congreso.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '12.00',
+
+                            'stock' =>
+                                100,
+
+                            'maximo' =>
+                                2,
+
+                            'variantes' => [
+                                [
+                                    'nombre' =>
+                                        'Talla S',
+
+                                    'codigo' =>
+                                        'S',
+
+                                    'precio' =>
+                                        '12.00',
+
+                                    'stock' =>
+                                        20,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla M',
+
+                                    'codigo' =>
+                                        'M',
+
+                                    'precio' =>
+                                        '12.00',
+
+                                    'stock' =>
+                                        30,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla L',
+
+                                    'codigo' =>
+                                        'L',
+
+                                    'precio' =>
+                                        '12.00',
+
+                                    'stock' =>
+                                        30,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla XL',
+
+                                    'codigo' =>
+                                        'XL',
+
+                                    'precio' =>
+                                        '13.00',
+
+                                    'stock' =>
+                                        20,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Kit del congresista',
+
+                            'descripcion' =>
+                                'Paquete con artículos promocionales para asistentes.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '7.50',
+
+                            'stock' =>
+                                120,
+
+                            'maximo' =>
+                                1,
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Cuaderno del congreso',
+
+                            'descripcion' =>
+                                'Cuaderno oficial de demostración.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '3.50',
+
+                            'stock' =>
+                                100,
+
+                            'maximo' =>
+                                3,
+                        ],
+                    ],
                 ],
+
                 [
-                    '04-gratis-agotada',
-                    'Charla de orientación sin cupos',
-                    'registro_gratuito', null, 0, []
+                    'codigo' =>
+                        'expo-tecnologica',
+
+                    'nombre' =>
+                        'Expo tecnológica universitaria',
+
+                    'tipo_participacion' =>
+                        'registro_gratuito',
+
+                    'categoria' =>
+                        'DEMO SIDAN - Formación',
+
+                    'precio_inscripcion' =>
+                        null,
+
+                    'cupo_total' =>
+                        150,
+
+                    'duracion_horas' =>
+                        5,
+
+                    'resumen' =>
+                        'Expo tecnológica gratuita con productos promocionales opcionales.',
+
+                    'descripcion' =>
+                        'Actividad ficticia para probar una inscripción gratuita con posibilidad de adquirir productos adicionales mediante SIDAN.',
+
+                    'items' => [
+                        [
+                            'nombre' =>
+                                'Camiseta Expo Tecnología',
+
+                            'descripcion' =>
+                                'Camiseta conmemorativa de la Expo Tecnológica.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '10.00',
+
+                            'stock' =>
+                                80,
+
+                            'maximo' =>
+                                2,
+
+                            'variantes' => [
+                                [
+                                    'nombre' =>
+                                        'Talla S',
+
+                                    'codigo' =>
+                                        'S',
+
+                                    'precio' =>
+                                        '10.00',
+
+                                    'stock' =>
+                                        15,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla M',
+
+                                    'codigo' =>
+                                        'M',
+
+                                    'precio' =>
+                                        '10.00',
+
+                                    'stock' =>
+                                        25,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla L',
+
+                                    'codigo' =>
+                                        'L',
+
+                                    'precio' =>
+                                        '10.00',
+
+                                    'stock' =>
+                                        25,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla XL',
+
+                                    'codigo' =>
+                                        'XL',
+
+                                    'precio' =>
+                                        '11.00',
+
+                                    'stock' =>
+                                        15,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Taza Expo Tecnología',
+
+                            'descripcion' =>
+                                'Taza conmemorativa de la actividad.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '5.00',
+
+                            'stock' =>
+                                60,
+
+                            'maximo' =>
+                                2,
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Paquete de stickers tecnológicos',
+
+                            'descripcion' =>
+                                'Paquete de stickers temáticos de programación y tecnología.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '2.50',
+
+                            'stock' =>
+                                100,
+
+                            'maximo' =>
+                                3,
+                        ],
+                    ],
                 ],
+
                 [
-                    '05-gratis-ilimitada',
-                    'Conferencia virtual de software libre',
-                    'registro_gratuito', null, null, []
-                ],
-                [
-                    '06-gratis-sesiones',
-                    'Semana académica de Bases de Datos',
-                    'registro_gratuito', null, 60,
-                    ['sesiones' => true]
-                ],
-                [
-                    '07-pago-5',
-                    'Curso introductorio de PostgreSQL',
-                    'registro_pago', '5.00', 40, []
-                ],
-                [
-                    '08-pago-15-cuenta',
-                    'Congreso estudiantil de Sistemas',
-                    'registro_pago', '15.00', 100,
-                    ['requiere_cuenta' => true]
-                ],
-                [
-                    '09-pago-321',
-                    'Diplomado universitario de Data Analytics',
-                    'registro_pago', '321.00', 30, []
-                ],
-                [
-                    '10-pago-ultimo-cupo',
-                    'Taller exclusivo de redes (1 cupo)',
-                    'registro_pago', '8.00', 1, []
-                ],
-                [
-                    '11-pago-futura',
-                    'Seminario con inscripción aún no abierta',
-                    'registro_pago', '12.00', 50,
-                    [
-                        'inscripcion_desde' =>
-                            $ahora->copy()->addDays(3),
-                        'inscripcion_hasta' =>
-                            $ahora->copy()->addDays(10),
-                    ]
-                ],
-                [
-                    '12-pago-cerrada',
-                    'Jornada con inscripción cerrada',
-                    'registro_pago', '10.00', 50,
-                    [
-                        'inscripcion_desde' =>
-                            $ahora->copy()->subDays(10),
-                        'inscripcion_hasta' =>
-                            $ahora->copy()->subDay(),
-                    ]
-                ],
-                [
-                    '13-pago-suspendida',
-                    'Congreso suspendido por organización',
-                    'registro_pago', '20.00', 70,
-                    ['estado_operativo' => 'suspendida']
-                ],
-                [
-                    '14-pago-cancelada',
-                    'Curso cancelado de manera administrativa',
-                    'registro_pago', '18.00', 30,
-                    ['estado_operativo' => 'cancelada']
-                ],
-                [
-                    '15-pago-formulario',
-                    'Curso que solicita carnet estudiantil',
-                    'registro_pago', '7.00', 35,
-                    ['formulario' => true]
-                ],
-                [
-                    '16-venta-productos',
-                    'Feria de camisetas y recuerdos FMO',
-                    'venta_directa', null, null,
-                    ['productos' => true]
-                ],
-                [
-                    '17-venta-servicios',
-                    'Feria de servicios universitarios',
-                    'venta_directa', null, null,
-                    ['servicios' => true]
-                ],
-                [
-                    '18-venta-vacia',
-                    'Feria sin artículos disponibles',
-                    'venta_directa', null, null, []
-                ],
-                [
-                    '19-borrador',
-                    'Actividad pendiente de configurar (borrador)',
-                    'informativa', null, null,
-                    ['estado_publicacion' => 'borrador']
-                ],
-                [
-                    '20-interna',
-                    'Reunión informativa de docentes (interna)',
-                    'informativa', null, null,
-                    ['visibilidad' => 'interna']
-                ],
-                [
-                    '21-publicacion-futura',
-                    'Anuncio que aún no debe mostrarse',
-                    'informativa', null, null,
-                    [
-                        'visible_desde' =>
-                            $ahora->copy()->addDays(3)
-                    ]
-                ],
-                [
-                    '22-pago-mas-productos',
-                    'Congreso con inscripción y camiseta opcional',
-                    'registro_pago', '20.00', 70,
-                    ['productos' => true]
-                ],
-                [
-                    '23-pago-sin-precio',
-                    'Actividad pagada sin precio configurado',
-                    'registro_pago', null, 40, []
-                ],
-                [
-                    '24-gratis-lista-espera',
-                    'Taller lleno con lista de espera',
-                    'registro_gratuito', null, 0,
-                    ['permite_lista_espera' => true]
-                ],
-                [
-                    '25-pago-agotada',
-                    'Seminario de pago sin cupos',
-                    'registro_pago', '10.00', 0, []
+                    'codigo' =>
+                        'festival-cultural',
+
+                    'nombre' =>
+                        'Festival cultural universitario',
+
+                    'tipo_participacion' =>
+                        'registro_gratuito',
+
+                    'categoria' =>
+                        'DEMO SIDAN - Cultura',
+
+                    'precio_inscripcion' =>
+                        null,
+
+                    'cupo_total' =>
+                        200,
+
+                    'duracion_horas' =>
+                        6,
+
+                    'resumen' =>
+                        'Festival universitario gratuito con productos conmemorativos disponibles para compra.',
+
+                    'descripcion' =>
+                        'Actividad ficticia para probar el registro gratuito junto con compras opcionales realizadas dentro de la actividad.',
+
+                    'items' => [
+                        [
+                            'nombre' =>
+                                'Camiseta Festival Cultural',
+
+                            'descripcion' =>
+                                'Camiseta conmemorativa del Festival Cultural.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '9.00',
+
+                            'stock' =>
+                                100,
+
+                            'maximo' =>
+                                2,
+
+                            'variantes' => [
+                                [
+                                    'nombre' =>
+                                        'Talla S',
+
+                                    'codigo' =>
+                                        'S',
+
+                                    'precio' =>
+                                        '9.00',
+
+                                    'stock' =>
+                                        20,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla M',
+
+                                    'codigo' =>
+                                        'M',
+
+                                    'precio' =>
+                                        '9.00',
+
+                                    'stock' =>
+                                        30,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla L',
+
+                                    'codigo' =>
+                                        'L',
+
+                                    'precio' =>
+                                        '9.00',
+
+                                    'stock' =>
+                                        30,
+                                ],
+
+                                [
+                                    'nombre' =>
+                                        'Talla XL',
+
+                                    'codigo' =>
+                                        'XL',
+
+                                    'precio' =>
+                                        '10.00',
+
+                                    'stock' =>
+                                        20,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Pulsera conmemorativa',
+
+                            'descripcion' =>
+                                'Pulsera oficial del Festival Cultural.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '2.00',
+
+                            'stock' =>
+                                150,
+
+                            'maximo' =>
+                                3,
+                        ],
+
+                        [
+                            'nombre' =>
+                                'Bolsa de tela Festival Cultural',
+
+                            'descripcion' =>
+                                'Bolsa reutilizable con diseño conmemorativo.',
+
+                            'tipo' =>
+                                'producto',
+
+                            'precio' =>
+                                '4.50',
+
+                            'stock' =>
+                                80,
+
+                            'maximo' =>
+                                2,
+                        ],
+                    ],
                 ],
             ];
 
-            // 6. CREAR O ACTUALIZAR ACTIVIDADES DEMO
-            foreach ($escenarios as [
-                $codigo,
-                $nombre,
-                $tipo,
-                $precio,
-                $cupo,
-                $opciones
-            ]) {
-                $slug = 'demo-ues-' . $codigo;
+            $slugsActuales = collect(
+                $actividades
+            )
+                ->map(
+                    fn ($actividad) =>
+                        'demo-ues-' .
+                        $actividad['codigo']
+                )
+                ->all();
 
-                $requiereInscripcion = in_array(
-                    $tipo,
-                    ['registro_gratuito', 'registro_pago'],
-                    true
-                );
+            DB::table('tbl_actividades')
+                ->where(
+                    'slug',
+                    'like',
+                    'demo-ues-%'
+                )
+                ->whereNotIn(
+                    'slug',
+                    $slugsActuales
+                )
+                ->update([
+                    'mostrar_en_welcome' =>
+                        false,
 
-                $idCategoria = $categorias[
-                    $tipo === 'venta_directa'
-                        ? 'DEMO SIDAN - Comercio'
-                        : (
-                            $tipo === 'informativa'
-                                ? 'DEMO SIDAN - Cultura'
-                                : 'DEMO SIDAN - Formación'
-                        )
-                ];
+                    'eliminado_en' =>
+                        $ahora,
 
-                $datos = [
-                    'id_categoria' => $idCategoria,
-                    'id_espacio' => $idEspacio,
+                    'updated_at' =>
+                        $ahora,
+                ]);
+
+            foreach (
+                $actividades as $indice => $configuracion
+            ) {
+                $slug =
+                    'demo-ues-' .
+                    $configuracion['codigo'];
+
+                $realizacionDesde =
+                    $ahora
+                        ->copy()
+                        ->addDay()
+                        ->addHours(
+                            $indice + 1
+                        );
+
+                $realizacionHasta =
+                    $realizacionDesde
+                        ->copy()
+                        ->addHours(
+                            $configuracion[
+                                'duracion_horas'
+                            ]
+                        );
+
+                $datosActividad = [
+                    'id_categoria' =>
+                        $categorias[
+                            $configuracion[
+                                'categoria'
+                            ]
+                        ],
+
+                    'id_espacio' =>
+                        $idEspacio,
+
                     'ubicacion_externa' =>
-                        'UES - FMO, San Miguel (escenario simulado)',
+                        'UES - FMO, San Miguel (actividad de prueba)',
 
-                    'nombre' => '[DEMO UES] ' . $nombre,
+                    'nombre' =>
+                        '[DEMO UES] ' .
+                        $configuracion[
+                            'nombre'
+                        ],
+
                     'resumen' =>
-                        'Escenario ' . $codigo .
-                        ' para probar SIDAN. No es una actividad oficial.',
+                        $configuracion[
+                            'resumen'
+                        ],
 
                     'descripcion' =>
-                        'Registro de demostración para probar ' .
-                        'inscripciones, cupos, publicación y cobros. ' .
-                        'No realizar pagos productivos.',
+                        $configuracion[
+                            'descripcion'
+                        ],
 
                     'estado_publicacion' =>
-                        $opciones['estado_publicacion'] ?? 'publicada',
+                        'publicada',
 
                     'estado_operativo' =>
-                        $opciones['estado_operativo'] ?? 'normal',
+                        'normal',
 
                     'visibilidad' =>
-                        $opciones['visibilidad'] ?? 'publica',
+                        'publica',
 
-                    'revision_actual' => 1,
-                    'destacada' => false,
-                    'prioridad' => 25,
+                    'revision_actual' =>
+                        1,
 
-                    'tipo_participacion' => $tipo,
-                    'habilita_inscripcion' => $requiereInscripcion,
+                    'destacada' =>
+                        false,
+
+                    'prioridad' =>
+                        25,
+
+                    'tipo_participacion' =>
+                        $configuracion[
+                            'tipo_participacion'
+                        ],
+
+                    'habilita_inscripcion' =>
+                        true,
 
                     'requiere_cuenta' =>
-                        $opciones['requiere_cuenta'] ?? false,
+                        false,
 
                     'permite_lista_espera' =>
-                        $opciones['permite_lista_espera'] ?? false,
+                        false,
 
-                    'cupo_total' => $cupo,
-                    'precio_inscripcion' => $precio,
+                    'cupo_total' =>
+                        $configuracion[
+                            'cupo_total'
+                        ],
 
-                    'inscripcion_desde' => $requiereInscripcion
-                        ? ($opciones['inscripcion_desde'] ?? $inscripcionInicio)
-                        : null,
+                    'precio_inscripcion' =>
+                        $configuracion[
+                            'precio_inscripcion'
+                        ],
 
-                    'inscripcion_hasta' => $requiereInscripcion
-                        ? ($opciones['inscripcion_hasta'] ?? $inscripcionFin)
-                        : null,
+                    'inscripcion_desde' =>
+                        $inscripcionDesde,
+
+                    'inscripcion_hasta' =>
+                        $inscripcionHasta,
 
                     'visible_desde' =>
-                        $opciones['visible_desde'] ?? null,
+                        $visibleDesde,
 
-                    'visible_hasta' => null,
-                    'realizacion_desde' => $eventoInicio,
-                    'realizacion_hasta' => $eventoFin,
-                    'mostrar_en_welcome' => true,
+                    'visible_hasta' =>
+                        $visibleHasta,
 
-                    'actualizado_por' => $idCreador,
-                    'eliminado_en' => null,
-                    'updated_at' => now(),
+                    'realizacion_desde' =>
+                        $realizacionDesde,
+
+                    'realizacion_hasta' =>
+                        $realizacionHasta,
+
+                    'mostrar_en_welcome' =>
+                        true,
+
+                    'actualizado_por' =>
+                        $idCreador,
+
+                    'eliminado_en' =>
+                        null,
+
+                    'updated_at' =>
+                        $ahora,
                 ];
 
-                // Solo actualizar actividades del propio seeder.
-                $anterior = DB::table('tbl_actividades')
-                    ->where('slug', $slug)
-                    ->first();
+                $actividadAnterior =
+                    DB::table(
+                        'tbl_actividades'
+                    )
+                        ->where(
+                            'slug',
+                            $slug
+                        )
+                        ->first();
 
-                if ($anterior) {
-                    DB::table('tbl_actividades')
-                        ->where('id_actividad', $anterior->id_actividad)
-                        ->update($datos);
+                if ($actividadAnterior) {
+                    DB::table(
+                        'tbl_actividades'
+                    )
+                        ->where(
+                            'id_actividad',
+                            $actividadAnterior
+                                ->id_actividad
+                        )
+                        ->update(
+                            $datosActividad
+                        );
 
-                    $idActividad = (int) $anterior->id_actividad;
+                    $idActividad =
+                        (int) $actividadAnterior
+                            ->id_actividad;
                 } else {
-                    $idActividad = DB::table('tbl_actividades')
-                        ->insertGetId([
-                            ...$datos,
-                            'slug' => $slug,
-                            'creado_por' => $idCreador,
-                            'created_at' => now(),
-                        ], 'id_actividad');
+                    $idActividad =
+                        DB::table(
+                            'tbl_actividades'
+                        )
+                            ->insertGetId(
+                                [
+                                    ...$datosActividad,
+
+                                    'slug' =>
+                                        $slug,
+
+                                    'creado_por' =>
+                                        $idCreador,
+
+                                    'created_at' =>
+                                        $ahora,
+                                ],
+                                'id_actividad'
+                            );
                 }
 
-                $actividad = Actividad::findOrFail($idActividad);
-
-                // 7. RELACIONAR ETIQUETAS
-                $etiquetaTipo = match ($tipo) {
-                    'registro_gratuito' => 'Demo gratuita',
-                    'registro_pago' => 'Demo con pago',
-                    'venta_directa' => 'Demo venta',
-                    default => 'Demo informativa',
-                };
+                $actividad =
+                    Actividad::findOrFail(
+                        $idActividad
+                    );
 
                 $idsEtiquetas = [
-                    $etiquetas['Demo SIDAN'],
-                    $etiquetas[$etiquetaTipo],
+                    $etiquetas[
+                        'Demo SIDAN'
+                    ],
+
+                    $etiquetas[
+                        'Demo con productos'
+                    ],
                 ];
 
-                if (!empty($opciones['sesiones'])) {
-                    $idsEtiquetas[] = $etiquetas['Demo sesiones'];
-                }
-
                 if (
-                    $cupo === 0 ||
-                    isset($opciones['estado_operativo'])
+                    $configuracion[
+                        'tipo_participacion'
+                    ] === 'registro_pago'
                 ) {
-                    $idsEtiquetas[] = $etiquetas['Demo restriccion'];
-                }
-
-                $actividad->etiquetas()
-                    ->syncWithoutDetaching($idsEtiquetas);
-
-                // 8. CREAR SESIONES
-                if (!empty($opciones['sesiones'])) {
-                    $sesiones = [
-                        ['Introducción a PostgreSQL', 1, 35, false],
-                        ['Práctica de consultas SQL', 2, 20, true],
-                    ];
-
-                    foreach ($sesiones as [
-                        $sesionNombre,
-                        $orden,
-                        $cupoSesion,
-                        $requiereReserva
-                    ]) {
-                        DB::table('tbl_sesiones_actividad')
-                            ->updateOrInsert(
-                                [
-                                    'id_actividad' => $idActividad,
-                                    'nombre' => $sesionNombre,
-                                ],
-                                [
-                                    'id_espacio' => $idEspacio,
-                                    'fecha_inicio' => $eventoInicio
-                                        ->copy()
-                                        ->addDays($orden - 1),
-
-                                    'fecha_fin' => $eventoInicio
-                                        ->copy()
-                                        ->addDays($orden - 1)
-                                        ->addHours(2),
-
-                                    'ubicacion' =>
-                                        'FMO - Espacio de demostración',
-
-                                    'cupo' => $cupoSesion,
-                                    'requiere_reserva' => $requiereReserva,
-                                    'obligatoria' => $orden === 1,
-                                    'orden' => $orden,
-                                    'estado' => 'programada',
-                                ]
-                            );
-                    }
-                }
-
-                // 9. CREAR FORMULARIO PERSONALIZADO
-                if (!empty($opciones['formulario'])) {
-                    DB::table('tbl_formularios_actividad')
-                        ->updateOrInsert(
-                            [
-                                'id_actividad' => $idActividad,
-                                'version' => 1,
-                            ],
-                            [
-                                'nombre' =>
-                                    'Formulario de inscripción UES (demo)',
-                                'estado' => 'publicado',
-                                'creado_por' => $idCreador,
-                                'publicado_en' => now(),
-                            ]
-                        );
-
-                    $idFormulario = DB::table(
-                        'tbl_formularios_actividad'
-                    )
-                        ->where('id_actividad', $idActividad)
-                        ->where('version', 1)
-                        ->value('id_formulario');
-
-                    DB::table('tbl_campos_formulario')
-                        ->updateOrInsert(
-                            [
-                                'id_formulario' => $idFormulario,
-                                'clave' => 'carnet_ues',
-                            ],
-                            [
-                                'nombre' => 'Carnet universitario',
-                                'tipo_dato' => 'texto',
-                                'obligatorio' => true,
-                                'aplica_a' => 'inscripcion',
-                                'orden' => 1,
-                                'activo' => true,
-                            ]
-                        );
-                }
-
-                // 10. CREAR PRODUCTOS O SERVICIOS
-                if (
-                    !empty($opciones['productos']) ||
-                    !empty($opciones['servicios'])
-                ) {
-                    $items = !empty($opciones['productos'])
-                        ? [
-                            [
-                                'Camiseta conmemorativa UES (demo)',
-                                'producto',
-                                '10.00',
-                                60
-                            ],
-                            [
-                                'Cuaderno universitario (demo)',
-                                'producto',
-                                '3.50',
-                                100
-                            ],
-                        ]
-                        : [
-                            [
-                                'Acceso a taller opcional (demo)',
-                                'servicio',
-                                '6.00',
-                                25
-                            ]
+                    $idsEtiquetas[] =
+                        $etiquetas[
+                            'Demo inscripción obligatoria'
                         ];
 
-                    foreach ($items as $orden => [
-                        $itemNombre,
-                        $itemTipo,
-                        $itemPrecio,
-                        $stock
-                    ]) {
-                        DB::table('tbl_items_actividad')
+                    $idsEtiquetas[] =
+                        $etiquetas[
+                            'Demo con pago'
+                        ];
+                } else {
+                    $idsEtiquetas[] =
+                        $etiquetas[
+                            'Demo inscripción gratuita'
+                        ];
+                }
+
+                $actividad
+                    ->etiquetas()
+                    ->sync(
+                        $idsEtiquetas
+                    );
+
+                $nombresItemsActuales =
+                    collect(
+                        $configuracion[
+                            'items'
+                        ]
+                    )
+                        ->pluck(
+                            'nombre'
+                        )
+                        ->all();
+
+                DB::table(
+                    'tbl_items_actividad'
+                )
+                    ->where(
+                        'id_actividad',
+                        $idActividad
+                    )
+                    ->whereNotIn(
+                        'nombre',
+                        $nombresItemsActuales
+                    )
+                    ->update([
+                        'activo' =>
+                            false,
+                    ]);
+
+                foreach (
+                    $configuracion['items']
+                    as $ordenItem => $item
+                ) {
+                    DB::table(
+                        'tbl_items_actividad'
+                    )
+                        ->updateOrInsert(
+                            [
+                                'id_actividad' =>
+                                    $idActividad,
+
+                                'nombre' =>
+                                    $item[
+                                        'nombre'
+                                    ],
+                            ],
+                            [
+                                'descripcion' =>
+                                    $item[
+                                        'descripcion'
+                                    ],
+
+                                'tipo' =>
+                                    $item[
+                                        'tipo'
+                                    ],
+
+                                'precio' =>
+                                    $item[
+                                        'precio'
+                                    ],
+
+                                'costo_referencia' =>
+                                    0,
+
+                                'stock_total' =>
+                                    $item[
+                                        'stock'
+                                    ],
+
+                                'min_por_inscripcion' =>
+                                    1,
+
+                                'max_por_inscripcion' =>
+                                    $item[
+                                        'maximo'
+                                    ],
+
+                                'requiere_participante' =>
+                                    false,
+
+                                'orden' =>
+                                    $ordenItem + 1,
+
+                                'activo' =>
+                                    true,
+                            ]
+                        );
+
+                    if (
+                        empty(
+                            $item[
+                                'variantes'
+                            ]
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    $idItem =
+                        DB::table(
+                            'tbl_items_actividad'
+                        )
+                            ->where(
+                                'id_actividad',
+                                $idActividad
+                            )
+                            ->where(
+                                'nombre',
+                                $item[
+                                    'nombre'
+                                ]
+                            )
+                            ->value(
+                                'id_item_actividad'
+                            );
+
+                    $skusActuales = [];
+
+                    foreach (
+                        $item['variantes']
+                        as $ordenVariante => $variante
+                    ) {
+                        $sku =
+                            'SIDAN-DEMO-' .
+                            strtoupper(
+                                $configuracion[
+                                    'codigo'
+                                ]
+                            ) .
+                            '-' .
+                            $variante[
+                                'codigo'
+                            ];
+
+                        $skusActuales[] =
+                            $sku;
+
+                        DB::table(
+                            'tbl_variantes_item'
+                        )
                             ->updateOrInsert(
                                 [
-                                    'id_actividad' => $idActividad,
-                                    'nombre' => $itemNombre,
+                                    'sku' =>
+                                        $sku,
                                 ],
                                 [
-                                    'descripcion' =>
-                                        'Artículo o servicio ficticio para pruebas.',
+                                    'id_item_actividad' =>
+                                        $idItem,
 
-                                    'tipo' => $itemTipo,
-                                    'precio' => $itemPrecio,
-                                    'costo_referencia' => 0,
-                                    'stock_total' => $stock,
+                                    'nombre_variante' =>
+                                        $variante[
+                                            'nombre'
+                                        ],
 
-                                    'min_por_inscripcion' => 1,
-                                    'max_por_inscripcion' => 5,
-                                    'requiere_participante' => false,
+                                    'precio' =>
+                                        $variante[
+                                            'precio'
+                                        ],
 
-                                    'orden' => $orden + 1,
-                                    'activo' => true,
+                                    'costo_referencia' =>
+                                        0,
+
+                                    'stock_total' =>
+                                        $variante[
+                                            'stock'
+                                        ],
+
+                                    'orden' =>
+                                        $ordenVariante + 1,
+
+                                    'activo' =>
+                                        true,
                                 ]
                             );
                     }
 
-                    // 11. VARIANTES DE LA CAMISETA
-                    if (!empty($opciones['productos'])) {
-                        $idCamiseta = DB::table('tbl_items_actividad')
-                            ->where('id_actividad', $idActividad)
-                            ->where(
-                                'nombre',
-                                'Camiseta conmemorativa UES (demo)'
-                            )
-                            ->value('id_item_actividad');
-
-                        foreach ([
-                            ['M', '10.00', 30, 1],
-                            ['XL', '12.00', 20, 2],
-                        ] as [
-                            $talla,
-                            $precioVariante,
-                            $stockVariante,
-                            $orden
-                        ]) {
-                            DB::table('tbl_variantes_item')
-                                ->updateOrInsert(
-                                    [
-                                        'sku' =>
-                                            'SIDAN-DEMO-UES-' .
-                                            $codigo . '-' . $talla,
-                                    ],
-                                    [
-                                        'id_item_actividad' => $idCamiseta,
-                                        'nombre_variante' =>
-                                            'Talla ' . $talla,
-
-                                        'precio' => $precioVariante,
-                                        'costo_referencia' => 0,
-                                        'stock_total' => $stockVariante,
-
-                                        'orden' => $orden,
-                                        'activo' => true,
-                                    ]
-                                );
-                        }
-                    }
+                    DB::table(
+                        'tbl_variantes_item'
+                    )
+                        ->where(
+                            'id_item_actividad',
+                            $idItem
+                        )
+                        ->whereNotIn(
+                            'sku',
+                            $skusActuales
+                        )
+                        ->update([
+                            'activo' =>
+                                false,
+                        ]);
                 }
             }
         });
 
         $this->command?->info(
-            '25 actividades DEMO UES disponibles. ' .
-            'No se crearon inscripciones, órdenes ni pagos.'
+            '5 actividades DEMO creadas correctamente: 3 con inscripción pagada y 2 gratuitas, todas con productos. Disponibles durante 24 horas.'
         );
     }
 }
