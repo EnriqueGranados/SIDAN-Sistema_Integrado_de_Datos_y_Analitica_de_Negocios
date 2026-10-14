@@ -648,63 +648,49 @@
 
                                                         @foreach ($campos as $campo)
                                                             @php
-                                                                $clave = (string) $campo['key'];
-
-                                                                $tipoCampo = (string) ($campo['type'] ?? 'texto');
-
-                                                                $requerido = (bool) ($campo['required'] ?? false);
-
-                                                                $opciones = is_array($campo['options'] ?? null)
-                                                                    ? $campo['options']
-                                                                    : [];
-
-                                                                $idCampo =
-                                                                    'producto-' .
-                                                                    $item->id_item_actividad .
-                                                                    '-campo-' .
-                                                                    $loop->index;
+                                                                $tipo = $campo['type'] ?? 'texto';
+                                                                $clave = $campo['key'] ?? '';
+                                                                $etiqueta = $campo['label'] ?? $clave;
+                                                                $obligatorio = !empty($campo['required']);
                                                             @endphp
 
-                                                            <div class="{{ $tipoCampo === 'texto' ? 'sm:col-span-2' : '' }}">
+                                                            <div>
+                                                                <label class="mb-2 block text-sm font-semibold">
+                                                                    {{ $etiqueta }}
 
-                                                                <label for="{{ $idCampo }}"
-                                                                    class="mb-1.5 block text-sm font-bold text-sidan-900 dark:text-white">
-                                                                    {{ $campo['label'] ?? ucfirst($clave) }}
-
-                                                                    @if ($requerido)
-                                                                        <span class="text-red-600">*</span>
+                                                                    @if ($obligatorio)
+                                                                        <span class="text-red-500">*</span>
                                                                     @endif
                                                                 </label>
 
-                                                                @if ($tipoCampo === 'lista')
-                                                                    <select id="{{ $idCampo }}" data-campo-clave="{{ $clave }}"
-                                                                        data-requerido="{{ $requerido ? '1' : '0' }}"
-                                                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-white/20 dark:bg-sidan-950 dark:text-white"
-                                                                        @disabled(!$puedeConfigurar)>
-                                                                        <option value="">
-                                                                            Selecciona una opción
-                                                                        </option>
+                                                                @if ($tipo === 'lista')
 
-                                                                        @foreach ($opciones as $opcion)
+                                                                    <select data-campo-clave="{{ $clave }}" @required($obligatorio)
+                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2">
+                                                                        <option value="">Seleccionar...</option>
+
+                                                                        @foreach ($campo['options'] ?? [] as $opcion)
                                                                             <option value="{{ $opcion }}">
                                                                                 {{ $opcion }}
                                                                             </option>
                                                                         @endforeach
                                                                     </select>
-                                                                @elseif ($tipoCampo === 'texto')
-                                                                    <input id="{{ $idCampo }}" type="text" maxlength="200"
-                                                                        data-campo-clave="{{ $clave }}"
-                                                                        data-requerido="{{ $requerido ? '1' : '0' }}"
-                                                                        placeholder="Escribe {{ strtolower($campo['label'] ?? $clave) }}"
-                                                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-white/20 dark:bg-sidan-950 dark:text-white"
-                                                                        @disabled(!$puedeConfigurar)>
-                                                                @else
-                                                                    <p class="text-xs text-amber-700">
-                                                                        Tipo de campo no disponible:
-                                                                        {{ $tipoCampo }}
-                                                                    </p>
-                                                                @endif
 
+                                                                @elseif ($tipo === 'numero')
+
+                                                                    <input type="number" step="any" data-campo-clave="{{ $clave }}"
+                                                                        @required($obligatorio)
+                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
+                                                                        placeholder="Ingresar número">
+
+                                                                @else
+
+                                                                    <input type="text" maxlength="200" data-campo-clave="{{ $clave }}"
+                                                                        @required($obligatorio)
+                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
+                                                                        placeholder="Escribir {{ mb_strtolower($etiqueta) }}">
+
+                                                                @endif
                                                             </div>
                                                         @endforeach
 
@@ -1856,29 +1842,29 @@
                             btnContinuarCompra
                                 .innerHTML =
                                 `
-                                        <svg
-                                            class="h-5 w-5 animate-spin"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                        >
-                                            <circle
-                                                class="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                stroke-width="4"
-                                            ></circle>
+                                            <svg
+                                                class="h-5 w-5 animate-spin"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                            >
+                                                <circle
+                                                    class="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    stroke-width="4"
+                                                ></circle>
 
-                                            <path
-                                                class="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                                            ></path>
-                                        </svg>
+                                                <path
+                                                    class="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                                ></path>
+                                            </svg>
 
-                                        Preparando orden...
-                                    `;
+                                            Preparando orden...
+                                        `;
                         }
                     );
             }

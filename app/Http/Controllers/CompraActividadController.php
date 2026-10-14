@@ -704,33 +704,65 @@ class CompraActividadController extends Controller
                     |--------------------------------------------------------------------------
                     */
 
-                    $campos =
-                        $this->limpiarCampos(
-                            $seleccion[
-                                'campos'
-                            ]
-                            ?? []
-                        );
+                    $campos = $this->validarCamposProducto(
+                        $seleccion['campos'] ?? [],
+                        $configuracionCampos,
+                        $item->nombre
+                    );
 
                     // Obtener las reglas de precio del producto actual.
                     $configuracionPrecio = collect($pricingConfiguration)
                         ->first(function ($configuracion) use ($idItem) {
-                            return is_array($configuracion)
-                                && (int) ($configuracion['id_item_pg'] ?? 0) === $idItem
-                                && !empty($configuracion['enabled']);
-                        });
+                        return is_array($configuracion)
+                            && (int) ($configuracion['id_item_pg'] ?? 0) === $idItem
+                            && !empty($configuracion['enabled']);
+                    });
 
                     // Solamente aplicar reglas de campos habilitados.
                     $camposConPrecio = $configuracionPrecio['pricing_fields'] ?? [];
 
-                    $reglasPrecio = collect($configuracionPrecio['rules'] ?? [])
-                        ->filter(function ($regla) use ($camposConPrecio) {
-                            return is_array($regla)
-                                && in_array(
-                                    $regla['field_key'] ?? '',
-                                    $camposConPrecio,
-                                    true
-                                );
+                    $definicionesCampos = collect(
+                        $configuracionCampos['fields'] ?? []
+                    )
+                        ->filter(
+                            fn($campo) =>
+                                is_array($campo)
+                                && !empty($campo['key'])
+                        )
+                        ->keyBy('key');
+
+                    $reglasPrecio = collect(
+                        $configuracionPrecio['rules'] ?? []
+                    )
+                        ->filter(function ($regla) use ($camposConPrecio, $definicionesCampos) {
+                            if (!is_array($regla)) {
+                                return false;
+                            }
+
+                            $clave = (string) ($regla['field_key'] ?? '');
+                            $opcion = (string) ($regla['option'] ?? '');
+
+                            if (
+                                !in_array($clave, $camposConPrecio, true)
+                                || !$definicionesCampos->has($clave)
+                            ) {
+                                return false;
+                            }
+
+                            $definicion = $definicionesCampos->get($clave);
+
+                            if (($definicion['type'] ?? '') !== 'lista') {
+                                return false;
+                            }
+
+                            $opciones = array_map(
+                                'strval',
+                                is_array($definicion['options'] ?? null)
+                                ? $definicion['options']
+                                : []
+                            );
+
+                            return in_array($opcion, $opciones, true);
                         })
                         ->values()
                         ->all();
@@ -1520,5 +1552,209 @@ class CompraActividadController extends Controller
         }
 
         return round($precio, 2);
+    }
+
+    private function validarCamposProducto(
+        mixed $camposRecibidos,
+        mixed $configuracion,
+        string $nombreProducto
+    ): array {
+        if (!is_array($camposRecibidos)) {
+            throw ValidationException::withMessages([
+                'compra' => "Las opciones de {$nombreProducto} no son válidas.",
+            ]);
+        }
+
+        $camposConfigurados = [];
+
+        if (
+            is_array($configuracion)
+            && !empty($configuracion['enabled'])
+            && is_array($configuracion['fields'] ?? null)
+        ) {
+            $camposConfigurados = $configuracion['fields'];
+        }
+
+        // Si el producto no tiene campos personalizados,
+        // tampoco debe recibir valores adicionales.
+        if (empty($camposConfigurados)) {
+            if (!empty($camposRecibidos)) {
+                throw ValidationException::withMessages([
+                    'compra' =>
+                        "{$nombreProducto} no admite opciones personalizadas.",
+                ]);
+            }
+
+            return [];
+        }
+
+        $definiciones = [];
+
+        foreach ($camposConfigurados as $definicion) {
+            if (!is_array($definicion)) {
+                continue;
+            }
+
+            $clave = trim((string) ($definicion['key'] ?? ''));
+
+            if ($clave === '') {
+                continue;
+            }
+
+            if (array_key_exists($clave, $definiciones)) {
+                throw ValidationException::withMessages([
+                    'compra' =>
+                        "La configuración de {$nombreProducto} contiene campos duplicados.",
+                ]);
+            }
+
+            $definiciones[$clave] = $definicion;
+        }
+
+        if (empty($definiciones)) {
+            throw ValidationException::withMessages([
+                'compra' =>
+                    "La configuración de {$nombreProducto} no es válida.",
+            ]);
+        }
+
+        // Rechazar claves que no estén definidas en MongoDB.
+        foreach ($camposRecibidos as $clave => $valor) {
+            if (
+                !is_string($clave)
+                || !array_key_exists($clave, $definiciones)
+            ) {
+                throw ValidationException::withMessages([
+                    'compra' =>
+                        "Se recibieron opciones no autorizadas para {$nombreProducto}.",
+                ]);
+            }
+        }
+
+        $resultado = [];
+
+        foreach ($definiciones as $clave => $definicion) {
+            $etiqueta = trim(
+                (string) ($definicion['label'] ?? $clave)
+            );
+
+            $tipo = strtolower(
+                trim((string) ($definicion['type'] ?? ''))
+            );
+
+            $obligatorio = filter_var(
+                $definicion['required'] ?? false,
+                FILTER_VALIDATE_BOOLEAN
+            );
+
+            $valor = $camposRecibidos[$clave] ?? null;
+
+            if (
+                $valor !== null
+                && !is_string($valor)
+                && !is_int($valor)
+                && !is_float($valor)
+            ) {
+                throw ValidationException::withMessages([
+                    'compra' =>
+                        "El campo {$etiqueta} de {$nombreProducto} tiene un valor inválido.",
+                ]);
+            }
+
+            $valor = trim((string) ($valor ?? ''));
+
+            if ($valor === '') {
+                if ($obligatorio) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            "Debés completar {$etiqueta} para {$nombreProducto}.",
+                    ]);
+                }
+
+                continue;
+            }
+
+            if (mb_strlen($valor) > 200) {
+                throw ValidationException::withMessages([
+                    'compra' =>
+                        "El campo {$etiqueta} supera los 200 caracteres permitidos.",
+                ]);
+            }
+
+            if ($tipo === 'lista') {
+
+                $opciones = $definicion['options'] ?? [];
+
+                if (!is_array($opciones)) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            "Las opciones de {$etiqueta} no están configuradas correctamente.",
+                    ]);
+                }
+
+                $opcionesPermitidas = array_map(
+                    'strval',
+                    array_filter(
+                        $opciones,
+                        fn($opcion) =>
+                            is_string($opcion)
+                            || is_int($opcion)
+                            || is_float($opcion)
+                    )
+                );
+
+                if (!in_array($valor, $opcionesPermitidas, true)) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            "La opción seleccionada en {$etiqueta} para {$nombreProducto} no está permitida.",
+                    ]);
+                }
+
+            } elseif ($tipo === 'texto') {
+
+                // El texto ya fue validado como escalar
+                // y limitado a 200 caracteres.
+
+            } elseif ($tipo === 'numero') {
+
+                /*
+                 * Aceptamos números enteros y decimales.
+                 * Ejemplos: 10, 25, 3.5, -2.
+                 *
+                 * Conservamos el valor como cadena para
+                 * no alterar innecesariamente su representación.
+                 */
+
+                if (
+                    !preg_match(
+                        '/^[+-]?(?:\d+)(?:\.\d+)?$/D',
+                        $valor
+                    )
+                ) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            "El campo {$etiqueta} de {$nombreProducto} debe contener un número válido.",
+                    ]);
+                }
+
+                if (!is_finite((float) $valor)) {
+                    throw ValidationException::withMessages([
+                        'compra' =>
+                            "El campo {$etiqueta} de {$nombreProducto} contiene un número fuera del rango permitido.",
+                    ]);
+                }
+
+            } else {
+
+                throw ValidationException::withMessages([
+                    'compra' =>
+                        "El campo {$etiqueta} de {$nombreProducto} tiene un tipo no admitido.",
+                ]);
+            }
+
+            $resultado[$clave] = $valor;
+        }
+
+        return $resultado;
     }
 }

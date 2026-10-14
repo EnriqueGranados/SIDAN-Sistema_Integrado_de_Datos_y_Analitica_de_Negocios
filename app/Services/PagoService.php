@@ -77,32 +77,41 @@ class PagoService
                 | Orden de productos
                 |--------------------------------------------------------------------------
                 |
-                | Solo puede pagarse si su inscripción continúa confirmada.
+                | Una actividad que exige inscripción general requiere
+                | una inscripción confirmada.
+                |
+                | Una actividad que no exige inscripción general permite
+                | comprar productos sin inscripción.
                 |
                 */
 
-                if (
-                    $orden->tipo_orden ===
-                    'productos'
-                ) {
-                    $inscripcion =
-                        $orden->inscripcion;
+                if ($orden->tipo_orden === 'productos') {
 
-                    if (
-                        !$inscripcion ||
-                        !in_array(
-                            $inscripcion->estado,
-                            [
-                                'confirmada',
-                                'confirmada_prueba',
-                            ],
-                            true
-                        )
-                    ) {
+                    $actividad = $orden->actividad;
+
+                    if (!$actividad) {
                         throw ValidationException::withMessages([
-                            'pago' =>
-                                'Tu inscripción ya no permite realizar esta compra.',
+                            'pago' => 'La actividad de esta orden no existe.',
                         ]);
+                    }
+
+                    if ($actividad->requiereInscripcionGeneral()) {
+
+                        $inscripcion = $orden->inscripcion;
+
+                        if (
+                            !$inscripcion ||
+                            !in_array(
+                                $inscripcion->estado,
+                                ['confirmada', 'confirmada_prueba'],
+                                true
+                            )
+                        ) {
+                            throw ValidationException::withMessages([
+                                'pago' =>
+                                    'Necesitás una inscripción confirmada para comprar productos de esta actividad.',
+                            ]);
+                        }
                     }
                 }
 
@@ -727,28 +736,41 @@ class PagoService
                     $orden->tipo_orden ===
                     'productos'
                 ) {
-                    $puedeConfirmar =
-                        $orden->estado ===
-                        'pendiente_pago'
-                        &&
-                        $orden->expira_en !==
-                        null
-                        &&
-                        !$orden->expira_en
-                            ->isPast()
-                        &&
-                        $inscripcion !==
-                        null
-                        &&
-                        in_array(
-                            $inscripcion
-                                ->estado,
-                            [
-                                'confirmada',
-                                'confirmada_prueba',
-                            ],
-                            true
+                    $actividad = $orden->actividad;
+
+                    if (!$actividad) {
+                        throw new RuntimeException(
+                            'La actividad asociada a la orden no existe.'
                         );
+                    }
+
+                    $requiereInscripcion =
+                        $actividad->requiereInscripcionGeneral();
+
+                    $inscripcionValida =
+                        !$requiereInscripcion
+                        ||
+                        (
+                            $inscripcion !== null
+                            &&
+                            in_array(
+                                $inscripcion->estado,
+                                [
+                                    'confirmada',
+                                    'confirmada_prueba',
+                                ],
+                                true
+                            )
+                        );
+
+                    $puedeConfirmar =
+                        $orden->estado === 'pendiente_pago'
+                        &&
+                        $orden->expira_en !== null
+                        &&
+                        !$orden->expira_en->isPast()
+                        &&
+                        $inscripcionValida;
 
                     if ($puedeConfirmar) {
                         $orden->update([
