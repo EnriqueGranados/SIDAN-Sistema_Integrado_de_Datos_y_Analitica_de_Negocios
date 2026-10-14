@@ -193,51 +193,12 @@ class CompraActividadController extends Controller
                 | confirmada_prueba
                 |
                 */
+                $inscripcion = null;
 
-                $inscripcion =
-                    DB::table(
-                        'tbl_inscripciones'
-                    )
-                        ->where(
-                            'id_actividad',
-                            $actividad->id_actividad
-                        )
-                        ->where(
-                            function ($query) use ($idUsuario, $correoUsuario) {
-                                $query
-                                    ->where(
-                                        'id_usuario',
-                                        $idUsuario
-                                    )
-                                    ->orWhereRaw(
-                                        'lower(correo_participante) = ?',
-                                        [
-                                            $correoUsuario,
-                                        ]
-                                    );
-                            }
-                        )
-                        ->whereIn(
-                            'estado',
-                            [
-                                'confirmada',
-                                'confirmada_prueba',
-                            ]
-                        )
-                        ->orderByDesc(
-                            'id_inscripcion'
-                        )
-                        ->lockForUpdate()
-                        ->first();
+                $requiereInscripcion = $actividad->requiereInscripcionGeneral();
 
-                /*
-                |--------------------------------------------------------------------------
-                | Si todavía no está confirmada
-                |--------------------------------------------------------------------------
-                */
-
-                if (!$inscripcion) {
-                    $inscripcionPendiente =
+                if ($requiereInscripcion) {
+                    $inscripcion =
                         DB::table(
                             'tbl_inscripciones'
                         )
@@ -263,41 +224,85 @@ class CompraActividadController extends Controller
                             ->whereIn(
                                 'estado',
                                 [
-                                    'pendiente_pago',
-                                    'revision_cupo',
+                                    'confirmada',
+                                    'confirmada_prueba',
                                 ]
                             )
                             ->orderByDesc(
                                 'id_inscripcion'
                             )
+                            ->lockForUpdate()
                             ->first();
 
-                    if (
-                        $inscripcionPendiente &&
-                        $inscripcionPendiente->estado ===
-                        'pendiente_pago'
-                    ) {
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Si todavía no está confirmada
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (!$inscripcion) {
+                        $inscripcionPendiente =
+                            DB::table(
+                                'tbl_inscripciones'
+                            )
+                                ->where(
+                                    'id_actividad',
+                                    $actividad->id_actividad
+                                )
+                                ->where(
+                                    function ($query) use ($idUsuario, $correoUsuario) {
+                                        $query
+                                            ->where(
+                                                'id_usuario',
+                                                $idUsuario
+                                            )
+                                            ->orWhereRaw(
+                                                'lower(correo_participante) = ?',
+                                                [
+                                                    $correoUsuario,
+                                                ]
+                                            );
+                                    }
+                                )
+                                ->whereIn(
+                                    'estado',
+                                    [
+                                        'pendiente_pago',
+                                        'revision_cupo',
+                                    ]
+                                )
+                                ->orderByDesc(
+                                    'id_inscripcion'
+                                )
+                                ->first();
+
+                        if (
+                            $inscripcionPendiente &&
+                            $inscripcionPendiente->estado ===
+                            'pendiente_pago'
+                        ) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    'Primero debés completar el pago de tu inscripción antes de comprar productos.',
+                            ]);
+                        }
+
+                        if (
+                            $inscripcionPendiente &&
+                            $inscripcionPendiente->estado ===
+                            'revision_cupo'
+                        ) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    'Tu inscripción está en revisión. Esperá su confirmación antes de comprar productos.',
+                            ]);
+                        }
+
                         throw ValidationException::withMessages([
                             'compra' =>
-                                'Primero debés completar el pago de tu inscripción antes de comprar productos.',
+                                'Primero debés inscribirte en la actividad antes de comprar productos.',
                         ]);
                     }
-
-                    if (
-                        $inscripcionPendiente &&
-                        $inscripcionPendiente->estado ===
-                        'revision_cupo'
-                    ) {
-                        throw ValidationException::withMessages([
-                            'compra' =>
-                                'Tu inscripción está en revisión. Esperá su confirmación antes de comprar productos.',
-                        ]);
-                    }
-
-                    throw ValidationException::withMessages([
-                        'compra' =>
-                            'Primero debés inscribirte en la actividad antes de comprar productos.',
-                    ]);
                 }
 
                 /*
@@ -313,13 +318,16 @@ class CompraActividadController extends Controller
                 DB::table(
                     'tbl_ordenes'
                 )
-                    ->where(
-                        'id_inscripcion',
-                        $inscripcion->id_inscripcion
-                    )
-                    ->where(
-                        'tipo_orden',
-                        'productos'
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->where('id_usuario', $idUsuario)
+                    ->where('tipo_orden', 'productos')
+                    ->when(
+                        $inscripcion !== null,
+                        fn($query) => $query->where(
+                            'id_inscripcion',
+                            $inscripcion->id_inscripcion
+                        ),
+                        fn($query) => $query->whereNull('id_inscripcion')
                     )
                     ->where(
                         'estado',
@@ -351,39 +359,26 @@ class CompraActividadController extends Controller
                 |
                 */
 
-                $ordenPendiente =
-                    DB::table(
-                        'tbl_ordenes'
-                    )
-                        ->where(
+                $ordenPendiente = DB::table('tbl_ordenes')
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->where('id_usuario', $idUsuario)
+                    ->where('tipo_orden', 'productos')
+                    ->when(
+                        $inscripcion !== null,
+                        fn($query) => $query->where(
                             'id_inscripcion',
                             $inscripcion->id_inscripcion
-                        )
-                        ->where(
-                            'tipo_orden',
-                            'productos'
-                        )
-                        ->where(
-                            'estado',
-                            'pendiente_pago'
-                        )
-                        ->where(
-                            function ($query) use ($ahoraUtc) {
-                                $query
-                                    ->whereNull(
-                                        'expira_en'
-                                    )
-                                    ->orWhere(
-                                        'expira_en',
-                                        '>',
-                                        $ahoraUtc
-                                    );
-                            }
-                        )
-                        ->orderByDesc(
-                            'id_orden'
-                        )
-                        ->first();
+                        ),
+                        fn($query) => $query->whereNull('id_inscripcion')
+                    )
+                    ->where('estado', 'pendiente_pago')
+                    ->where(function ($query) use ($ahoraUtc) {
+                        $query
+                            ->whereNull('expira_en')
+                            ->orWhere('expira_en', '>', $ahoraUtc);
+                    })
+                    ->orderByDesc('id_orden')
+                    ->first();
 
                 if ($ordenPendiente) {
                     return [
@@ -394,6 +389,35 @@ class CompraActividadController extends Controller
                             true,
                     ];
                 }
+
+
+                $contenido = DB::connection('mongodb')
+                    ->table('activity_content')
+                    ->where('id_actividad_pg', (int) $actividad->id_actividad)
+                    ->first();
+
+                // Campos personalizados
+                $purchaseFieldsRaw = $contenido->purchase_fields ?? [];
+
+                $purchaseFields = is_array($purchaseFieldsRaw)
+                    ? $purchaseFieldsRaw
+                    : json_decode((string) $purchaseFieldsRaw, true);
+
+                $purchaseFields = is_array($purchaseFields)
+                    ? $purchaseFields
+                    : [];
+
+                // Reglas de incremento de precios
+                $pricingConfigurationRaw = $contenido->pricing_configuration ?? [];
+
+                $pricingConfiguration = is_array($pricingConfigurationRaw)
+                    ? $pricingConfigurationRaw
+                    : json_decode((string) $pricingConfigurationRaw, true);
+
+                $pricingConfiguration = is_array($pricingConfiguration)
+                    ? $pricingConfiguration
+                    : [];
+
 
                 /*
                 |--------------------------------------------------------------------------
@@ -582,35 +606,68 @@ class CompraActividadController extends Controller
                         ) +
                         $cantidad;
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Variante
-                    |--------------------------------------------------------------------------
-                    */
+                    /**
+                     * |--------------------------------------------------------------------------
+                     * | Variante
+                     * |--------------------------------------------------------------------------
+                     *
+                     * Si el producto utiliza campos dinámicos de MongoDB,
+                     * no exigimos una variante adicional de PostgreSQL.
+                     *
+                     * Si no tiene campos dinámicos, mantenemos el
+                     * comportamiento original de variantes.
+                     */
 
-                    $variantesItem =
-                        $variantes->get(
-                            $idItem,
-                            collect()
-                        );
+                    $variantesItem = $variantes->get(
+                        $idItem,
+                        collect()
+                    );
 
-                    $idVariante =
-                        !empty(
-                        $seleccion[
-                            'id_variante'
-                        ]
-                    )
-                        ? (int) $seleccion[
-                            'id_variante'
-                        ]
+                    $idVariante = !empty($seleccion['id_variante'])
+                        ? (int) $seleccion['id_variante']
                         : null;
 
-                    $variante =
-                        null;
+                    $variante = null;
 
-                    if (
-                        $variantesItem->isNotEmpty()
-                    ) {
+                    /**
+                     * Buscamos la configuración dinámica del producto.
+                     *
+                     * $purchaseFields debe contener el arreglo decodificado
+                     * de activity_content.purchase_fields.
+                     */
+                    $configuracionCampos = collect($purchaseFields)
+                        ->first(function ($configuracion) use ($idItem) {
+                            return (int) ($configuracion['id_item_pg'] ?? 0)
+                                === (int) $idItem
+                                && !empty($configuracion['enabled']);
+                        });
+
+                    $tieneCamposDinamicos = !empty(
+                        $configuracionCampos['fields']
+                    );
+
+                    /**
+                     * Productos con campos dinámicos:
+                     * no deben utilizar una variante adicional.
+                     */
+                    if ($tieneCamposDinamicos) {
+
+                        if ($idVariante !== null) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    "{$item->nombre} utiliza opciones personalizadas y no requiere seleccionar una variante.",
+                            ]);
+                        }
+
+                        $idVariante = null;
+                        $variante = null;
+
+                    } elseif ($variantesItem->isNotEmpty()) {
+
+                        /**
+                         * Productos sin campos dinámicos:
+                         * mantenemos las variantes tradicionales.
+                         */
                         if (!$idVariante) {
                             throw ValidationException::withMessages([
                                 'compra' =>
@@ -618,12 +675,10 @@ class CompraActividadController extends Controller
                             ]);
                         }
 
-                        $variante =
-                            $variantesItem
-                                ->firstWhere(
-                                    'id_variante_item',
-                                    $idVariante
-                                );
+                        $variante = $variantesItem->firstWhere(
+                            'id_variante_item',
+                            $idVariante
+                        );
 
                         if (!$variante) {
                             throw ValidationException::withMessages([
@@ -632,23 +687,17 @@ class CompraActividadController extends Controller
                             ]);
                         }
 
-                        $cantidadesPorVariante[
-                            $idVariante
-                        ] =
-                            (
-                                $cantidadesPorVariante[
-                                    $idVariante
-                                ]
-                                ?? 0
-                            ) +
-                            $cantidad;
-                    } elseif ($idVariante) {
+                        $cantidadesPorVariante[$idVariante] =
+                            ($cantidadesPorVariante[$idVariante] ?? 0)
+                            + $cantidad;
+
+                    } elseif ($idVariante !== null) {
+
                         throw ValidationException::withMessages([
                             'compra' =>
                                 "{$item->nombre} no utiliza variantes.",
                         ]);
                     }
-
                     /*
                     |--------------------------------------------------------------------------
                     | Campos configurables
@@ -662,6 +711,29 @@ class CompraActividadController extends Controller
                             ]
                             ?? []
                         );
+
+                    // Obtener las reglas de precio del producto actual.
+                    $configuracionPrecio = collect($pricingConfiguration)
+                        ->first(function ($configuracion) use ($idItem) {
+                            return is_array($configuracion)
+                                && (int) ($configuracion['id_item_pg'] ?? 0) === $idItem
+                                && !empty($configuracion['enabled']);
+                        });
+
+                    // Solamente aplicar reglas de campos habilitados.
+                    $camposConPrecio = $configuracionPrecio['pricing_fields'] ?? [];
+
+                    $reglasPrecio = collect($configuracionPrecio['rules'] ?? [])
+                        ->filter(function ($regla) use ($camposConPrecio) {
+                            return is_array($regla)
+                                && in_array(
+                                    $regla['field_key'] ?? '',
+                                    $camposConPrecio,
+                                    true
+                                );
+                        })
+                        ->values()
+                        ->all();
 
                     /*
                     |--------------------------------------------------------------------------
@@ -678,21 +750,17 @@ class CompraActividadController extends Controller
                     |
                     */
 
-                    $precioUnitario =
-                        $variante &&
-                        $variante->precio !==
-                        null
-                        ? (float) $variante
-                            ->precio
-                        : (float) $item
-                            ->precio;
+                    $precioBase = $variante && $variante->precio !== null
+                        ? (float) $variante->precio
+                        : (float) $item->precio;
 
-                    $subtotal =
-                        round(
-                            $precioUnitario *
-                            $cantidad,
-                            2
-                        );
+                    $precioUnitario = $this->calcularPrecioConfigurado(
+                        $precioBase,
+                        $campos,
+                        $reglasPrecio
+                    );
+
+                    $subtotal = round($precioUnitario * $cantidad, 2);
 
                     /*
                     |--------------------------------------------------------------------------
@@ -829,13 +897,15 @@ class CompraActividadController extends Controller
                     |
                     */
 
-                    $compradoEnInscripcion =
-                        $this
-                            ->cantidadComprometidaInscripcionItem(
-                                (int) $inscripcion
-                                    ->id_inscripcion,
-                                $idItem
+                    $compradoEnInscripcion = 0;
+
+                    if ($inscripcion !== null) {
+                        $compradoEnInscripcion =
+                            $this->cantidadComprometidaInscripcionItem(
+                                (int) $inscripcion->id_inscripcion,
+                                (int) $idItem
                             );
+                    }
 
                     if (
                         $item->max_por_inscripcion !==
@@ -1000,9 +1070,7 @@ class CompraActividadController extends Controller
                                  * Relacionamos esta compra
                                  * con la inscripción existente.
                                  */
-                                'id_inscripcion' =>
-                                    $inscripcion
-                                        ->id_inscripcion,
+                                'id_inscripcion' => $inscripcion?->id_inscripcion,
 
                                 'id_usuario' =>
                                     $idUsuario,
@@ -1429,5 +1497,28 @@ class CompraActividadController extends Controller
             ->sum(
                 'detalle.cantidad'
             );
+    }
+
+    private function calcularPrecioConfigurado(
+        float $precioBase,
+        array $campos,
+        array $reglas
+    ): float {
+        $precio = $precioBase;
+
+        foreach ($reglas as $regla) {
+            $clave = (string) ($regla['field_key'] ?? '');
+            $opcion = (string) ($regla['option'] ?? '');
+
+            if (
+                $clave !== '' &&
+                array_key_exists($clave, $campos) &&
+                (string) $campos[$clave] === $opcion
+            ) {
+                $precio += (float) ($regla['price_increment'] ?? 0);
+            }
+        }
+
+        return round($precio, 2);
     }
 }

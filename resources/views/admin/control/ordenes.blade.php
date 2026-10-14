@@ -1,0 +1,344 @@
+@extends('layouts.navbars')
+
+@section('title', 'Control de órdenes')
+
+@section('content')
+<div class="mx-auto max-w-7xl px-4 py-8 text-white">
+
+    <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <p class="text-xs font-black uppercase tracking-widest text-emerald-400">
+                Administración · SIDAN
+            </p>
+
+            <h1 class="mt-2 text-3xl font-black">
+                Control de órdenes
+            </h1>
+
+            <p class="mt-2 text-sm text-slate-400">
+                Revisa compras, pagos y artículos personalizados.
+            </p>
+        </div>
+
+        <a href="{{ route('admin.control.inscripciones') }}"
+           class="rounded-xl border border-white/10 px-5 py-3 text-sm font-bold text-white">
+            ← Ver inscripciones
+        </a>
+    </div>
+
+    <form method="GET"
+          action="{{ route('admin.control.ordenes') }}"
+          class="mb-7 grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 md:grid-cols-2 xl:grid-cols-5">
+
+        <div>
+            <label class="mb-2 block text-xs font-bold text-slate-400">
+                Actividad
+            </label>
+
+            <select name="actividad"
+                    class="w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-3 text-sm text-white">
+                <option value="">Todas</option>
+
+                @foreach ($actividades as $actividad)
+                    <option value="{{ $actividad->id_actividad }}"
+                        @selected(request('actividad') == $actividad->id_actividad)>
+                        {{ $actividad->nombre }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label class="mb-2 block text-xs font-bold text-slate-400">
+                Tipo de orden
+            </label>
+
+            <select name="tipo"
+                    class="w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-3 text-sm text-white">
+                <option value="">Todas</option>
+                <option value="inscripcion" @selected(request('tipo') === 'inscripcion')>
+                    Inscripciones
+                </option>
+                <option value="productos" @selected(request('tipo') === 'productos')>
+                    Productos
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label class="mb-2 block text-xs font-bold text-slate-400">
+                Estado
+            </label>
+
+            <select name="estado"
+                    class="w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-3 text-sm text-white">
+                <option value="">Todos</option>
+
+                @foreach ($estados as $estado)
+                    <option value="{{ $estado }}"
+                        @selected(request('estado') === $estado)>
+                        {{ ucfirst(str_replace('_', ' ', $estado)) }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label class="mb-2 block text-xs font-bold text-slate-400">
+                Comprador
+            </label>
+
+            <input type="search"
+                   name="buscar"
+                   value="{{ request('buscar') }}"
+                   placeholder="Nombre o correo"
+                   class="w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-3 text-sm text-white">
+        </div>
+
+        <div class="flex items-end gap-2">
+            <button type="submit"
+                    class="flex-1 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-black text-white">
+                Filtrar
+            </button>
+
+            <a href="{{ route('admin.control.ordenes') }}"
+               class="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-slate-300">
+                Limpiar
+            </a>
+        </div>
+    </form>
+
+    <div class="mb-5 text-sm text-slate-400">
+        {{ $ordenes->total() }} orden(es) encontrada(s)
+    </div>
+
+    <div class="space-y-4">
+        @forelse ($ordenes as $orden)
+            @php
+                $estado = $orden->estado;
+
+                $color = match ($estado) {
+                    'pagada' => 'bg-emerald-500/10 text-emerald-300',
+                    'pendiente_pago' => 'bg-amber-500/10 text-amber-300',
+                    'cancelada', 'vencida' => 'bg-red-500/10 text-red-300',
+                    default => 'bg-slate-500/10 text-slate-300',
+                };
+
+                $fechaPago = $orden->pago?->fecha_confirmacion;
+
+                $nombreComprador = $orden->inscripcion?->nombre_participante
+                    ?: $orden->correo_contacto;
+            @endphp
+
+            <details class="group overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                <summary class="cursor-pointer list-none p-5 sm:p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-5">
+
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-lg font-black">
+                                    Orden #{{ $orden->id_orden }}
+                                </span>
+
+                                <span class="rounded-full px-3 py-1 text-xs font-black {{ $color }}">
+                                    {{ ucfirst(str_replace('_', ' ', $estado)) }}
+                                </span>
+
+                                <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-slate-300">
+                                    {{ $orden->tipo_orden === 'productos'
+                                        ? 'Productos'
+                                        : 'Inscripción' }}
+                                </span>
+                            </div>
+
+                            <p class="mt-2 font-semibold text-white">
+                                {{ $orden->actividad?->nombre ?? 'Actividad no disponible' }}
+                            </p>
+
+                            <p class="mt-1 text-sm text-slate-400">
+                                {{ $nombreComprador }}
+                                · {{ $orden->correo_contacto }}
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-6">
+                            <div>
+                                <p class="text-xs text-slate-400">
+                                    Total de la orden
+                                </p>
+
+                                <p class="text-2xl font-black text-emerald-400">
+                                    ${{ number_format((float) $orden->total, 2) }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-slate-400">
+                                    Fecha de pago
+                                </p>
+
+                                <p class="text-sm font-bold">
+                                    {{ $fechaPago
+                                        ? $fechaPago->format('d/m/Y H:i')
+                                        : 'Sin pago confirmado' }}
+                                </p>
+                            </div>
+
+                            <span class="text-xl text-slate-400 transition group-open:rotate-180">
+                                ⌄
+                            </span>
+                        </div>
+                    </div>
+                </summary>
+
+                <div class="border-t border-white/10 px-5 py-5 sm:px-6">
+
+                    <div class="mb-5 grid gap-3 text-sm sm:grid-cols-3">
+                        <div class="rounded-xl bg-slate-900/60 p-4">
+                            <p class="text-xs text-slate-400">
+                                Fecha de creación
+                            </p>
+                            <p class="mt-1 font-bold">
+                                {{ $orden->created_at?->format('d/m/Y H:i') ?? '—' }}
+                            </p>
+                        </div>
+
+                        <div class="rounded-xl bg-slate-900/60 p-4">
+                            <p class="text-xs text-slate-400">
+                                Estado del pago
+                            </p>
+                            <p class="mt-1 font-bold">
+                                {{ $orden->pago?->estado
+                                    ? ucfirst(str_replace('_', ' ', $orden->pago->estado))
+                                    : 'Sin registro de pago' }}
+                            </p>
+                        </div>
+
+                        <div class="rounded-xl bg-slate-900/60 p-4">
+                            <p class="text-xs text-slate-400">
+                                Fecha de confirmación
+                            </p>
+                            <p class="mt-1 font-bold">
+                                {{ $fechaPago?->format('d/m/Y H:i') ?? 'Pendiente' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <h3 class="mb-4 text-base font-black">
+                        Artículos y conceptos de la orden
+                    </h3>
+
+                    <div class="overflow-x-auto rounded-xl border border-white/10">
+                        <table class="w-full min-w-[750px] text-left text-sm">
+                            <thead class="bg-white/5 text-xs uppercase text-slate-400">
+                                <tr>
+                                    <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3">Personalización</th>
+                                    <th class="px-4 py-3 text-center">Cantidad</th>
+                                    <th class="px-4 py-3 text-right">Precio unitario</th>
+                                    <th class="px-4 py-3 text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-white/10">
+                                @foreach ($orden->detalles as $detalle)
+                                    @php
+                                        $configuracion = $detalle->configuracion;
+
+                                        if (is_string($configuracion)) {
+                                            $configuracion = json_decode(
+                                                $configuracion,
+                                                true
+                                            );
+                                        }
+
+                                        $configuracion = is_array($configuracion)
+                                            ? $configuracion
+                                            : [];
+                                    @endphp
+
+                                    <tr>
+                                        <td class="px-4 py-4 align-top">
+                                            <p class="font-bold">
+                                                {{ $detalle->nombre_concepto }}
+                                            </p>
+
+                                            @if ($detalle->id_item_actividad)
+                                                <p class="mt-1 text-xs text-slate-500">
+                                                    Producto #{{ $detalle->id_item_actividad }}
+                                                </p>
+                                            @endif
+                                        </td>
+
+                                        <td class="px-4 py-4 align-top">
+                                            @forelse ($configuracion as $clave => $valor)
+                                                <div class="mb-1">
+                                                    <span class="font-semibold text-slate-400">
+                                                        {{ ucfirst(str_replace('_', ' ', $clave)) }}:
+                                                    </span>
+
+                                                    <span class="text-white">
+                                                        {{ is_scalar($valor)
+                                                            ? (string) $valor
+                                                            : json_encode($valor, JSON_UNESCAPED_UNICODE) }}
+                                                    </span>
+                                                </div>
+                                            @empty
+                                                <span class="text-slate-500">
+                                                    Sin personalización
+                                                </span>
+                                            @endforelse
+                                        </td>
+
+                                        <td class="px-4 py-4 text-center align-top font-bold">
+                                            {{ $detalle->cantidad }}
+                                        </td>
+
+                                        <td class="px-4 py-4 text-right align-top">
+                                            ${{ number_format((float) $detalle->precio_unitario, 2) }}
+                                        </td>
+
+                                        <td class="px-4 py-4 text-right align-top font-black text-emerald-400">
+                                            ${{ number_format((float) $detalle->subtotal, 2) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-5 flex flex-wrap items-center justify-between gap-4">
+                        <p class="text-xs text-slate-400">
+                            Los precios corresponden al registro histórico de la orden.
+                        </p>
+
+                        <div class="text-right">
+                            <p class="text-sm text-slate-400">
+                                Subtotal:
+                                ${{ number_format((float) $orden->subtotal, 2) }}
+                            </p>
+
+                            <p class="mt-1 text-sm text-slate-400">
+                                Descuento:
+                                ${{ number_format((float) $orden->descuento_total, 2) }}
+                            </p>
+
+                            <p class="mt-2 text-xl font-black text-emerald-400">
+                                Total: ${{ number_format((float) $orden->total, 2) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        @empty
+            <div class="rounded-2xl border border-white/10 bg-white/5 px-6 py-14 text-center text-slate-400">
+                No se encontraron órdenes con los filtros seleccionados.
+            </div>
+        @endforelse
+    </div>
+
+    <div class="mt-6">
+        {{ $ordenes->links() }}
+    </div>
+</div>
+@endsection

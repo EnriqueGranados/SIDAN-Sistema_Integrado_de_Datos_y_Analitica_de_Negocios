@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Inscripcion extends Model
 {
@@ -23,21 +24,36 @@ class Inscripcion extends Model
     public function actividad(): BelongsTo
     {
         return $this->belongsTo(
-            Actividad::class, 'id_actividad', 'id_actividad'
+            Actividad::class,
+            'id_actividad',
+            'id_actividad'
         );
     }
 
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(
-            User::class, 'id_usuario', 'id_usuario'
+            User::class,
+            'id_usuario',
+            'id_usuario'
         );
     }
 
     public function orden(): HasOne
     {
         return $this->hasOne(
-            Orden::class, 'id_inscripcion', 'id_inscripcion'
+            Orden::class,
+            'id_inscripcion',
+            'id_inscripcion'
+        );
+    }
+
+    public function ordenes(): HasMany
+    {
+        return $this->hasMany(
+            Orden::class,
+            'id_inscripcion',
+            'id_inscripcion'
         );
     }
 }

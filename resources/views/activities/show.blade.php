@@ -59,8 +59,8 @@
                     'lugar' => $esVirtual
                         ? 'Sesión virtual'
                         : ($registroSesion->espacio?->nombre ?:
-                        ($registroSesion->ubicacion ?:
-                        'Lugar por definir')),
+                            ($registroSesion->ubicacion ?:
+                                'Lugar por definir')),
                     'obligatoria' => (bool) $registroSesion->obligatoria,
                     'clave_dia' => $inicio ? $inicio->format('Y-m-d') : 'sin-fecha',
                     'mes' => $inicio ? $inicio->copy()->locale('es')->translatedFormat('M') : '',
@@ -143,10 +143,12 @@
 
                         <h1
                             class="mt-5 max-w-4xl text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
-                            {{ $actividad['titulo'] }}</h1>
+                            {{ $actividad['titulo'] }}
+                        </h1>
 
                         <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 sm:text-lg">
-                            {{ $actividad['descripcion'] }}</p>
+                            {{ $actividad['descripcion'] }}
+                        </p>
 
                         <div class="mt-7 flex flex-wrap gap-3 text-sm font-bold text-white/85">
                             <span class="rounded-xl border border-white/10 bg-white/10 px-3 py-2 backdrop-blur">📅
@@ -257,7 +259,8 @@
                                         lo esencial sin perderte entre bloques</h2>
                                     <div
                                         class="mt-5 whitespace-pre-line text-base leading-8 text-slate-600 dark:text-slate-300">
-                                        {{ $descripcionCompleta }}</div>
+                                        {{ $descripcionCompleta }}
+                                    </div>
 
                                     @if (count($actividad['etiquetas']))
                                         <div class="mt-6 flex flex-wrap gap-2">
@@ -283,12 +286,14 @@
                                     <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
                                         <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Categoría</p>
                                         <p class="mt-1 font-black text-sidan-900 dark:text-white">
-                                            {{ $actividad['categoria'] }}</p>
+                                            {{ $actividad['categoria'] }}
+                                        </p>
                                     </div>
                                     <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
                                         <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Precio</p>
                                         <p class="mt-1 font-black text-sidan-900 dark:text-white">
-                                            {{ $actividad['precio'] }}</p>
+                                            {{ $actividad['precio'] }}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -378,11 +383,12 @@
                                                 <div
                                                     class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sidan-950 px-5 py-4 text-white">
                                                     <div>
-                                                        <p
-                                                            class="text-xs font-black uppercase tracking-[0.15em] text-green-300">
-                                                            {{ ucfirst($primeraSesionDia['dia_semana']) }}</p>
+                                                        <p class="text-xs font-black uppercase tracking-[0.15em] text-green-300">
+                                                            {{ ucfirst($primeraSesionDia['dia_semana']) }}
+                                                        </p>
                                                         <p class="mt-1 text-xl font-black">
-                                                            {{ $primeraSesionDia['fecha_corta'] }}</p>
+                                                            {{ $primeraSesionDia['fecha_corta'] }}
+                                                        </p>
                                                     </div>
                                                     <span
                                                         class="rounded-full bg-white/10 px-3 py-1.5 text-xs font-black">{{ $sesionesDia->count() }}
@@ -398,12 +404,13 @@
                                                                 <div class="flex min-w-0 gap-3">
                                                                     <div
                                                                         class="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-black text-sidan-500 shadow-sm dark:bg-white/10">
-                                                                        {{ $datosSesion['hora_inicio'] }}</div>
+                                                                        {{ $datosSesion['hora_inicio'] }}
+                                                                    </div>
                                                                     <div class="min-w-0">
                                                                         <div class="flex flex-wrap items-center gap-2">
-                                                                            <h4
-                                                                                class="font-black text-sidan-900 dark:text-white">
-                                                                                {{ $datosSesion['nombre'] }}</h4>
+                                                                            <h4 class="font-black text-sidan-900 dark:text-white">
+                                                                                {{ $datosSesion['nombre'] }}
+                                                                            </h4>
                                                                             <span
                                                                                 class="rounded-full bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600 shadow-sm dark:bg-white/10 dark:text-slate-300">{{ $datosSesion['modalidad'] }}</span>
                                                                             @if ($datosSesion['obligatoria'])
@@ -413,13 +420,13 @@
                                                                         </div>
                                                                         <p
                                                                             class="mt-1 line-clamp-1 text-sm text-slate-500 dark:text-slate-400">
-                                                                            {{ $datosSesion['lugar'] }}</p>
+                                                                            {{ $datosSesion['lugar'] }}
+                                                                        </p>
                                                                     </div>
                                                                 </div>
                                                                 <div class="flex shrink-0 items-center gap-3">
                                                                     @if ($datosSesion['hora_fin'])
-                                                                        <span
-                                                                            class="text-xs font-bold text-slate-400">hasta
+                                                                        <span class="text-xs font-bold text-slate-400">hasta
                                                                             {{ $datosSesion['hora_fin'] }}</span>
                                                                     @endif
                                                                     <span
@@ -429,29 +436,25 @@
                                                             <div
                                                                 class="grid gap-3 border-t border-slate-200 p-4 dark:border-white/10 sm:grid-cols-3">
                                                                 <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
+                                                                    <p class="text-[11px] font-bold uppercase text-slate-400">
                                                                         Horario</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
+                                                                    <p class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
                                                                         {{ $datosSesion['hora_inicio'] }}{{ $datosSesion['hora_fin'] ? ' – ' . $datosSesion['hora_fin'] : '' }}
                                                                     </p>
                                                                 </div>
                                                                 <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
+                                                                    <p class="text-[11px] font-bold uppercase text-slate-400">
                                                                         Cupo</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
-                                                                        {{ $datosSesion['cupo'] }}</p>
+                                                                    <p class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
+                                                                        {{ $datosSesion['cupo'] }}
+                                                                    </p>
                                                                 </div>
                                                                 <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
+                                                                    <p class="text-[11px] font-bold uppercase text-slate-400">
                                                                         Reserva</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
-                                                                        {{ $datosSesion['reserva'] }}</p>
+                                                                    <p class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
+                                                                        {{ $datosSesion['reserva'] }}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                         </details>
@@ -492,13 +495,11 @@
                                                 class="shrink-0">
                                                 @csrf
 
-                                                <input type="hidden" name="selecciones" id="seleccionesCompra"
-                                                    value="">
+                                                <input type="hidden" name="selecciones" id="seleccionesCompra" value="">
 
                                                 <button type="submit" id="btnContinuarCompra" disabled
                                                     class="flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40">
-                                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"
-                                                        stroke="currentColor">
+                                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M3 3h2l2.4 10.4A2 2 0 0 0 9.35 15H17a2 2 0 0 0 1.93-1.48L21 6H6" />
 
@@ -563,8 +564,8 @@
 
                                                         'stock' =>
                                                             $variante->stock_total !== null
-                                                                ? (int) $variante->stock_total
-                                                                : null,
+                                                            ? (int) $variante->stock_total
+                                                            : null,
                                                     ];
                                                 })
                                                 ->values();
@@ -596,8 +597,8 @@
 
                                             $maximo =
                                                 $item->max_por_inscripcion !== null
-                                                    ? (int) $item->max_por_inscripcion
-                                                    : null;
+                                                ? (int) $item->max_por_inscripcion
+                                                : null;
 
                                             $stockItem = $item->stock_total !== null ? (int) $item->stock_total : null;
 
@@ -613,9 +614,8 @@
                                         <article
                                             class="sidan-producto flex flex-col rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_5px_25px_rgba(0,0,0,0.09)] dark:border-white/10 dark:bg-sidan-900 {{ $loop->index >= 6 ? 'hidden' : '' }}"
                                             data-producto-config data-item-id="{{ $item->id_item_actividad }}"
-                                            data-precio-base="{{ (float) $item->precio }}"
-                                            data-minimo="{{ $minimo }}" data-maximo="{{ $limite ?? '' }}"
-                                            data-stock="{{ $stockItem ?? '' }}"
+                                            data-precio-base="{{ (float) $item->precio }}" data-minimo="{{ $minimo }}"
+                                            data-maximo="{{ $limite ?? '' }}" data-stock="{{ $stockItem ?? '' }}"
                                             data-reglas='@json($reglasPrecio->all())'
                                             data-variantes='@json($variantesCompra->all())'>
 
@@ -641,42 +641,7 @@
                                                     </p>
                                                 @endif
 
-                                                @if ($variantes->isNotEmpty())
-                                                    <div class="mt-4">
 
-                                                        <label
-                                                            class="mb-1.5 block text-sm font-bold text-sidan-900 dark:text-white">
-                                                            Variante
-                                                            <span class="text-red-600">*</span>
-                                                        </label>
-
-                                                        <select data-variante
-                                                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-sidan-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/20 dark:bg-sidan-950 dark:text-white"
-                                                            @disabled(!$puedeConfigurar)>
-                                                            <option value="">
-                                                                Selecciona una variante
-                                                            </option>
-
-                                                            @foreach ($variantes as $variante)
-                                                                <option value="{{ $variante->id_variante_item }}"
-                                                                    @disabled($variante->stock_total !== null && (int) $variante->stock_total <= 0)>
-                                                                    {{ $variante->nombre_variante }}
-
-                                                                    ·
-
-                                                                    ${{ number_format((float) $variante->precio, 2) }}
-
-                                                                    @if ($variante->stock_total !== null)
-                                                                        ·
-                                                                        {{ $variante->stock_total }}
-                                                                        disponibles
-                                                                    @endif
-                                                                </option>
-                                                            @endforeach
-
-                                                        </select>
-                                                    </div>
-                                                @endif
 
                                                 @if ($campos->isNotEmpty())
                                                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -700,8 +665,7 @@
                                                                     $loop->index;
                                                             @endphp
 
-                                                            <div
-                                                                class="{{ $tipoCampo === 'texto' ? 'sm:col-span-2' : '' }}">
+                                                            <div class="{{ $tipoCampo === 'texto' ? 'sm:col-span-2' : '' }}">
 
                                                                 <label for="{{ $idCampo }}"
                                                                     class="mb-1.5 block text-sm font-bold text-sidan-900 dark:text-white">
@@ -713,8 +677,7 @@
                                                                 </label>
 
                                                                 @if ($tipoCampo === 'lista')
-                                                                    <select id="{{ $idCampo }}"
-                                                                        data-campo-clave="{{ $clave }}"
+                                                                    <select id="{{ $idCampo }}" data-campo-clave="{{ $clave }}"
                                                                         data-requerido="{{ $requerido ? '1' : '0' }}"
                                                                         class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-white/20 dark:bg-sidan-950 dark:text-white"
                                                                         @disabled(!$puedeConfigurar)>
@@ -729,8 +692,7 @@
                                                                         @endforeach
                                                                     </select>
                                                                 @elseif ($tipoCampo === 'texto')
-                                                                    <input id="{{ $idCampo }}" type="text"
-                                                                        maxlength="200"
+                                                                    <input id="{{ $idCampo }}" type="text" maxlength="200"
                                                                         data-campo-clave="{{ $clave }}"
                                                                         data-requerido="{{ $requerido ? '1' : '0' }}"
                                                                         placeholder="Escribe {{ strtolower($campo['label'] ?? $clave) }}"
@@ -755,8 +717,7 @@
                                                         class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/10">
 
                                                         <div>
-                                                            <p
-                                                                class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                                                 Precio unitario
                                                             </p>
 
@@ -788,8 +749,7 @@
 
                                                     </div>
 
-                                                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400"
-                                                        data-disponibilidad>
+                                                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400" data-disponibilidad>
                                                         {{ $puedeConfigurar ? 'Configura el producto para continuar.' : 'No disponible actualmente.' }}
                                                     </p>
 
@@ -881,8 +841,7 @@
                                         @endphp
                                         <article
                                             class="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-5 dark:border-amber-500/20 dark:from-amber-500/10 dark:via-white/[0.03] dark:to-emerald-500/10">
-                                            <div
-                                                class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-amber-300/20 blur-2xl">
+                                            <div class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-amber-300/20 blur-2xl">
                                             </div>
                                             <div class="relative">
                                                 <div class="flex items-start justify-between gap-4">
@@ -891,7 +850,8 @@
                                                             class="inline-flex rounded-lg bg-sidan-900 px-3 py-1.5 text-sm font-black text-white">{{ $promocion->textoDescuento() }}
                                                             OFF</span>
                                                         <h3 class="mt-3 text-lg font-black text-sidan-900 dark:text-white">
-                                                            {{ $promocion->nombre }}</h3>
+                                                            {{ $promocion->nombre }}
+                                                        </h3>
                                                     </div>
                                                     <span
                                                         class="rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600 shadow-sm dark:bg-white/10 dark:text-slate-300">{{ $estadoPromo }}</span>
@@ -916,8 +876,7 @@
                                                         Se aplica automáticamente</div>
                                                 @endif
 
-                                                <div
-                                                    class="mt-4 space-y-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                                                <div class="mt-4 space-y-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
                                                     <p>
                                                         <strong class="text-slate-700 dark:text-slate-200">Aplica
                                                             a:</strong>
@@ -932,8 +891,7 @@
                                                             ${{ number_format((float) $promocion->monto_minimo, 2) }}</p>
                                                     @endif
                                                     @if ($promocion->vigente_desde || $promocion->vigente_hasta)
-                                                        <p><strong
-                                                                class="text-slate-700 dark:text-slate-200">Vigencia:</strong>
+                                                        <p><strong class="text-slate-700 dark:text-slate-200">Vigencia:</strong>
                                                             {{ $promocion->vigente_desde?->format('d/m/Y') ?: 'ahora' }} –
                                                             {{ $promocion->vigente_hasta?->format('d/m/Y') ?: 'sin límite' }}
                                                         </p>
@@ -958,7 +916,8 @@
                                     <p class="font-black text-sidan-900 dark:text-white">{{ $actividad['lugar'] }}</p>
                                     @if ($actividad['direccion'])
                                         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                            {{ $actividad['direccion'] }}</p>
+                                            {{ $actividad['direccion'] }}
+                                        </p>
                                     @endif
                                 </div>
                             </div>
@@ -985,7 +944,8 @@
                             <div>
                                 <p class="text-xs font-bold uppercase text-slate-400">Fecha</p>
                                 <p class="mt-1 font-black text-sidan-900 dark:text-white">{{ $actividad['fecha'] }} ·
-                                    {{ $actividad['hora'] }}</p>
+                                    {{ $actividad['hora'] }}
+                                </p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold uppercase text-slate-400">Lugar</p>
@@ -1087,7 +1047,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const raiz = document.getElementById('detalleActividad');
             const tabs = Array.from(document.querySelectorAll('.sidan-tab'));
             const panels = Array.from(document.querySelectorAll('.sidan-panel'));
@@ -1116,7 +1076,7 @@
             }
 
             document.querySelectorAll('[data-panel-target]').forEach(boton => {
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     activarPanel(this.dataset.panelTarget, true);
                 });
             });
@@ -1130,7 +1090,7 @@
 
                 if (!boton) return;
 
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     visibles += lote;
                     elementos.forEach((elemento, indice) => elemento.classList.toggle('hidden', indice >=
                         visibles));
@@ -1178,11 +1138,11 @@
                 const totalProductos =
                     compraActividad.reduce(
                         (total, linea) =>
-                        total +
-                        (
-                            Number(linea.precioVisual) *
-                            Number(linea.cantidad)
-                        ),
+                            total +
+                            (
+                                Number(linea.precioVisual) *
+                                Number(linea.cantidad)
+                            ),
                         0
                     );
 
@@ -1286,17 +1246,17 @@
 
                     const limiteItem =
                         tarjeta.dataset.maximo === '' ?
-                        Infinity :
-                        Number(
-                            tarjeta.dataset.maximo
-                        );
+                            Infinity :
+                            Number(
+                                tarjeta.dataset.maximo
+                            );
 
                     const stockItem =
                         tarjeta.dataset.stock === '' ?
-                        Infinity :
-                        Number(
-                            tarjeta.dataset.stock
-                        );
+                            Infinity :
+                            Number(
+                                tarjeta.dataset.stock
+                            );
 
                     const minimo =
                         Number(
@@ -1315,96 +1275,66 @@
 
                         return variantes.find(
                             variante =>
-                            String(variante.id) ===
-                            String(
-                                selectorVariante.value
-                            )
+                                String(variante.id) ===
+                                String(
+                                    selectorVariante.value
+                                )
                         ) || null;
                     };
 
                     const unidadesPreparadas = () =>
                         configuraciones.reduce(
                             (total, linea) =>
-                            total +
-                            Number(
-                                linea.cantidad
-                            ),
+                                total +
+                                Number(
+                                    linea.cantidad
+                                ),
                             0
                         );
 
                     const stockVariantePreparado =
                         idVariante =>
-                        configuraciones
-                        .filter(
-                            linea =>
-                            String(
-                                linea.varianteId
-                            ) ===
-                            String(idVariante)
-                        )
-                        .reduce(
-                            (total, linea) =>
-                            total +
-                            Number(
-                                linea.cantidad
-                            ),
-                            0
-                        );
+                            configuraciones
+                                .filter(
+                                    linea =>
+                                        String(
+                                            linea.varianteId
+                                        ) ===
+                                        String(idVariante)
+                                )
+                                .reduce(
+                                    (total, linea) =>
+                                        total +
+                                        Number(
+                                            linea.cantidad
+                                        ),
+                                    0
+                                );
 
                     function precioActual() {
-                        const variante =
-                            varianteElegida();
+                        let precio = Number(tarjeta.dataset.precioBase);
 
-                        let precio =
-                            variante ?
-                            Number(
-                                variante.precio
-                            ) :
-                            Number(
-                                tarjeta.dataset
-                                .precioBase
-                            );
+                        const valores = Object.fromEntries(
+                            campos.map(campo => [
+                                campo.dataset.campoClave,
+                                campo.value
+                            ])
+                        );
 
-                        const valores =
-                            Object.fromEntries(
-                                campos.map(
-                                    campo => [
-                                        campo.dataset
-                                        .campoClave,
-
-                                        campo.value
-                                    ]
-                                )
-                            );
-
-                        reglas.forEach(
-                            regla => {
-                                if (
-                                    String(
-                                        valores[
-                                            regla.field_key
-                                        ] ?? ''
-                                    ) ===
-                                    String(
-                                        regla.option ??
-                                        ''
-                                    )
-                                ) {
-                                    precio +=
-                                        Number(
-                                            regla.price_increment ||
-                                            0
-                                        );
-                                }
+                        reglas.forEach(regla => {
+                            if (
+                                Object.prototype.hasOwnProperty.call(
+                                    valores,
+                                    regla.field_key
+                                ) &&
+                                String(valores[regla.field_key]) ===
+                                String(regla.option ?? '')
+                            ) {
+                                precio += Number(regla.price_increment || 0);
                             }
-                        );
+                        });
 
-                        return Math.max(
-                            0,
-                            Math.round(
-                                precio * 100
-                            ) / 100
-                        );
+                        return Math.max(0, Math.round(precio * 100) / 100);
                     }
 
                     function limiteActual() {
@@ -1431,11 +1361,11 @@
 
                         const stockVariante =
                             variante.stock === null ||
-                            variante.stock === undefined ?
-                            Infinity :
-                            Number(
-                                variante.stock
-                            );
+                                variante.stock === undefined ?
+                                Infinity :
+                                Number(
+                                    variante.stock
+                                );
 
                         const restanteVariante =
                             Math.max(
@@ -1465,13 +1395,13 @@
                         ) {
                             if (
                                 campo.dataset
-                                .requerido === '1' &&
+                                    .requerido === '1' &&
                                 !campo.value.trim()
                             ) {
                                 return (
                                     'Completa el campo ' +
                                     campo.dataset
-                                    .campoClave +
+                                        .campoClave +
                                     '.'
                                 );
                             }
@@ -1513,8 +1443,8 @@
                         ) {
                             cantidad =
                                 limite >= minimo ?
-                                limite :
-                                0;
+                                    limite :
+                                    0;
                         }
 
                         if (cantidadTexto) {
@@ -1530,7 +1460,7 @@
                         if (sumar) {
                             sumar.disabled =
                                 sumar.dataset
-                                .bloqueado === '1' ||
+                                    .bloqueado === '1' ||
                                 limite < minimo ||
                                 cantidad >= limite;
                         }
@@ -1580,7 +1510,7 @@
                                     ([clave, valor]) => {
                                         if (
                                             String(valor)
-                                            .trim() !== ''
+                                                .trim() !== ''
                                         ) {
                                             detalles.push(
                                                 `${clave}: ${valor}`
@@ -1591,10 +1521,10 @@
 
                                 const descripcion =
                                     detalles.length ?
-                                    detalles.join(
-                                        ' · '
-                                    ) :
-                                    'Sin configuración adicional';
+                                        detalles.join(
+                                            ' · '
+                                        ) :
+                                        'Sin configuración adicional';
 
                                 texto.textContent =
                                     `${linea.cantidad} × ` +
@@ -1623,7 +1553,7 @@
                                     () => {
                                         const lineaEliminada =
                                             configuraciones[
-                                                indice
+                                            indice
                                             ];
 
                                         configuraciones.splice(
@@ -1633,9 +1563,9 @@
 
                                         const indiceGlobal =
                                             compraActividad
-                                            .indexOf(
-                                                lineaEliminada
-                                            );
+                                                .indexOf(
+                                                    lineaEliminada
+                                                );
 
                                         if (
                                             indiceGlobal !==
@@ -1673,18 +1603,18 @@
                                 .classList.toggle(
                                     'hidden',
                                     configuraciones
-                                    .length === 0
+                                        .length === 0
                                 );
                         }
 
                         const subtotal =
                             configuraciones.reduce(
                                 (total, linea) =>
-                                total +
-                                (
-                                    linea.precioVisual *
-                                    linea.cantidad
-                                ),
+                                    total +
+                                    (
+                                        linea.precioVisual *
+                                        linea.cantidad
+                                    ),
                                 0
                             );
 
@@ -1707,16 +1637,16 @@
                             disponibilidadTexto
                                 .textContent =
                                 unidades > 0 ?
-                                `${unidades} unidad${unidades === 1 ? '' : 'es'} preparada${unidades === 1 ? '' : 's'}.` :
-                                'Configura el producto para continuar.';
+                                    `${unidades} unidad${unidades === 1 ? '' : 'es'} preparada${unidades === 1 ? '' : 's'}.` :
+                                    'Configura el producto para continuar.';
                         }
                     }
 
                     if (sumar) {
                         sumar.dataset.bloqueado =
                             sumar.disabled ?
-                            '1' :
-                            '0';
+                                '1' :
+                                '0';
 
                         sumar.addEventListener(
                             'click',
@@ -1751,8 +1681,8 @@
                             () => {
                                 cantidad =
                                     cantidad <= minimo ?
-                                    0 :
-                                    cantidad - 1;
+                                        0 :
+                                        cantidad - 1;
 
                                 refrescar();
                             }
@@ -1763,7 +1693,7 @@
                         ...campos,
                         selectorVariante
                     ]
-                    .filter(Boolean)
+                        .filter(Boolean)
                         .forEach(
                             campo => {
                                 campo.addEventListener(
@@ -1836,35 +1766,16 @@
                                         varianteElegida();
 
                                     const lineaNueva = {
-                                        idItem: Number(
-                                            tarjeta.dataset
-                                            .itemId
-                                        ),
-
-                                        varianteId: variante ?
-                                            Number(
-                                                variante.id
-                                            ) : null,
-
-                                        varianteNombre: variante ?
-                                            variante.nombre : null,
-
+                                        itemId: Number(tarjeta.dataset.itemId),
+                                        varianteId: variante ? Number(variante.id) : null,
+                                        varianteNombre: variante ? variante.nombre : null,
                                         campos: Object.fromEntries(
-                                            campos.map(
-                                                campo => [
-                                                    campo.dataset
-                                                    .campoClave,
-
-                                                    campo.value
-                                                    .trim()
-                                                ]
-                                            )
+                                            campos.map(campo => [
+                                                campo.dataset.campoClave,
+                                                campo.value.trim()
+                                            ])
                                         ),
-
-                                        cantidad: Number(
-                                            cantidad
-                                        ),
-
+                                        cantidad: Number(cantidad),
                                         precioVisual: precioActual()
                                     };
 
@@ -1925,18 +1836,12 @@
                                 return;
                             }
 
-                            const payload =
-                                compraActividad.map(
-                                    linea => ({
-                                        id_item: linea.idItem,
-
-                                        id_variante: linea.varianteId,
-
-                                        cantidad: linea.cantidad,
-
-                                        campos: linea.campos
-                                    })
-                                );
+                            const payload = compraActividad.map(linea => ({
+                                id_item: Number(linea.itemId),
+                                id_variante: linea.varianteId ?? null,
+                                cantidad: Number(linea.cantidad),
+                                campos: linea.campos ?? {}
+                            }));
 
                             inputSeleccionesCompra
                                 .value =
@@ -1951,29 +1856,29 @@
                             btnContinuarCompra
                                 .innerHTML =
                                 `
-                        <svg
-                            class="h-5 w-5 animate-spin"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                        >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
+                                        <svg
+                                            class="h-5 w-5 animate-spin"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                        >
+                                            <circle
+                                                class="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                stroke-width="4"
+                                            ></circle>
 
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                            ></path>
-                        </svg>
+                                            <path
+                                                class="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                            ></path>
+                                        </svg>
 
-                        Preparando orden...
-                    `;
+                                        Preparando orden...
+                                    `;
                         }
                     );
             }
@@ -2007,7 +1912,7 @@
             }
 
             botonesDia.forEach(boton => {
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     activarDia(this.dataset.diaTarget, this.classList.contains(
                         'sidan-dia-resumen'));
                 });
@@ -2018,7 +1923,7 @@
             }
 
             document.querySelectorAll('.btnCopiarPromo').forEach(boton => {
-                boton.addEventListener('click', async function() {
+                boton.addEventListener('click', async function () {
                     const codigo = this.dataset.codigo || '';
                     if (!codigo) return;
 
@@ -2041,7 +1946,7 @@
             const imagenGaleria = document.getElementById('imagenGaleriaActividad');
 
             document.querySelectorAll('.sidan-galeria').forEach(boton => {
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     imagenGaleria.src = this.dataset.imagen || '';
                     imagenGaleria.alt = this.dataset.alt || '';
                     modalGaleria.classList.remove('hidden');

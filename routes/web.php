@@ -25,6 +25,7 @@ use App\Http\Controllers\InscripcionController;
 use App\Http\Controllers\OrdenController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\CompraActividadController;
+use App\Http\Controllers\Admin\ControlActividadController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -252,6 +253,21 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
 
     Route::delete('actividades/{actividad}/medios/{medio}', [ActividadConfiguracionController::class, 'eliminarMedio'])
         ->name('actividades.medios.destroy');
+
+    Route::get(
+        '/control/inscripciones',
+        [ControlActividadController::class, 'inscripciones']
+    )->name('control.inscripciones');
+
+    Route::get(
+        '/control/ordenes',
+        [ControlActividadController::class, 'ordenes']
+    )->name('control.ordenes');
+
+    Route::get(
+        '/control/consolidado',
+        [ControlActividadController::class, 'consolidado']
+    )->name('control.consolidado');
 
     Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
         ->name('categorias.reorder');

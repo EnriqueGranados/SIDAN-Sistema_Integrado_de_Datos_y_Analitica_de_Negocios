@@ -29,18 +29,28 @@
             </div>
 
             <a href="{{ route('admin.actividades.create') }}"
-
                 class="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-400 sm:w-auto">
-
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-
                 </svg>
-
                 Nueva actividad
-
             </a>
+
+            <div class="flex flex-wrap gap-2">
+                <a
+                    href="{{ route('admin.control.inscripciones') }}"
+                    class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                >
+                    Inscripciones
+                </a>
+
+                <a
+                    href="{{ route('admin.control.ordenes') }}"
+                    class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                >
+                    Órdenes y compras
+                </a>
+            </div>
 
         </div>
 
