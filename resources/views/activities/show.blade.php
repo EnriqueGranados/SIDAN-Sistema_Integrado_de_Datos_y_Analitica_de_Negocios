@@ -80,6 +80,38 @@
 
         $sesionesPorDia = $sesionesVista->groupBy('clave_dia');
         $diaInicialCronograma = $sesionesPorDia->keys()->first();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Estado de inscripción del usuario actual
+        |--------------------------------------------------------------------------
+        |
+        | Este bloque únicamente consulta si el usuario ya posee una inscripción
+        | confirmada para esta actividad.
+        |
+        | No modifica la lógica existente de inscripción.
+        |
+        */
+
+        $usuarioInscritoActividad = false;
+
+        if (auth()->check()) {
+            $usuarioActual = auth()->user();
+
+            $correoActual = strtolower(trim((string) $usuarioActual->correo));
+
+            $usuarioInscritoActividad = \Illuminate\Support\Facades\DB::table('tbl_inscripciones')
+                ->where('id_actividad', $actividadModelo->id_actividad)
+                ->whereIn('estado', ['confirmada', 'confirmada_prueba'])
+                ->where(function ($query) use ($usuarioActual, $correoActual) {
+                    $query->where('id_usuario', $usuarioActual->id_usuario);
+
+                    if ($correoActual !== '') {
+                        $query->orWhereRaw('lower(correo_participante) = ?', [$correoActual]);
+                    }
+                })
+                ->exists();
+        }
     @endphp
 
     @include('partials.public-header')
@@ -132,8 +164,8 @@
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <p class="text-xs font-black uppercase tracking-[0.16em] text-green-300">
-                                    {{ $actividad['accion_texto'] }}</p>
-                                <p class="mt-2 text-3xl font-black text-white">{{ $actividad['precio'] }}</p>
+                                    {{ $usuarioInscritoActividad ? 'Inscrito' : $actividad['accion_texto'] }}
+                                </p>
                             </div>
                             @if ($promociones->isNotEmpty())
                                 <button type="button" data-panel-target="promociones"
@@ -143,22 +175,41 @@
                             @endif
                         </div>
 
-                        <a href="{{ $actividad['accion_url'] }}"
-                            class="mt-5 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-green-600">
-                            {{ $actividad['accion_texto'] }}
-                        </a>
+                        @if ($usuarioInscritoActividad)
 
-                        <p class="mt-3 text-center text-xs leading-5 text-white/65">
-                            {{ $actividad['participacion_descripcion'] }}</p>
+                            <button type="button" disabled
+                                class="mt-5 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-green-300/30 bg-green-400/15 px-5 py-3.5 text-sm font-black text-green-200">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="m5 12 4 4L19 6" />
+                                </svg>
 
-                        @if ($actividad['requiere_cuenta'])
-                            <p class="mt-2 text-center text-xs leading-5 text-white/55">
-                                @guest
-                                    Necesitarás iniciar sesión para completar esta acción.
-                                @else
-                                    Tu cuenta está lista para continuar.
-                                @endguest
+                                Inscrito
+                            </button>
+
+                            <p class="mt-3 text-center text-xs leading-5 text-green-100/70">
+                                Tu inscripción a esta actividad ya está confirmada.
                             </p>
+                        @else
+                            <a href="{{ $actividad['accion_url'] }}"
+                                class="mt-5 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-green-600">
+                                {{ $actividad['accion_texto'] }}
+                            </a>
+
+                            <p class="mt-3 text-center text-xs leading-5 text-white/65">
+                                {{ $actividad['participacion_descripcion'] }}
+                            </p>
+
+                            @if ($actividad['requiere_cuenta'])
+                                <p class="mt-2 text-center text-xs leading-5 text-white/55">
+                                    @guest
+                                        Necesitarás iniciar sesión para completar esta acción.
+                                    @else
+                                        Tu cuenta está lista para continuar.
+                                    @endguest
+                                </p>
+                            @endif
+
                         @endif
                     </div>
                 </div>
@@ -961,11 +1012,66 @@
                     </div>
 
                     <div class="rounded-[1.75rem] bg-gradient-to-br from-sidan-900 to-[#0d6a43] p-5 text-white shadow-lg">
-                        <p class="text-xs font-black uppercase tracking-[0.16em] text-green-300">¿Te interesa?</p>
-                        <h3 class="mt-2 text-xl font-black">{{ $actividad['accion_texto'] }}</h3>
-                        <p class="mt-2 text-sm leading-6 text-white/65">{{ $actividad['participacion_descripcion'] }}</p>
-                        <a href="{{ $actividad['accion_url'] }}"
-                            class="mt-4 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">{{ $actividad['accion_texto'] }}</a>
+
+                        @if ($usuarioInscritoActividad)
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-green-300">
+                                Tu participación
+                            </p>
+
+                            <div class="mt-3 flex items-center gap-3">
+
+                                <div
+                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-400/15 text-green-300">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="m5 12 4 4L19 6" />
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xl font-black">
+                                        Estás inscrito
+                                    </h3>
+
+                                    <p class="mt-0.5 text-xs text-white/55">
+                                        Inscripción confirmada
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <p class="mt-4 text-sm leading-6 text-white/65">
+                                Tu participación en esta actividad ya se encuentra confirmada.
+                            </p>
+
+                            <button type="button" disabled
+                                class="mt-4 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-green-300/30 bg-green-400/15 px-5 py-3 text-sm font-black text-green-200">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="m5 12 4 4L19 6" />
+                                </svg>
+
+                                Inscrito
+                            </button>
+                        @else
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-green-300">
+                                ¿Te interesa?
+                            </p>
+
+                            <h3 class="mt-2 text-xl font-black">
+                                {{ $actividad['accion_texto'] }}
+                            </h3>
+
+                            <p class="mt-2 text-sm leading-6 text-white/65">
+                                {{ $actividad['participacion_descripcion'] }}
+                            </p>
+
+                            <a href="{{ $actividad['accion_url'] }}"
+                                class="mt-4 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
+                                {{ $actividad['accion_texto'] }}
+                            </a>
+                        @endif
+
                     </div>
                 </aside>
             </div>
@@ -1738,12 +1844,10 @@
                                         varianteId: variante ?
                                             Number(
                                                 variante.id
-                                            ) :
-                                            null,
+                                            ) : null,
 
                                         varianteNombre: variante ?
-                                            variante.nombre :
-                                            null,
+                                            variante.nombre : null,
 
                                         campos: Object.fromEntries(
                                             campos.map(
