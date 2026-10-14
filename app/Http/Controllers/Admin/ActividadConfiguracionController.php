@@ -24,7 +24,8 @@ use App\Models\RecursoActividad;
 use App\Models\ObservacionRevisionActividad;
 use App\Models\RevisionActividad;
 use App\Services\ActividadRevisionSnapshotService;
-class ActividadConfiguracionController extends Controller {
+class ActividadConfiguracionController extends Controller
+{
     public function __construct(
         private readonly ActividadRevisionSnapshotService $snapshotService
     ) {
@@ -41,6 +42,7 @@ class ActividadConfiguracionController extends Controller {
             'espacio.contenedor',
             'medios',
             'items.variantes',
+            'items.sesiones',
             'sesiones.espacio.contenedor',
             'sesiones.recursos.recurso',
             'formularios.campos',
@@ -62,18 +64,18 @@ class ActividadConfiguracionController extends Controller {
                 $contenidoFlexible?->purchase_fields ?? []
             )
         )->keyBy(
-            fn ($configuracion) =>
-                (string) ($configuracion['id_item_pg'] ?? '')
-        );
+                fn($configuracion) =>
+                    (string) ($configuracion['id_item_pg'] ?? '')
+            );
 
         $configuracionesPrecios = collect(
             $this->normalizarMongo(
                 $contenidoFlexible?->pricing_configuration ?? []
             )
         )->keyBy(
-            fn ($configuracion) =>
-                (string) ($configuracion['id_item_pg'] ?? '')
-        );
+                fn($configuracion) =>
+                    (string) ($configuracion['id_item_pg'] ?? '')
+            );
 
         $configuracionSesiones = $this->normalizarMongo(
             $contenidoFlexible?->session_configuration ?? []
@@ -121,7 +123,7 @@ class ActividadConfiguracionController extends Controller {
         $presentacionCompleta = $actividad->medios
             ->whereNull('id_item_actividad')
             ->whereNull('id_sesion')
-            ->contains(fn ($medio) => (bool) $medio->es_portada);
+            ->contains(fn($medio) => (bool) $medio->es_portada);
 
         $productosConfigurados =
             ($configuracionProductos['configured'] ?? false) === true;
@@ -164,17 +166,14 @@ class ActividadConfiguracionController extends Controller {
             && $actividad->items->isNotEmpty()
         ) {
             $datosCompletos = $actividad->items->every(
-                fn ($item) => $configuracionesDatos->has(
+                fn($item) => $configuracionesDatos->has(
                     (string) $item->id_item_actividad
                 )
             );
 
             if ($datosCompletos) {
                 $preciosCompletos = $actividad->items->every(
-                    function ($item) use (
-                        $configuracionesDatos,
-                        $configuracionesPrecios
-                    ) {
+                    function ($item) use ($configuracionesDatos, $configuracionesPrecios) {
                         $configDatos = $configuracionesDatos->get(
                             (string) $item->id_item_actividad
                         );
@@ -182,10 +181,10 @@ class ActividadConfiguracionController extends Controller {
                         $camposLista = collect(
                             $configDatos['fields'] ?? []
                         )->filter(
-                            fn ($campo) =>
-                                ($campo['type'] ?? null) === 'lista'
-                                && !empty($campo['options'] ?? [])
-                        );
+                                fn($campo) =>
+                                    ($campo['type'] ?? null) === 'lista'
+                                    && !empty($campo['options'] ?? [])
+                            );
 
                         if ($camposLista->isEmpty()) {
                             return true;
@@ -204,28 +203,28 @@ class ActividadConfiguracionController extends Controller {
 
         $estadoPasos = [
             'presentacion' => $presentacionCompleta,
+            'sesiones' => $sesionesConfiguradas,
             'productos' => $productosConfigurados,
             'datos' => $productosConfigurados && $datosCompletos,
             'precios' => $productosConfigurados
                 && $datosCompletos
                 && $preciosCompletos,
-            'sesiones' => $sesionesConfiguradas,
             'resumen' => false,
         ];
 
         $pasosValidos = [
             'presentacion',
+            'sesiones',
             'productos',
             'datos',
             'precios',
-            'sesiones',
             'resumen',
         ];
 
         $primerPendiente = 'resumen';
 
         foreach (
-            ['presentacion', 'productos', 'datos', 'precios', 'sesiones']
+            ['presentacion', 'sesiones', 'productos', 'datos', 'precios']
             as $pasoEvaluado
         ) {
             if (!($estadoPasos[$pasoEvaluado] ?? false)) {
@@ -236,10 +235,10 @@ class ActividadConfiguracionController extends Controller {
 
         $seccionesConfiguracion = [
             'presentacion' => 'presentacion',
+            'programacion' => 'sesiones',
             'productos' => 'productos',
             'datos_solicitados' => 'datos',
             'precios_costos' => 'precios',
-            'programacion' => 'sesiones',
         ];
 
         $primerPasoCorreccion = 'resumen';
@@ -363,7 +362,7 @@ class ActividadConfiguracionController extends Controller {
             })
             ->with([
                 'contenedor',
-                'recursos' => fn ($query) => $query
+                'recursos' => fn($query) => $query
                     ->where('tbl_recursos.activo', true)
                     ->orderBy('tbl_recursos.nombre'),
             ])
@@ -378,7 +377,7 @@ class ActividadConfiguracionController extends Controller {
                     ->pluck('id_recurso')
                     ->merge(
                         $actividad->sesiones->flatMap(
-                            fn ($sesion) =>
+                            fn($sesion) =>
                                 $sesion->recursos->pluck('id_recurso')
                         )
                     )
@@ -419,12 +418,13 @@ class ActividadConfiguracionController extends Controller {
         );
     }
 
-    public function guardarConfiguracionProductos(Request $request,Actividad $actividad) {
+    public function guardarConfiguracionProductos(Request $request, Actividad $actividad)
+    {
         $this->validarActividadEditable($actividad);
-        $validated = $request->validate(['ofrece_productos' => ['required', 'boolean', ], ]);
+        $validated = $request->validate(['ofrece_productos' => ['required', 'boolean',],]);
         $ofreceProductos = (bool) $validated['ofrece_productos'];
-        if (!$ofreceProductos && $actividad->items()->exists() ) {
-            throw ValidationException::withMessages(['ofrece_productos' => 'La actividad ya tiene productos o servicios agregados. Elimínalos antes de indicar que no ofrecerá ninguno.', ]);
+        if (!$ofreceProductos && $actividad->items()->exists()) {
+            throw ValidationException::withMessages(['ofrece_productos' => 'La actividad ya tiene productos o servicios agregados. Elimínalos antes de indicar que no ofrecerá ninguno.',]);
         }
         if ($actividad->estado_publicacion === 'aprobada') {
             $this->snapshotService->capturarSiAprobada($actividad);
@@ -441,7 +441,7 @@ class ActividadConfiguracionController extends Controller {
             $actividad->actualizado_por = Auth::id();
             $actividad->save();
             $this->marcarComoBorradorSiAprobada($actividad);
-        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => $ofreceProductos ? 'productos' : 'sesiones', ] )->with('success', $ofreceProductos ? 'Ahora puedes agregar los productos o servicios que ofrecerá la actividad.' : 'La actividad quedó configurada sin productos ni servicios. Puedes continuar con su programación.');
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => $ofreceProductos ? 'productos' : 'resumen',])->with('success', $ofreceProductos ? 'Ahora puedes agregar los productos o servicios que ofrecerá la actividad.' : 'La actividad quedó configurada sin productos ni servicios. Puedes revisar el resumen.');
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
@@ -450,17 +450,18 @@ class ActividadConfiguracionController extends Controller {
         }
     }
 
-    public function guardarDatosPedido(Request $request,Actividad $actividad,ItemActividad $item) {
+    public function guardarDatosPedido(Request $request, Actividad $actividad, ItemActividad $item)
+    {
         $this->validarItemPerteneceActividad($actividad, $item);
         $this->validarActividadEditable($actividad);
         $this->validarProductosHabilitados($actividad);
-        $validated = $request->validate(['requiere_datos' => ['required', 'boolean', ], 'campos' => ['nullable', 'array', 'max:20', ], 'campos.*.label' => ['required_with:campos', 'string', 'max:100', ], 'campos.*.type' => ['required_with:campos', Rule::in(['texto', 'numero', 'lista', ]), ], 'campos.*.required' => ['nullable', 'boolean', ], 'campos.*.options' => ['nullable', 'string', 'max:5000', ], ]);
+        $validated = $request->validate(['requiere_datos' => ['required', 'boolean',], 'campos' => ['nullable', 'array', 'max:20',], 'campos.*.label' => ['required_with:campos', 'string', 'max:100',], 'campos.*.type' => ['required_with:campos', Rule::in(['texto', 'numero', 'lista',]),], 'campos.*.required' => ['nullable', 'boolean',], 'campos.*.options' => ['nullable', 'string', 'max:5000',],]);
         $requiereDatos = (bool) $validated['requiere_datos'];
         $camposProcesados = [];
         if ($requiereDatos) {
             $campos = $validated['campos'] ?? [];
             if (empty($campos)) {
-                throw ValidationException::withMessages(['campos' => 'Agrega al menos un dato que deba proporcionar el comprador.', ]);
+                throw ValidationException::withMessages(['campos' => 'Agrega al menos un dato que deba proporcionar el comprador.',]);
             }
             $clavesUsadas = [];
             foreach ($campos as $campo) {
@@ -468,17 +469,17 @@ class ActividadConfiguracionController extends Controller {
                 $tipo = $campo['type'];
                 $clave = Str::slug($nombre, '_');
                 if ($clave === '') {
-                    throw ValidationException::withMessages(['campos' => 'Todos los campos deben tener un nombre válido.', ]);
+                    throw ValidationException::withMessages(['campos' => 'Todos los campos deben tener un nombre válido.',]);
                 }
-                if (in_array($clave, $clavesUsadas, true) ) {
-                    throw ValidationException::withMessages(['campos' => "El dato '{$nombre}' está repetido.", ]);
+                if (in_array($clave, $clavesUsadas, true)) {
+                    throw ValidationException::withMessages(['campos' => "El dato '{$nombre}' está repetido.",]);
                 }
                 $clavesUsadas[] = $clave;
                 $opciones = [];
                 if ($tipo === 'lista') {
                     $opciones = $this->procesarOpciones($campo['options'] ?? '');
                     if (empty($opciones)) {
-                        throw ValidationException::withMessages(['campos' => "Agrega al menos una opción para '{$nombre}'.", ]);
+                        throw ValidationException::withMessages(['campos' => "Agrega al menos una opción para '{$nombre}'.",]);
                     }
                 }
                 $camposProcesados[] = ['key' => $clave, 'label' => $nombre, 'type' => $tipo, 'required' => (bool) ($campo['required'] ?? false), 'options' => $opciones,];
@@ -490,7 +491,7 @@ class ActividadConfiguracionController extends Controller {
 
         try {
             $documento = $this->obtenerDocumentoActividad($actividad);
-            $configuraciones = collect($this->normalizarMongo($documento->purchase_fields ?? []) )->reject(fn ($configuracion) => (int) ($configuracion['id_item_pg'] ?? 0 ) === (int) $item->id_item_actividad )->values()->all();
+            $configuraciones = collect($this->normalizarMongo($documento->purchase_fields ?? []))->reject(fn($configuracion) => (int) ($configuracion['id_item_pg'] ?? 0) === (int) $item->id_item_actividad)->values()->all();
             $configuraciones[] = ['id_item_pg' => (int) $item->id_item_actividad, 'enabled' => $requiereDatos, 'fields' => $camposProcesados, 'updated_at' => now()->toIso8601String(),];
             $documento->purchase_fields = $configuraciones;
             $this->invalidarConfiguracionGeneral($documento);
@@ -498,7 +499,7 @@ class ActividadConfiguracionController extends Controller {
             $actividad->actualizado_por = Auth::id();
             $actividad->save();
             $this->marcarComoBorradorSiAprobada($actividad);
-        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos', ] )->with('success', 'La configuración fue guardada correctamente.');
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos',])->with('success', 'La configuración fue guardada correctamente.');
         } catch (\Throwable $e) {
             report($e);
             return back()->withInput()->with('error', 'No se pudo guardar la configuración.');
@@ -521,7 +522,7 @@ class ActividadConfiguracionController extends Controller {
         );
 
         $configDatosItem = $configuracionesDatos->first(
-            fn ($configuracion) =>
+            fn($configuracion) =>
                 (int) ($configuracion['id_item_pg'] ?? 0)
                 === (int) $item->id_item_actividad
         );
@@ -534,7 +535,7 @@ class ActividadConfiguracionController extends Controller {
 
         $camposLista = collect($configDatosItem['fields'] ?? [])
             ->filter(
-                fn ($campo) =>
+                fn($campo) =>
                     ($campo['type'] ?? null) === 'lista'
                     && !empty($campo['options'] ?? [])
             )
@@ -625,7 +626,7 @@ class ActividadConfiguracionController extends Controller {
         $idsVariantesAnteriores = VarianteItem::query()
             ->where('id_item_actividad', $item->id_item_actividad)
             ->pluck('id_variante_item')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->values()
             ->all();
 
@@ -633,13 +634,7 @@ class ActividadConfiguracionController extends Controller {
             $mongoActualizado = false;
 
             try {
-                DB::transaction(function () use (
-                    $actividad,
-                    $item,
-                    $documento,
-                    $idsVariantesAnteriores,
-                    &$mongoActualizado
-                ) {
+                DB::transaction(function () use ($actividad, $item, $documento, $idsVariantesAnteriores, &$mongoActualizado) {
                     if (!empty($idsVariantesAnteriores)) {
                         VarianteItem::whereIn('id_variante_item', $idsVariantesAnteriores)->delete();
                     }
@@ -706,7 +701,7 @@ class ActividadConfiguracionController extends Controller {
             $opcion = trim((string) $ajuste['opcion']);
 
             $campo = $camposLista->first(
-                fn ($campoDisponible) =>
+                fn($campoDisponible) =>
                     (string) ($campoDisponible['key'] ?? '') === $campoClave
             );
 
@@ -717,7 +712,7 @@ class ActividadConfiguracionController extends Controller {
             }
 
             $opcionesPermitidas = collect($campo['options'] ?? [])
-                ->map(fn ($valor) => (string) $valor)
+                ->map(fn($valor) => (string) $valor)
                 ->values()
                 ->all();
 
@@ -809,17 +804,7 @@ class ActividadConfiguracionController extends Controller {
         $mongoActualizado = false;
 
         try {
-            DB::transaction(function () use (
-                $actividad,
-                $item,
-                $documento,
-                $variantesPreparadas,
-                $camposClave,
-                $reglas,
-                $idsVariantesAnteriores,
-                &$idsVariantesNuevas,
-                &$mongoActualizado
-            ) {
+            DB::transaction(function () use ($actividad, $item, $documento, $variantesPreparadas, $camposClave, $reglas, $idsVariantesAnteriores, &$idsVariantesNuevas, &$mongoActualizado) {
                 foreach ($variantesPreparadas as $indice => $datos) {
                     $variante = new VarianteItem();
                     $variante->id_item_actividad = $item->id_item_actividad;
@@ -1011,6 +996,13 @@ class ActividadConfiguracionController extends Controller {
         }
 
         $documento = $this->obtenerDocumentoActividad($actividad);
+
+        $configuracionSesionesAnterior = $this->normalizarMongo(
+            $documento->session_configuration ?? []
+        );
+
+        $modoAnterior = $configuracionSesionesAnterior['mode'] ?? null;
+
         $mongoOriginal = $this->capturarEstadoMongo($documento, [
             'session_configuration',
             'configuration',
@@ -1018,13 +1010,7 @@ class ActividadConfiguracionController extends Controller {
         $mongoActualizado = false;
 
         try {
-            DB::transaction(function () use (
-                $actividad,
-                $modo,
-                $sesionesPreparadas,
-                $documento,
-                &$mongoActualizado
-            ) {
+            DB::transaction(function () use ($actividad, $modo, $modoAnterior, $sesionesPreparadas, $documento, &$mongoActualizado) {
                 if ($modo === 'ninguna') {
                     $actividad->sesiones()->delete();
                 } elseif ($modo === 'unica') {
@@ -1107,6 +1093,54 @@ class ActividadConfiguracionController extends Controller {
                         ->delete();
                 }
 
+                if ($modo === 'ninguna') {
+                    $actividad->items()
+                        ->with('sesiones')
+                        ->get()
+                        ->each(function ($item) {
+                            $item->update([
+                                'alcance_sesiones' => 'actividad',
+                            ]);
+
+                            $item->sesiones()->detach();
+                        });
+                }
+
+                if ($modo === 'unica') {
+                    $idSesionUnica = $actividad->sesiones()
+                        ->orderBy('orden')
+                        ->orderBy('id_sesion')
+                        ->value('id_sesion');
+
+                    if ($idSesionUnica) {
+                        $actividad->items()
+                            ->get()
+                            ->each(function ($item) use ($idSesionUnica) {
+                                $item->update([
+                                    'alcance_sesiones' => 'sesiones',
+                                ]);
+
+                                $item->sesiones()->sync([(int) $idSesionUnica]);
+                            });
+                    }
+                }
+
+                if (
+                    $modo === 'multiples'
+                    && $modoAnterior !== 'multiples'
+                ) {
+                    $actividad->items()
+                        ->with('sesiones')
+                        ->get()
+                        ->each(function ($item) {
+                            $item->update([
+                                'alcance_sesiones' => 'actividad',
+                            ]);
+
+                            $item->sesiones()->detach();
+                        });
+                }
+
                 $documento->session_configuration = [
                     'configured' => true,
                     'enabled' => $modo !== 'ninguna',
@@ -1129,7 +1163,7 @@ class ActividadConfiguracionController extends Controller {
 
             $redirect = route('admin.actividades.configurar', [
                 'actividad' => $actividad->id_actividad,
-                'paso' => 'resumen',
+                'paso' => 'productos',
             ]);
 
             if ($request->expectsJson()) {
@@ -1141,7 +1175,7 @@ class ActividadConfiguracionController extends Controller {
             }
 
             return redirect($redirect)
-                ->with('success', 'Programación guardada correctamente. Revisa el resumen antes de finalizar.');
+                ->with('success', 'Programación guardada correctamente. Ahora configura los productos o servicios.');
         } catch (ValidationException $e) {
             if ($mongoActualizado) {
                 $this->restaurarEstadoMongo($actividad, $mongoOriginal);
@@ -1168,9 +1202,10 @@ class ActividadConfiguracionController extends Controller {
         }
     }
 
-    public function guardarPresentacion(Request $request,Actividad $actividad) {
+    public function guardarPresentacion(Request $request, Actividad $actividad)
+    {
         $this->validarActividadEditable($actividad);
-        $validated = $request->validate(['portada' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ], 'texto_alternativo' => ['nullable', 'string', 'max:255', ], 'galeria' => ['nullable', 'array', 'max:20', ], 'galeria.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ], ]);
+        $validated = $request->validate(['portada' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120',], 'texto_alternativo' => ['nullable', 'string', 'max:255',], 'galeria' => ['nullable', 'array', 'max:20',], 'galeria.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120',],]);
         $actividad->load('medios');
         if ($actividad->estado_publicacion === 'aprobada') {
             $this->snapshotService->capturarSiAprobada($actividad);
@@ -1179,7 +1214,8 @@ class ActividadConfiguracionController extends Controller {
         $archivosNuevos = [];
         $archivoAnterior = null;
         try {
-            DB::transaction(function () use ($request, $validated, $actividad, $portadaActual, &$archivosNuevos, &$archivoAnterior ) {
+            DB::transaction(
+                function () use ($request, $validated, $actividad, $portadaActual, &$archivosNuevos, &$archivoAnterior) {
                     if ($request->hasFile('portada')) {
                         $ruta = $request->file('portada')->store("actividades/{$actividad->id_actividad}", 'public');
                         $archivosNuevos[] = $ruta;
@@ -1204,13 +1240,14 @@ class ActividadConfiguracionController extends Controller {
                             $medio->save();
                         }
                     } elseif (
-                        $portadaActual && array_key_exists('texto_alternativo', $validated)) {
+                        $portadaActual && array_key_exists('texto_alternativo', $validated)
+                    ) {
                         $portadaActual->texto_alternativo = $validated['texto_alternativo'] ?: $actividad->nombre;
                         $portadaActual->save();
                     }
                     if ($request->hasFile('galeria')) {
-                        $ultimoOrden = (int) MedioActividad::query()->where('id_actividad', $actividad->id_actividad )->whereNull('id_item_actividad' )->whereNull('id_sesion' )->max('orden');
-                        foreach ($request->file('galeria' ) as $archivo ) {
+                        $ultimoOrden = (int) MedioActividad::query()->where('id_actividad', $actividad->id_actividad)->whereNull('id_item_actividad')->whereNull('id_sesion')->max('orden');
+                        foreach ($request->file('galeria') as $archivo) {
                             $ruta = $archivo->store("actividades/{$actividad->id_actividad}", 'public');
                             $archivosNuevos[] = $ruta;
                             $ultimoOrden++;
@@ -1237,10 +1274,10 @@ class ActividadConfiguracionController extends Controller {
             $this->invalidarConfiguracionGeneral($documento);
             $documento->save();
             $this->marcarComoBorradorSiAprobada($actividad);
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'productos', ] )->with('success', 'Presentación guardada correctamente. Continúa con productos o servicios.');
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'sesiones',])->with('success', 'Presentación guardada correctamente. Continúa con la programación de la actividad.');
         } catch (\Throwable $e) {
-            foreach ($archivosNuevos as $ruta ) {
-                if (Storage::disk('public')->exists($ruta) ) {
+            foreach ($archivosNuevos as $ruta) {
+                if (Storage::disk('public')->exists($ruta)) {
                     Storage::disk('public')->delete($ruta);
                 }
             }
@@ -1249,19 +1286,21 @@ class ActividadConfiguracionController extends Controller {
         }
     }
 
-    public function establecerPortada(Actividad $actividad,MedioActividad $medio) {
+    public function establecerPortada(Actividad $actividad, MedioActividad $medio)
+    {
         $this->validarActividadEditable($actividad);
-        if ((int) $medio->id_actividad !== (int) $actividad->id_actividad || $medio->id_item_actividad !== null || $medio->id_sesion !== null ) {
+        if ((int) $medio->id_actividad !== (int) $actividad->id_actividad || $medio->id_item_actividad !== null || $medio->id_sesion !== null) {
             abort(404);
         }
         if ($medio->es_portada) {
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ]);
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion',]);
         }
         if ($actividad->estado_publicacion === 'aprobada') {
             $this->snapshotService->capturarSiAprobada($actividad);
         }
-        DB::transaction(function () use ($actividad, $medio ) {
-                MedioActividad::query()->where('id_actividad', $actividad->id_actividad )->whereNull('id_item_actividad' )->whereNull('id_sesion' )->where('es_portada', true)->update(['es_portada' => false, ]);
+        DB::transaction(
+            function () use ($actividad, $medio) {
+                MedioActividad::query()->where('id_actividad', $actividad->id_actividad)->whereNull('id_item_actividad')->whereNull('id_sesion')->where('es_portada', true)->update(['es_portada' => false,]);
                 $medio->es_portada = true;
                 $medio->orden = 0;
                 $medio->save();
@@ -1271,83 +1310,99 @@ class ActividadConfiguracionController extends Controller {
         $this->invalidarConfiguracionGeneral($documento);
         $documento->save();
         $this->marcarComoBorradorSiAprobada($actividad);
-        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ] )->with('success', 'La imagen fue establecida como portada.');
+        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion',])->with('success', 'La imagen fue establecida como portada.');
     }
 
-    public function eliminarMedio(Actividad $actividad,MedioActividad $medio) {
+    public function eliminarMedio(Actividad $actividad, MedioActividad $medio)
+    {
         $this->validarActividadEditable($actividad);
-        if ((int) $medio->id_actividad !== (int) $actividad->id_actividad || $medio->id_item_actividad !== null || $medio->id_sesion !== null ) {
+        if ((int) $medio->id_actividad !== (int) $actividad->id_actividad || $medio->id_item_actividad !== null || $medio->id_sesion !== null) {
             abort(404);
         }
         if ($medio->es_portada) {
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ] )->with('error', 'La portada no puede eliminarse directamente. Primero selecciona otra imagen como portada.');
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion',])->with('error', 'La portada no puede eliminarse directamente. Primero selecciona otra imagen como portada.');
         }
         if ($actividad->estado_publicacion === 'aprobada') {
             $this->snapshotService->capturarSiAprobada($actividad);
         }
         $ruta = $this->rutaStorageDesdeUrl($medio->url);
         $medio->delete();
-        if ($ruta && Storage::disk('public')->exists($ruta) ) {
+        if ($ruta && Storage::disk('public')->exists($ruta)) {
             Storage::disk('public')->delete($ruta);
         }
         $documento = $this->obtenerDocumentoActividad($actividad);
         $this->invalidarConfiguracionGeneral($documento);
         $documento->save();
         $this->marcarComoBorradorSiAprobada($actividad);
-        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ] )->with('success', 'Imagen eliminada correctamente.');
+        return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion',])->with('success', 'Imagen eliminada correctamente.');
     }
 
-    public function finalizarConfiguracion(Actividad $actividad) {
+    public function finalizarConfiguracion(Actividad $actividad)
+    {
         $this->validarActividadEditable($actividad);
-        $actividad->load(['medios', 'items.variantes', 'sesiones', ]);
+        $actividad->load(['medios', 'items.variantes', 'items.sesiones', 'sesiones',]);
         $documento = $this->obtenerDocumentoActividad($actividad);
         $configuracionProductos = $this->normalizarMongo($documento->product_configuration ?? []);
-        $configuracionesDatos = collect($this->normalizarMongo($documento->purchase_fields ?? []) )->keyBy(fn ($configuracion) => (string) ($configuracion['id_item_pg'] ?? '' ));
-        $configuracionesPrecios = collect($this->normalizarMongo($documento->pricing_configuration ?? []) )->keyBy(fn ($configuracion) => (string) ($configuracion['id_item_pg'] ?? '' ));
+        $configuracionesDatos = collect($this->normalizarMongo($documento->purchase_fields ?? []))->keyBy(fn($configuracion) => (string) ($configuracion['id_item_pg'] ?? ''));
+        $configuracionesPrecios = collect($this->normalizarMongo($documento->pricing_configuration ?? []))->keyBy(fn($configuracion) => (string) ($configuracion['id_item_pg'] ?? ''));
         $configuracionSesiones = $this->normalizarMongo($documento->session_configuration ?? []);
-        $portadaConfigurada = $actividad->medios->whereNull('id_item_actividad' )->whereNull('id_sesion' )->contains(fn ($medio) => (bool) $medio->es_portada);
+        $portadaConfigurada = $actividad->medios->whereNull('id_item_actividad')->whereNull('id_sesion')->contains(fn($medio) => (bool) $medio->es_portada);
         if (!$portadaConfigurada) {
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion', ] )->with('error', 'Debes configurar una portada antes de finalizar.');
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'presentacion',])->with('error', 'Debes configurar una portada antes de finalizar.');
+        }
+        if (($configuracionSesiones['configured'] ?? false) !== true) {
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'sesiones',])->with('error', 'Debes completar la programación antes de finalizar.');
         }
         $productosConfigurados = ($configuracionProductos['configured'] ?? false) === true;
         $productosHabilitados = ($configuracionProductos['enabled'] ?? false) === true;
         if (!$productosConfigurados) {
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'productos', ] )->with('error', 'Debes indicar si la actividad ofrecerá productos o servicios.');
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'productos',])->with('error', 'Debes indicar si la actividad ofrecerá productos o servicios.');
         }
-        if ($productosHabilitados && $actividad->items->isEmpty() ) {
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'productos', ] )->with('error', 'Agrega al menos un producto o servicio antes de finalizar.');
+        if ($productosHabilitados && $actividad->items->isEmpty()) {
+            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'productos',])->with('error', 'Agrega al menos un producto o servicio antes de finalizar.');
         }
         if ($productosHabilitados) {
-            foreach ($actividad->items as $item ) {
+            foreach ($actividad->items as $item) {
+                if (
+                    ($item->alcance_sesiones ?? 'actividad') === 'sesiones'
+                    && $item->sesiones->isEmpty()
+                ) {
+                    return redirect()->route('admin.actividades.configurar', [
+                        'actividad' => $actividad->id_actividad,
+                        'paso' => 'productos',
+                    ])->with(
+                            'error',
+                            "El producto o servicio '{$item->nombre}' debe tener al menos una sesión asignada."
+                        );
+                }
+
                 $configDatos = $configuracionesDatos->get((string) $item->id_item_actividad);
                 if (!$configDatos) {
-                    return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos', 'item' => $item->id_item_actividad, ] )->with('error', "Falta configurar los datos solicitados para '{$item->nombre}'.");
+                    return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'datos', 'item' => $item->id_item_actividad,])->with('error', "Falta configurar los datos solicitados para '{$item->nombre}'.");
                 }
-                $camposLista = collect($configDatos['fields'] ?? [])->filter(fn ($campo) => ($campo['type'] ?? null) === 'lista' && !empty($campo['options'] ?? []));
+                $camposLista = collect($configDatos['fields'] ?? [])->filter(fn($campo) => ($campo['type'] ?? null) === 'lista' && !empty($campo['options'] ?? []));
                 if ($camposLista->isNotEmpty() && !$configuracionesPrecios->has((string) $item->id_item_actividad)) {
-                    return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios', 'item' => $item->id_item_actividad, ] )->with('error', "Falta configurar los precios y costos para '{$item->nombre}'.");
+                    return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios', 'item' => $item->id_item_actividad,])->with('error', "Falta configurar los precios y costos para '{$item->nombre}'.");
                 }
             }
-        }
-        if (($configuracionSesiones['configured'] ?? false) !== true) {
-            return redirect()->route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'sesiones', ] )->with('error', 'Debes completar la programación antes de finalizar.');
         }
         $documento->configuration = ['configured' => true, 'completed_at' => now()->toIso8601String(), 'updated_at' => now()->toIso8601String(), 'completed_by' => Auth::id(),];
         $documento->save();
         $actividad->actualizado_por = Auth::id();
         $actividad->save();
-        return redirect()->route('admin.actividades.index' )->with('success', 'Configuración finalizada correctamente. La actividad ya puede enviarse a revisión.');
+        return redirect()->route('admin.actividades.index')->with('success', 'Configuración finalizada correctamente. La actividad ya puede enviarse a revisión.');
     }
 
-    private function rutaStorageDesdeUrl(?string $url): ?string {
+    private function rutaStorageDesdeUrl(?string $url): ?string
+    {
         if (!$url) {
             return null;
         }
         $appUrl = rtrim((string) config('app.url'), '/');
-        if (Str::startsWith($url, ['http://', 'https://'] ) && !Str::startsWith($url, $appUrl)) {
+        if (Str::startsWith($url, ['http://', 'https://']) && !Str::startsWith($url, $appUrl)) {
             return null;
         }
-        $path = parse_url($url, PHP_URL_PATH ) ?: $url;
+        $path = parse_url($url, PHP_URL_PATH) ?: $url;
         $path = ltrim($path, '/');
         if (Str::startsWith($path, 'storage/')) {
             $path = substr($path, 8);
@@ -1355,14 +1410,15 @@ class ActividadConfiguracionController extends Controller {
         return $path ?: null;
     }
 
-    private function obtenerRangoRealizacion(Actividad $actividad): array {
-        if (!$actividad->realizacion_desde || !$actividad->realizacion_hasta ) {
-            throw ValidationException::withMessages(['modo_sesiones' => 'Para configurar sesiones primero debes definir el período de realización de la actividad.', ]);
+    private function obtenerRangoRealizacion(Actividad $actividad): array
+    {
+        if (!$actividad->realizacion_desde || !$actividad->realizacion_hasta) {
+            throw ValidationException::withMessages(['modo_sesiones' => 'Para configurar sesiones primero debes definir el período de realización de la actividad.',]);
         }
         $desde = Carbon::parse($actividad->realizacion_desde);
         $hasta = Carbon::parse($actividad->realizacion_hasta);
         if ($hasta->lt($desde)) {
-            throw ValidationException::withMessages(['modo_sesiones' => 'El período de realización de la actividad no es válido.', ]);
+            throw ValidationException::withMessages(['modo_sesiones' => 'El período de realización de la actividad no es válido.',]);
         }
         return ['desde' => $desde, 'hasta' => $hasta,];
     }
@@ -1394,8 +1450,8 @@ class ActividadConfiguracionController extends Controller {
 
         $cupo = $actividad->habilita_inscripcion
             && $actividad->cupo_total !== null
-                ? (int) $actividad->cupo_total
-                : null;
+            ? (int) $actividad->cupo_total
+            : null;
 
         if ($modalidad === 'virtual') {
             $enlace = trim((string) ($datos['enlace_acceso'] ?? ''));
@@ -1517,7 +1573,7 @@ class ActividadConfiguracionController extends Controller {
             'recursos' => $existente && !$existente->enlace_acceso
                 ? $existente->recursos()
                     ->get()
-                    ->map(fn ($uso) => [
+                    ->map(fn($uso) => [
                         'id_recurso' => (int) $uso->id_recurso,
                         'cantidad' => (int) $uso->cantidad,
                         'observacion' => $uso->observacion,
@@ -1539,8 +1595,8 @@ class ActividadConfiguracionController extends Controller {
     ): array {
         $cupoGeneral = $actividad->habilita_inscripcion
             && $actividad->cupo_total !== null
-                ? (int) $actividad->cupo_total
-                : null;
+            ? (int) $actividad->cupo_total
+            : null;
 
         $preparadas = [];
         $ahora = now();
@@ -1609,8 +1665,8 @@ class ActividadConfiguracionController extends Controller {
             $cupo = array_key_exists('cupo', $datos)
                 && $datos['cupo'] !== null
                 && $datos['cupo'] !== ''
-                    ? (int) $datos['cupo']
-                    : $cupoGeneral;
+                ? (int) $datos['cupo']
+                : $cupoGeneral;
 
             if (
                 $cupoGeneral !== null
@@ -1652,8 +1708,8 @@ class ActividadConfiguracionController extends Controller {
                 $ubicacionExterna = !$idEspacio
                     && isset($datos['ubicacion'])
                     && trim((string) $datos['ubicacion']) !== ''
-                        ? trim((string) $datos['ubicacion'])
-                        : null;
+                    ? trim((string) $datos['ubicacion'])
+                    : null;
 
                 if ($idEspacio) {
                     $espacio = Espacio::query()->find($idEspacio);
@@ -1725,7 +1781,8 @@ class ActividadConfiguracionController extends Controller {
         return $preparadas;
     }
 
-    private function espacioPermitidoParaSesion(Actividad $actividad, int $idEspacio): bool {
+    private function espacioPermitidoParaSesion(Actividad $actividad, int $idEspacio): bool
+    {
         if (!$actividad->id_espacio) {
             return true;
         }
@@ -1750,59 +1807,74 @@ class ActividadConfiguracionController extends Controller {
         return false;
     }
 
-    private function prepararRecursosSesion(array $recursos,?int $idEspacio): array {
+    private function prepararRecursosSesion(array $recursos, ?int $idEspacio): array
+    {
         $preparados = [];
         foreach ($recursos as $idRecurso => $datos) {
-            if (!(bool) ($datos['seleccionado'] ?? false)) continue;
+            if (!(bool) ($datos['seleccionado'] ?? false))
+                continue;
             $recurso = Recurso::query()->find((int) $idRecurso);
-            if (!$recurso) throw ValidationException::withMessages(['sesiones' => 'Uno de los recursos seleccionados ya no existe.']);
+            if (!$recurso)
+                throw ValidationException::withMessages(['sesiones' => 'Uno de los recursos seleccionados ya no existe.']);
             $disponible = (bool) $recurso->es_movil;
-            if ($idEspacio) $disponible = $disponible || $recurso->espacios()->where('tbl_espacios.id_espacio',$idEspacio)->exists();
-            if (!$disponible) throw ValidationException::withMessages(['sesiones' => "El recurso '{$recurso->nombre}' no está disponible para el espacio seleccionado."]);
-            $cantidad = max(1,(int) ($datos['cantidad'] ?? 1));
+            if ($idEspacio)
+                $disponible = $disponible || $recurso->espacios()->where('tbl_espacios.id_espacio', $idEspacio)->exists();
+            if (!$disponible)
+                throw ValidationException::withMessages(['sesiones' => "El recurso '{$recurso->nombre}' no está disponible para el espacio seleccionado."]);
+            $cantidad = max(1, (int) ($datos['cantidad'] ?? 1));
             if ($idEspacio && !$recurso->es_movil) {
-                $asignacion = $recurso->espacios()->where('tbl_espacios.id_espacio',$idEspacio)->first();
+                $asignacion = $recurso->espacios()->where('tbl_espacios.id_espacio', $idEspacio)->first();
                 $cantidadDisponible = $asignacion ? (int) $asignacion->pivot->cantidad : 0;
-                if ($cantidad > $cantidadDisponible) throw ValidationException::withMessages(['sesiones' => "La cantidad solicitada de '{$recurso->nombre}' supera las {$cantidadDisponible} unidades registradas en el espacio."]);
+                if ($cantidad > $cantidadDisponible)
+                    throw ValidationException::withMessages(['sesiones' => "La cantidad solicitada de '{$recurso->nombre}' supera las {$cantidadDisponible} unidades registradas en el espacio."]);
             }
-            $preparados[] = ['id_recurso' => (int) $recurso->id_recurso,'cantidad' => $cantidad,'observacion' => !empty($datos['observacion']) ? trim((string) $datos['observacion']) : null];
+            $preparados[] = ['id_recurso' => (int) $recurso->id_recurso, 'cantidad' => $cantidad, 'observacion' => !empty($datos['observacion']) ? trim((string) $datos['observacion']) : null];
         }
         return $preparados;
     }
 
-    private function sincronizarRecursosSesion(Actividad $actividad,SesionActividad $sesion,array $recursos): void {
-        RecursoActividad::query()->where('id_actividad',$actividad->id_actividad)->where('id_sesion',$sesion->id_sesion)->delete();
+    private function sincronizarRecursosSesion(Actividad $actividad, SesionActividad $sesion, array $recursos): void
+    {
+        RecursoActividad::query()->where('id_actividad', $actividad->id_actividad)->where('id_sesion', $sesion->id_sesion)->delete();
         foreach ($recursos as $datos) {
-            RecursoActividad::query()->create(['id_actividad' => $actividad->id_actividad,'id_sesion' => $sesion->id_sesion,'id_recurso' => $datos['id_recurso'],'cantidad' => $datos['cantidad'],'observacion' => $datos['observacion']]);
+            RecursoActividad::query()->create(['id_actividad' => $actividad->id_actividad, 'id_sesion' => $sesion->id_sesion, 'id_recurso' => $datos['id_recurso'], 'cantidad' => $datos['cantidad'], 'observacion' => $datos['observacion']]);
         }
     }
 
-    private function detectarSolapamientos(array $sesiones): array {
+    private function detectarSolapamientos(array $sesiones): array
+    {
         $solapamientos = [];
         $total = count($sesiones);
-        for ($i = 0;
+        for (
+            $i = 0;
             $i < $total;
-            $i++ ) {
-            for ($j = $i + 1;
+            $i++
+        ) {
+            for (
+                $j = $i + 1;
                 $j < $total;
-                $j++ ) {
+                $j++
+            ) {
                 $a = $sesiones[$i];
                 $b = $sesiones[$j];
                 $inicioA = Carbon::parse($a['fecha_inicio']);
-                $finA = !empty($a['fecha_fin'] ) ? Carbon::parse($a['fecha_fin'] ) : null;
+                $finA = !empty($a['fecha_fin']) ? Carbon::parse($a['fecha_fin']) : null;
                 $inicioB = Carbon::parse($b['fecha_inicio']);
-                $finB = !empty($b['fecha_fin'] ) ? Carbon::parse($b['fecha_fin'] ) : null;
+                $finB = !empty($b['fecha_fin']) ? Carbon::parse($b['fecha_fin']) : null;
                 $seCruzan = false;
-                if ($finA && $finB ) {
+                if ($finA && $finB) {
                     $seCruzan = $inicioA->lt($finB) && $finA->gt($inicioB);
                 } elseif (
-                    !$finA && !$finB ) {
+                    !$finA && !$finB
+                ) {
                     $seCruzan = $inicioA->eq($inicioB);
                 } elseif (
-                    !$finA && $finB ) {
+                    !$finA && $finB
+                ) {
                     $seCruzan = $inicioA->eq($inicioB) || ($inicioA->gt($inicioB) && $inicioA->lt($finB));
                 } elseif (
-                    $finA && !$finB ) {
+                    $finA && !$finB
+                ) {
                     $seCruzan = $inicioB->eq($inicioA) || ($inicioB->gt($inicioA) && $inicioB->lt($finA));
                 }
                 if ($seCruzan) {
@@ -1810,15 +1882,16 @@ class ActividadConfiguracionController extends Controller {
                 }
             }
         }
-        return array_values(array_unique($solapamientos ));
+        return array_values(array_unique($solapamientos));
     }
 
-    private function generarCombinaciones(array $camposSeleccionados): array {
+    private function generarCombinaciones(array $camposSeleccionados): array
+    {
         $combinaciones = [[]];
-        foreach ($camposSeleccionados as $clave => $campo ) {
+        foreach ($camposSeleccionados as $clave => $campo) {
             $nuevas = [];
-            foreach ($combinaciones as $combinacion ) {
-                foreach ($campo['options'] ?? [] as $opcion ) {
+            foreach ($combinaciones as $combinacion) {
+                foreach ($campo['options'] ?? [] as $opcion) {
                     $nueva = $combinacion;
                     $nueva[$clave] = (string) $opcion;
                     $nuevas[] = $nueva;
@@ -1840,7 +1913,7 @@ class ActividadConfiguracionController extends Controller {
             $this->normalizarMongo($documento->pricing_configuration ?? [])
         )
             ->reject(
-                fn ($configuracion) =>
+                fn($configuracion) =>
                     (int) ($configuracion['id_item_pg'] ?? 0)
                     === (int) $item->id_item_actividad
             )
@@ -1867,7 +1940,7 @@ class ActividadConfiguracionController extends Controller {
         $encontrados = VariantAttribute::whereIn('id_variante_pg', $ids)
             ->get()
             ->pluck('id_variante_pg')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
@@ -1925,7 +1998,7 @@ class ActividadConfiguracionController extends Controller {
         $ids = VarianteItem::query()
             ->where('id_item_actividad', $item->id_item_actividad)
             ->pluck('id_variante_item')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->values()
             ->all();
 
@@ -1940,20 +2013,22 @@ class ActividadConfiguracionController extends Controller {
         $this->eliminarAtributosMongoVariantes($ids);
     }
 
-    private function procesarOpciones(string $texto): array {
+    private function procesarOpciones(string $texto): array
+    {
         $partes = preg_split('/[\r\n,]+/', $texto);
         $opciones = [];
         foreach ($partes as $parte) {
             $opcion = trim($parte);
-            if ($opcion !== '' && !in_array($opcion, $opciones, true) ) {
+            if ($opcion !== '' && !in_array($opcion, $opciones, true)) {
                 $opciones[] = $opcion;
             }
         }
         return $opciones;
     }
 
-    private function obtenerDocumentoActividad(Actividad $actividad): ActivityContent {
-        $documento = ActivityContent::where('id_actividad_pg', (int) $actividad->id_actividad )->first();
+    private function obtenerDocumentoActividad(Actividad $actividad): ActivityContent
+    {
+        $documento = ActivityContent::where('id_actividad_pg', (int) $actividad->id_actividad)->first();
         if (!$documento) {
             $documento = new ActivityContent();
             $documento->id_actividad_pg = (int) $actividad->id_actividad;
@@ -1961,7 +2036,8 @@ class ActividadConfiguracionController extends Controller {
         return $documento;
     }
 
-    private function invalidarConfiguracionGeneral(ActivityContent $documento): void {
+    private function invalidarConfiguracionGeneral(ActivityContent $documento): void
+    {
         $configuracion = $this->normalizarMongo($documento->configuration ?? []);
         if (($configuracion['configured'] ?? false) !== true) {
             return;
@@ -1969,19 +2045,22 @@ class ActividadConfiguracionController extends Controller {
         $documento->configuration = ['configured' => false, 'completed_at' => null, 'updated_at' => now()->toIso8601String(), 'completed_by' => null,];
     }
 
-    private function validarProductosHabilitados(Actividad $actividad): void {
-        $documento = ActivityContent::where('id_actividad_pg', (int) $actividad->id_actividad )->first();
+    private function validarProductosHabilitados(Actividad $actividad): void
+    {
+        $documento = ActivityContent::where('id_actividad_pg', (int) $actividad->id_actividad)->first();
         $configuracion = $this->normalizarMongo($documento?->product_configuration ?? []);
-        if (($configuracion['configured'] ?? false) && !($configuracion['enabled'] ?? false) ) {
-            throw ValidationException::withMessages(['productos' => 'Esta actividad fue configurada sin productos ni servicios.', ]);
+        if (($configuracion['configured'] ?? false) && !($configuracion['enabled'] ?? false)) {
+            throw ValidationException::withMessages(['productos' => 'Esta actividad fue configurada sin productos ni servicios.',]);
         }
     }
 
-    private function validarItemPerteneceActividad(Actividad $actividad,ItemActividad $item): void {
+    private function validarItemPerteneceActividad(Actividad $actividad, ItemActividad $item): void
+    {
         abort_unless((int) $item->id_actividad === (int) $actividad->id_actividad, 404);
     }
 
-    private function marcarComoBorradorSiAprobada(Actividad $actividad): void {
+    private function marcarComoBorradorSiAprobada(Actividad $actividad): void
+    {
         if ($actividad->estado_publicacion !== 'aprobada') {
             return;
         }
@@ -1991,11 +2070,13 @@ class ActividadConfiguracionController extends Controller {
         $actividad->save();
     }
 
-    private function validarActividadEditable(Actividad $actividad): void {
-        abort_unless(in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados', 'aprobada', ], true), 403);
+    private function validarActividadEditable(Actividad $actividad): void
+    {
+        abort_unless(in_array($actividad->estado_publicacion, ['borrador', 'cambios_solicitados', 'aprobada',], true), 403);
     }
 
-    private function normalizarMongo(mixed $valor): array {
+    private function normalizarMongo(mixed $valor): array
+    {
         if (empty($valor)) {
             return [];
         }

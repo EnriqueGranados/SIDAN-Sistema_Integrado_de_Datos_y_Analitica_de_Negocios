@@ -27,6 +27,7 @@ class ItemActividad extends Model
         'stock_total',
         'venta_desde',
         'venta_hasta',
+        'alcance_sesiones',
         'min_por_inscripcion',
         'max_por_inscripcion',
         'requiere_participante',
@@ -67,6 +68,19 @@ class ItemActividad extends Model
             'id_item_actividad',
             'id_item_actividad'
         )->orderBy('orden');
+    }
+
+    public function sesiones(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            SesionActividad::class,
+            'tbl_items_sesiones',
+            'id_item_actividad',
+            'id_sesion',
+            'id_item_actividad',
+            'id_sesion'
+        )->orderBy('tbl_sesiones_actividad.orden')
+            ->orderBy('tbl_sesiones_actividad.fecha_inicio');
     }
 
     public function promociones(): BelongsToMany
