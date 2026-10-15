@@ -1,4 +1,4 @@
-@extends('layouts.navbars')
+@extends(auth()->user()?->rol?->nombre === 'usuario' ? 'layouts.user' : 'layouts.navbars')
 
 @section('title', 'SIDAN | Mi perfil')
 
@@ -9,7 +9,7 @@
     >
 @endpush
 
-@section('content')
+@section(auth()->user()?->rol?->nombre === 'usuario' ? 'user-content' : 'content')
     <x-status-alert />
     
     <div id="edit-profile-container" class="relative min-h-full">

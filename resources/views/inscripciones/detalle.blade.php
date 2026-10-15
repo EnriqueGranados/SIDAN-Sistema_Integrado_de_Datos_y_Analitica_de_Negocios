@@ -1,8 +1,8 @@
-@extends('layouts.navbars')
+@extends(auth()->user()?->rol?->nombre === 'usuario' ? 'layouts.user' : 'layouts.navbars')
 
 @section('title', 'Detalles de actividad - SIDAN')
 
-@section('content')
+@section(auth()->user()?->rol?->nombre === 'usuario' ? 'user-content' : 'content')
 <div class="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:px-6">
     <a href="{{ route('user.inscripciones.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400">← Volver a mis inscripciones</a>
 

@@ -46,7 +46,7 @@ Route::get('/dashboard', function (Request $request) {
 
     return match ($rol) {
         'admin', 'superadmin' => redirect()->route('admin.dashboard'),
-        'usuario' => redirect()->route('user.dashboard'),
+        'usuario' => redirect()->route('welcome'),
         default => redirect()
             ->route('welcome')
             ->with('error', 'No se pudo determinar el panel correspondiente a tu cuenta.'),
@@ -351,7 +351,7 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
 // Usuario normal (Protegido)
 Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'])->group(function () {
     Route::get('/user/dashboard', function () {
-        return view('user.dashboard');
+        return redirect()->route('welcome');
     })->name('user.dashboard');
 
     Route::get('/datos-personales', fn() => view('auth.datos-personales'))
@@ -359,7 +359,7 @@ Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'
 
     Route::get('/omitir-perfil', function () {
         return redirect()
-            ->route('user.dashboard')
+            ->route('welcome')
             ->with(
                 'success',
                 'Has omitido el registro. Puedes completar tus datos más tarde desde tu perfil.'
@@ -369,7 +369,8 @@ Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'
     Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])
         ->name('perfil.guardar');
 
-
+    Route::get('/user/ordenes', [OrdenController::class, 'index'])
+        ->name('user.ordenes.index');
 });
 
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])

@@ -20,39 +20,48 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
+
         $usuario = Auth::user();
 
-        // Cambio de contraseña.
         if ($usuario->must_change_password) {
             $request->session()->forget('url.intended');
 
-            return redirect()->route('password.force.edit')->with('warning', 'Por seguridad, debes cambiar tu contraseña temporal antes de continuar.');
+            return redirect()
+                ->route('password.force.edit')
+                ->with(
+                    'warning',
+                    'Por seguridad, debes cambiar tu contraseña temporal antes de continuar.'
+                );
         }
 
-        // Obtener el nombre del rol mediante la relación del modelo.
         $nombreRol = $usuario->rol?->nombre;
 
-        // Determinar si es administrador.
         $esAdministrador = in_array(
             $nombreRol,
             ['admin', 'superadmin'],
             true
         );
 
-        // Establecer el destino predeterminado.
-        $destinoPredeterminado = $esAdministrador
-            ? route('admin.dashboard')
-            : route('user.dashboard');
-
-        // Preparar el mensaje correspondiente.
         $mensaje = $esAdministrador
             ? 'Se ha iniciado sesión como administrador. Puedes gestionar el sistema desde aquí.'
             : 'Se ha iniciado sesión correctamente.';
 
-        // Redirigir a la página solicitada anteriormente o al Dashboard correspondiente si no existe una.
-        return redirect()->intended($destinoPredeterminado)->with('success', $mensaje);
-    }
+        if ($nombreRol === 'usuario') {
+            $request->session()->forget('url.intended');
 
+            return redirect()
+                ->route('welcome')
+                ->with('success', $mensaje);
+        }
+
+        $destinoPredeterminado = $esAdministrador
+            ? route('admin.dashboard')
+            : route('welcome');
+
+        return redirect()
+            ->intended($destinoPredeterminado)
+            ->with('success', $mensaje);
+    }
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();

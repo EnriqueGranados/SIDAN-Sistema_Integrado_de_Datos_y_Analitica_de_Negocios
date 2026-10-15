@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 
 class GoogleController extends Controller
-{   
+{
     // Redirigir al usuario a la página de autenticación de Google.
     public function redirectToGoogle()
     {
@@ -123,12 +123,7 @@ class GoogleController extends Controller
         }
 
         try {
-            $nuevoUsuario = DB::transaction(function () use (
-                $googleUser,
-                $googleId,
-                $googleEmail,
-                $rutaImagen
-            ) {
+            $nuevoUsuario = DB::transaction(function () use ($googleUser, $googleId, $googleEmail, $rutaImagen) {
                 $partesNombre = explode(' ', $googleUser->getName(), 2);
 
                 $infoPersonal = InformacionPersonal::create([
@@ -169,7 +164,11 @@ class GoogleController extends Controller
         Auth::login($nuevoUsuario);
 
         return redirect()
-            ->route('datos.personales')->with('success', 'Tu cuenta de Google se ha enlazado correctamente. Puedes completar tu perfil a continuación.');
+            ->route('welcome')
+            ->with(
+                'success',
+                'Cuenta creada correctamente. Puedes completar tus datos desde Mi perfil.'
+            );
     }
 
     // Mostrar el formulario para completar los datos personales del usuario.
@@ -177,30 +176,32 @@ class GoogleController extends Controller
     {
         $usuario = Auth::user();
 
-        $request->validate([
-            // Validamos excluyendo el ID actual por si en el futuro se usa para editar el perfil
-            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento,' . $usuario->id_informacion_personal . ',id_informacion_personal'],
-            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono,' . $usuario->id_informacion_personal . ',id_informacion_personal'],
-            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
-            'genero' => ['nullable', 'string', 'max:10'],
-            'ubicacion' => ['nullable', 'string', 'max:150'],
-            
-            // La contraseña es opcional, pero si la envían debe estar confirmada
-            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
-        ],
-        [
-            'documento.unique' => 'Este DUI ya está registrado.',
-            'documento.regex' => 'Ingresa un número de DUI válido.',
+        $request->validate(
+            [
+                // Validamos excluyendo el ID actual por si en el futuro se usa para editar el perfil
+                'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento,' . $usuario->id_informacion_personal . ',id_informacion_personal'],
+                'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono,' . $usuario->id_informacion_personal . ',id_informacion_personal'],
+                'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
+                'genero' => ['nullable', 'string', 'max:10'],
+                'ubicacion' => ['nullable', 'string', 'max:150'],
 
-            'telefono.regex' => 'Ingresa un número de teléfono válido.',
-            'telefono.unique' => 'Este número de teléfono ya está registrado.',
+                // La contraseña es opcional, pero si la envían debe estar confirmada
+                'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            ],
+            [
+                'documento.unique' => 'Este DUI ya está registrado.',
+                'documento.regex' => 'Ingresa un número de DUI válido.',
 
-            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
-        ]);
+                'telefono.regex' => 'Ingresa un número de teléfono válido.',
+                'telefono.unique' => 'Este número de teléfono ya está registrado.',
+
+                'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
+            ]
+        );
 
         // 1. Actualizamos la tabla de información personal
         $infoPersonal = InformacionPersonal::where('id_informacion_personal', $usuario->id_informacion_personal)->first();
-        
+
         if ($infoPersonal) {
             // Solo actualizamos los campos que el usuario decidió llenar
             $infoPersonal->update([
@@ -220,7 +221,9 @@ class GoogleController extends Controller
         }
 
         // 3. Redirigimos al dashboard con un mensaje de éxito
-        return redirect()->route('user.dashboard')->with('success', '¡Perfil actualizado con éxito!');
+        return redirect()
+            ->route('welcome')
+            ->with('success', '¡Perfil actualizado con éxito!');
     }
 
     // Mostrar el formulario para vincular la cuenta de Google con una cuenta existente en SIDAN.
@@ -294,8 +297,7 @@ class GoogleController extends Controller
         }
 
         //Confirmar identidad mediante la contraseña SIDAN.
-        if (is_null($usuario->password_hash) || !Hash::check($request->password, $usuario->password_hash)) 
-        {
+        if (is_null($usuario->password_hash) || !Hash::check($request->password, $usuario->password_hash)) {
             return back()->withErrors(['password' => 'La contraseña es incorrecta.',]);
         }
 
@@ -362,12 +364,7 @@ class GoogleController extends Controller
         }
 
         try {
-            DB::transaction(function () use (
-                $usuario,
-                $googleId,
-                $googleEmail,
-                $rutaImagen
-            ) {
+            DB::transaction(function () use ($usuario, $googleId, $googleEmail, $rutaImagen) {
                 // Vincular la cuenta de Google al usuario existente.
                 $usuario->googleAccount()->create([
                     'google_id' => $googleId,
@@ -398,7 +395,12 @@ class GoogleController extends Controller
 
         Auth::login($usuario);
 
-        return redirect()->intended('/user/dashboard')->with('success', 'Cuenta de Google vinculada exitosamente.');
+        request()->session()->forget('url.intended');
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Cuenta de Google vinculada exitosamente.');
+
     }
 
     // Vincular la cuenta de Google desde el perfil del usuario autenticado.
@@ -429,7 +431,7 @@ class GoogleController extends Controller
     }
 
     //Vincular la cuenta de Google con el perfil del usuario autenticado.
-    private function handleProfileGoogleLink(string $googleId, string $googleEmail): RedirectResponse 
+    private function handleProfileGoogleLink(string $googleId, string $googleEmail): RedirectResponse
     {
         // El usuario debe seguir autenticado.
         if (!Auth::check()) {
@@ -458,8 +460,7 @@ class GoogleController extends Controller
         }
 
         // El correo de Google debe coincidir con el correo del usuario SIDAN.
-        if (strtolower(trim($user->correo)) !== strtolower(trim($googleEmail))) 
-        {
+        if (strtolower(trim($user->correo)) !== strtolower(trim($googleEmail))) {
             return redirect()->route('profile.edit')->with('error', 'La cuenta de Google seleccionada no coincide con el correo electrónico de tu cuenta SIDAN.');
         }
 

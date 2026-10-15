@@ -8,6 +8,17 @@
 
 @section('content')
 
+    @include('partials.public-header')
+
+    @if (auth()->user()?->rol?->nombre === 'usuario')
+        <div class="mx-auto max-w-6xl px-4 pt-6">
+            <a href="{{ route('user.ordenes.index') }}"
+                class="text-sm font-bold text-emerald-600 transition hover:text-emerald-700 dark:text-emerald-400">
+                ← Mis órdenes
+            </a>
+        </div>
+    @endif
+
     @php
 
         $usuario = auth()->user();

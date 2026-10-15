@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,13 +27,21 @@
         })();
     </script>
 
-    <style>[x-cloak]{display:none!important}</style>
+    <style>
+        [x-cloak] {
+            display: none !important
+        }
+    </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 
-<body class="min-h-screen bg-[#f6f8fb] font-sans text-slate-900 antialiased transition-colors duration-300 dark:bg-sidan-950 dark:text-white">
+<body
+    class="min-h-screen bg-[#f6f8fb] font-sans text-slate-900 antialiased transition-colors duration-300 dark:bg-sidan-950 dark:text-white">
     <x-toast />
     @yield('content')
+    @stack('scripts')
 </body>
+
 </html>
