@@ -3,6 +3,7 @@
 @section('title', 'Detalle de actividad')
 
 @section('content')
+    @include('admin.actividades.partials.tema-visual')
 @php
     $estadoLabels = [
         'borrador' => 'Borrador',
@@ -158,7 +159,7 @@
 @endphp
 
 <div
-    class="w-full min-w-0 max-w-full overflow-x-hidden"
+    class="activity-ui w-full min-w-0 max-w-full overflow-x-hidden"
     x-data="{ paso: 1, imagenAbierta: false, imagen: '', imagenTitulo: '' }"
     @keydown.escape.window="imagenAbierta = false"
 >
@@ -1033,7 +1034,7 @@
         x-show="imagenAbierta"
         x-cloak
         x-transition.opacity
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-8"
+        class="activity-force-dark fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-8"
         @click.self="imagenAbierta = false"
     >
         <div class="flex max-h-full w-full max-w-6xl flex-col">

@@ -3,7 +3,8 @@
 @section('title', 'Nueva actividad')
 
 @section('content')
-    <div class="w-full min-w-0 max-w-full overflow-x-hidden">
+    @include('admin.actividades.partials.tema-visual')
+    <div class="activity-ui w-full min-w-0 max-w-full overflow-x-hidden">
         <div class="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
 
             {{-- ENCABEZADO --}}
@@ -280,7 +281,7 @@
 
                                     <input type="datetime-local" id="realizacion_desde" name="realizacion_desde"
                                         value="{{ old('realizacion_desde') }}"
-                                        class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
+                                        class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
 
                                     @error('realizacion_desde')
                                         <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -294,7 +295,7 @@
 
                                     <input type="datetime-local" id="realizacion_hasta" name="realizacion_hasta"
                                         value="{{ old('realizacion_hasta') }}"
-                                        class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
+                                        class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 sm:text-sm">
 
                                     @error('realizacion_hasta')
                                         <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -321,8 +322,8 @@
                     </div>
 
                     {{-- VISIBILIDAD --}}
-                    <div class="rounded-2xl border border-white/10 bg-white/[0.03]">
-                        <div class="border-b border-white/10 px-4 py-5 sm:px-6">
+                    <div class="rounded-2xl border border-blue-500/20 bg-blue-500/[0.025]">
+                        <div class="border-b border-blue-500/10 px-4 py-5 sm:px-6">
                             <h3 class="font-semibold text-white">
                                 Visibilidad
                             </h3>
@@ -388,7 +389,7 @@
 
                                         <input type="datetime-local" id="visible_desde" name="visible_desde"
                                             value="{{ old('visible_desde') }}"
-                                            class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('visible_desde')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -402,7 +403,7 @@
 
                                         <input type="datetime-local" id="visible_hasta" name="visible_hasta"
                                             value="{{ old('visible_hasta') }}"
-                                            class="future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
 
                                         @error('visible_hasta')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -931,7 +932,7 @@
 
     {{-- MODAL FOTO COMPLETA --}}
     <div id="modalPortada"
-        class="fixed inset-0 z-[300] hidden items-center justify-center bg-black/90 p-3 backdrop-blur-sm sm:p-6">
+        class="activity-force-dark fixed inset-0 z-[300] hidden items-center justify-center bg-black/90 p-3 backdrop-blur-sm sm:p-6">
         <button type="button" id="cerrarModalPortada"
             class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
             aria-label="Cerrar fotografía">

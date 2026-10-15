@@ -1,6 +1,7 @@
 @extends('layouts.navbars')
 @section('title', 'Configurar actividad')
 @section('content')
+    @include('admin.actividades.partials.tema-visual')
     @php
         $pasos = [
             'presentacion' => ['numero' => 1, 'titulo' => 'Presentación'],
@@ -225,7 +226,7 @@
             };
         };
     @endphp
-    <div class="w-full min-w-0 max-w-full overflow-x-hidden">
+    <div class="activity-ui w-full min-w-0 max-w-full overflow-x-hidden">
         <div class="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
             <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div class="min-w-0">
@@ -294,25 +295,25 @@
             @endif
 
             <div
-                class="sticky top-0 z-[80] -mx-4 mb-7 border-y border-white/10 bg-[#0b1018]/95 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+                class="activity-stepbar sticky top-0 z-[80] -mx-4 mb-7 px-4 py-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
                 <div class="mx-auto max-w-6xl">
                     <div class="flex items-center justify-between gap-4">
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                                <p class="shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-400">
+                                <p class="activity-step-caption shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-400">
                                     Paso {{ $numeroPaso }} de {{ $totalPasos }}
                                 </p>
                                 <span class="text-xs text-gray-700">•</span>
-                                <p class="truncate text-sm font-semibold text-white">
+                                <p class="activity-step-title truncate text-sm font-semibold text-white">
                                     {{ $tituloPaso }}
                                 </p>
                             </div>
                         </div>
-                        <span class="shrink-0 text-xs font-semibold text-gray-500">
+                        <span class="activity-step-percent shrink-0 text-xs font-semibold text-gray-500">
                             {{ $porcentaje }}%
                         </span>
                     </div>
-                    <div class="mt-3 flex gap-1.5">
+                    <div class="mt-3 flex gap-1.5 activity-step-links">
                         @foreach ($pasos as $clave => $info)
                             @php
                                 $esActual = $clave === $paso;
@@ -324,20 +325,20 @@
                                 'paso' => $clave,
                             ]) }}"
                                 title="{{ $info['numero'] }}. {{ $info['titulo'] }}"
-                                class="group relative flex min-w-0 flex-1 flex-col gap-1.5">
+                                class="activity-step-link group relative flex min-w-0 flex-1 flex-col gap-1.5">
                                 @if ($modoCorreccion && $correccionesPaso > 0)
                                     <span
                                         class="absolute -right-1 -top-2 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black leading-none text-slate-950 ring-2 ring-[#0b1018]">
                                         {{ min(99, $correccionesPaso) }}
                                     </span>
                                 @endif
-                                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-800">
+                                <div class="activity-step-track h-1.5 w-full overflow-hidden rounded-full bg-gray-800">
                                     <div
                                         class="h-full rounded-full transition-all
                                     {{ $esActual ? 'w-full bg-emerald-400' : ($estaCompleto ? 'w-full bg-emerald-600' : 'w-0') }}">
                                     </div>
                                 </div>
-                                <div class="hidden items-center gap-1.5 lg:flex">
+                                <div class="hidden items-center gap-1.5 lg:flex activity-step-meta">
                                     <span
                                         class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold
                                     {{ $esActual
@@ -356,11 +357,11 @@
                             </a>
                         @endforeach
                     </div>
-                    <div class="mt-2 flex items-center justify-between lg:hidden">
-                        <p class="truncate text-[11px] text-gray-500">
+                    <div class="mt-2 flex items-center justify-between lg:hidden activity-step-mobile">
+                        <p class="activity-step-mobile-title truncate text-[11px] text-gray-500">
                             {{ $tituloPaso }}
                         </p>
-                        <p class="shrink-0 text-[11px] text-gray-600">
+                        <p class="activity-step-mobile-count shrink-0 text-[11px] text-gray-600">
                             {{ $numeroPaso }}/{{ $totalPasos }}
                         </p>
                     </div>
@@ -437,7 +438,7 @@
                     </p>
                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <label
-                            class="cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03] {{ $productosConfigurados && !$ofreceProductos ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : '' }}">
+                            class="activity-choice-card cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03] {{ $productosConfigurados && !$ofreceProductos ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : '' }}">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="ofrece_productos" value="0" required
                                     @checked($productosConfigurados && !$ofreceProductos) @disabled($actividad->items->isNotEmpty())>
@@ -457,7 +458,7 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
+                        <label class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="ofrece_productos" value="1" required
                                     @checked($ofreceProductos)>
@@ -803,7 +804,7 @@
                                     </div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
+                            <label class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
                                 <div class="flex gap-3">
                                     <input type="radio" name="requiere_datos" value="1" required
                                         @checked($configActual && ($configActual['enabled'] ?? false))>
@@ -1168,7 +1169,7 @@
                     </p>
                     <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
                         <label
-                            class="cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03]">
+                            class="activity-choice-card cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03]">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="modo_sesiones" value="ninguna" required
                                     @checked($modoSesionesActual === 'ninguna')>
@@ -1182,7 +1183,7 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
+                        <label class="activity-choice-card cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="modo_sesiones" value="unica" required
                                     @checked($modoSesionesActual === 'unica') @disabled(!$realizacionDesde || !$realizacionHasta)>
@@ -1197,7 +1198,7 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
+                        <label class="activity-choice-card cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="modo_sesiones" value="multiples" required
                                     @checked($modoSesionesActual === 'multiples') @disabled(!$realizacionDesde || !$realizacionHasta)>
@@ -1253,7 +1254,7 @@
                                         Modalidad
                                     </p>
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        <label class="cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
+                                        <label class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
                                             <div class="flex items-start gap-3">
                                                 <input type="radio" name="sesion_unica_modalidad" value="presencial"
                                                     class="sesionUnicaModalidad mt-1" @checked($modalidadSesionUnicaActual === 'presencial')>
@@ -1265,7 +1266,7 @@
                                                 </div>
                                             </div>
                                         </label>
-                                        <label class="cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
+                                        <label class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
                                             <div class="flex items-start gap-3">
                                                 <input type="radio" name="sesion_unica_modalidad" value="virtual"
                                                     class="sesionUnicaModalidad mt-1" @checked($modalidadSesionUnicaActual === 'virtual')>
@@ -1558,9 +1559,9 @@
     </div>
     @if ($paso === 'productos')
         <div id="modalItem"
-            class="fixed inset-0 z-[300] hidden items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6">
+            class="activity-ui activity-modal fixed inset-0 z-[300] hidden items-center justify-center bg-black/55 p-3 backdrop-blur-sm sm:p-6">
             <div
-                class="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#10151f]">
+                class="activity-modal-panel flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#10151f]">
                 <div class="flex items-center justify-between border-b border-white/10 p-4 sm:px-6">
                     <div>
                         <h2 id="modalItemTitulo" class="font-semibold text-white">
@@ -1767,7 +1768,7 @@
                                     Disponible desde
                                 </label>
                                 <input type="datetime-local" id="item_venta_desde" name="item_venta_desde"
-                                    class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
+                                    class="activity-date-input block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                                 <p data-item-error="item_venta_desde"
                                     class="mt-1.5 hidden text-xs font-medium text-red-400"></p>
                             </div>
@@ -1777,7 +1778,7 @@
                                     Disponible hasta
                                 </label>
                                 <input type="datetime-local" id="item_venta_hasta" name="item_venta_hasta"
-                                    class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
+                                    class="activity-date-input block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                                 <p data-item-error="item_venta_hasta"
                                     class="mt-1.5 hidden text-xs font-medium text-red-400"></p>
                             </div>
@@ -1855,7 +1856,7 @@
                                     </label>
 
                                     <label
-                                        class="cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.05] p-4 transition hover:bg-cyan-500/[0.08]">
+                                        class="activity-choice-card cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.05] p-4 transition hover:bg-cyan-500/[0.08]">
                                         <div class="flex items-start gap-3">
                                             <input type="radio" name="item_alcance" value="sesiones" class="mt-1">
                                             <div>
@@ -1879,7 +1880,7 @@
                                     <div class="mt-3 space-y-2">
                                         @foreach ($sesionesParaProductos as $sesionProducto)
                                             <label
-                                                class="flex cursor-pointer items-start gap-3 rounded-xl border border-white/5 px-3 py-3 transition hover:bg-white/[0.03]">
+                                                class="activity-choice-card flex cursor-pointer items-start gap-3 rounded-xl border border-white/5 px-3 py-3 transition hover:bg-white/[0.03]">
                                                 <input type="checkbox" name="item_sesiones[]"
                                                     value="{{ $sesionProducto->id_sesion }}"
                                                     class="itemSesionCheckbox mt-1">
@@ -4375,21 +4376,21 @@
                             <label class="mb-2 block text-sm font-medium text-gray-300">Inicio</label>
                             <input type="datetime-local"
                                 name="sesiones[${indice}][fecha_inicio]"
-                                class="sesionInicio block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
+                                class="activity-date-input sesionInicio block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white"
                                 required>
                         </div>
                         <div>
                             <label class="mb-2 block text-sm font-medium text-gray-300">Finalización</label>
                             <input type="datetime-local"
                                 name="sesiones[${indice}][fecha_fin]"
-                                class="sesionFin block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
+                                class="activity-date-input sesionFin block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white">
                         </div>
                     </div>
 
                     <div class="mt-4">
                         <p class="mb-2 text-sm font-medium text-gray-300">Modalidad</p>
                         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <label class="cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
+                            <label class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
                                 <div class="flex items-start gap-3">
                                     <input type="radio"
                                         name="sesiones[${indice}][modalidad]"
@@ -4402,7 +4403,7 @@
                                     </div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
+                            <label class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
                                 <div class="flex items-start gap-3">
                                     <input type="radio"
                                         name="sesiones[${indice}][modalidad]"
