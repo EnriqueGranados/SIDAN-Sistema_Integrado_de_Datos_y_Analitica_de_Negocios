@@ -946,6 +946,8 @@
             class="max-h-[88vh] max-w-full rounded-xl object-contain shadow-2xl">
     </div>
 
+    @include('admin.actividades.partials.calendario')
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             let pasoActual = 1;

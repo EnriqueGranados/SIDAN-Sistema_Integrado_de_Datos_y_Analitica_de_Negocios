@@ -294,13 +294,13 @@
                 </div>
             @endif
 
-            <div
-                class="activity-stepbar sticky top-0 z-[80] -mx-4 mb-7 px-4 py-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div class="activity-stepbar sticky top-0 z-[80] -mx-4 mb-7 px-4 py-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
                 <div class="mx-auto max-w-6xl">
                     <div class="flex items-center justify-between gap-4">
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                                <p class="activity-step-caption shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-400">
+                                <p
+                                    class="activity-step-caption shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-400">
                                     Paso {{ $numeroPaso }} de {{ $totalPasos }}
                                 </p>
                                 <span class="text-xs text-gray-700">•</span>
@@ -458,7 +458,8 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
+                        <label
+                            class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="ofrece_productos" value="1" required
                                     @checked($ofreceProductos)>
@@ -804,7 +805,8 @@
                                     </div>
                                 </div>
                             </label>
-                            <label class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
+                            <label
+                                class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
                                 <div class="flex gap-3">
                                     <input type="radio" name="requiere_datos" value="1" required
                                         @checked($configActual && ($configActual['enabled'] ?? false))>
@@ -1183,7 +1185,8 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="activity-choice-card cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
+                        <label
+                            class="activity-choice-card cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="modo_sesiones" value="unica" required
                                     @checked($modoSesionesActual === 'unica') @disabled(!$realizacionDesde || !$realizacionHasta)>
@@ -1198,7 +1201,8 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="activity-choice-card cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
+                        <label
+                            class="activity-choice-card cursor-pointer rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="modo_sesiones" value="multiples" required
                                     @checked($modoSesionesActual === 'multiples') @disabled(!$realizacionDesde || !$realizacionHasta)>
@@ -1254,7 +1258,8 @@
                                         Modalidad
                                     </p>
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        <label class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
+                                        <label
+                                            class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
                                             <div class="flex items-start gap-3">
                                                 <input type="radio" name="sesion_unica_modalidad" value="presencial"
                                                     class="sesionUnicaModalidad mt-1" @checked($modalidadSesionUnicaActual === 'presencial')>
@@ -1266,7 +1271,8 @@
                                                 </div>
                                             </div>
                                         </label>
-                                        <label class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
+                                        <label
+                                            class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-3">
                                             <div class="flex items-start gap-3">
                                                 <input type="radio" name="sesion_unica_modalidad" value="virtual"
                                                     class="sesionUnicaModalidad mt-1" @checked($modalidadSesionUnicaActual === 'virtual')>
@@ -1938,6 +1944,8 @@
             </div>
         </div>
     @endif
+    @include('admin.actividades.partials.calendario')
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             function decodificarBase64Json(valor) {
