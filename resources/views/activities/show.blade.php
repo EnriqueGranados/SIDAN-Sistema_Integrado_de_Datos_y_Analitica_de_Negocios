@@ -62,8 +62,8 @@
                     'lugar' => $esVirtual
                         ? 'Sesión virtual'
                         : ($registroSesion->espacio?->nombre ?:
-                        ($registroSesion->ubicacion ?:
-                        'Lugar por definir')),
+                            ($registroSesion->ubicacion ?:
+                                'Lugar por definir')),
                     'obligatoria' => (bool) $registroSesion->obligatoria,
                     'clave_dia' => $inicio ? $inicio->format('Y-m-d') : 'sin-fecha',
                     'mes' => $inicio ? $inicio->copy()->locale('es')->translatedFormat('M') : '',
@@ -115,6 +115,10 @@
                 })
                 ->exists();
         }
+
+        $compraBloqueadaPorInscripcion =
+            $actividadModelo->requiereInscripcionGeneral()
+            && !$usuarioInscritoActividad;
     @endphp
 
     @include('partials.public-header')
@@ -180,6 +184,20 @@
                             @endif
                         </div>
 
+                        @if ($actividadModelo->requiereInscripcionGeneral())
+
+                            @if ($cuposDisponibles === 0)
+                                <p class="mt-4 text-center text-sm font-bold text-red-300">
+                                    Cupos agotados
+                                </p>
+                            @elseif ($cuposDisponibles !== null)
+                                <p class="mt-4 text-center text-sm font-semibold text-green-300">
+                                    Cupos disponibles: {{ $cuposDisponibles }}
+                                </p>
+                            @endif
+
+                        @endif
+
                         @if ($usuarioInscritoActividad)
 
                             <button type="button" disabled
@@ -196,10 +214,20 @@
                                 Tu inscripción a esta actividad ya está confirmada.
                             </p>
                         @else
-                            <a href="{{ $actividad['accion_url'] }}"
-                                class="mt-5 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-green-600">
-                                {{ $actividad['accion_texto'] }}
-                            </a>
+                            @if (
+                                    $actividadModelo->requiereInscripcionGeneral()
+                                    && $cuposDisponibles === 0
+                                )
+                                <button type="button" disabled
+                                    class="mt-5 flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-slate-500 px-5 py-3.5 text-sm font-black text-white opacity-60">
+                                    Cupos agotados
+                                </button>
+                            @else
+                                <a href="{{ $actividad['accion_url'] }}"
+                                    class="mt-5 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-green-600">
+                                    {{ $actividad['accion_texto'] }}
+                                </a>
+                            @endif
 
                             <p class="mt-3 text-center text-xs leading-5 text-white/65">
                                 {{ $actividad['participacion_descripcion'] }}
@@ -386,8 +414,7 @@
                                                 <div
                                                     class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sidan-950 px-5 py-4 text-white">
                                                     <div>
-                                                        <p
-                                                            class="text-xs font-black uppercase tracking-[0.15em] text-green-300">
+                                                        <p class="text-xs font-black uppercase tracking-[0.15em] text-green-300">
                                                             {{ ucfirst($primeraSesionDia['dia_semana']) }}
                                                         </p>
                                                         <p class="mt-1 text-xl font-black">
@@ -412,8 +439,7 @@
                                                                     </div>
                                                                     <div class="min-w-0">
                                                                         <div class="flex flex-wrap items-center gap-2">
-                                                                            <h4
-                                                                                class="font-black text-sidan-900 dark:text-white">
+                                                                            <h4 class="font-black text-sidan-900 dark:text-white">
                                                                                 {{ $datosSesion['nombre'] }}
                                                                             </h4>
                                                                             <span
@@ -431,8 +457,7 @@
                                                                 </div>
                                                                 <div class="flex shrink-0 items-center gap-3">
                                                                     @if ($datosSesion['hora_fin'])
-                                                                        <span
-                                                                            class="text-xs font-bold text-slate-400">hasta
+                                                                        <span class="text-xs font-bold text-slate-400">hasta
                                                                             {{ $datosSesion['hora_fin'] }}</span>
                                                                     @endif
                                                                     <span
@@ -442,29 +467,23 @@
                                                             <div
                                                                 class="grid gap-3 border-t border-slate-200 p-4 dark:border-white/10 sm:grid-cols-3">
                                                                 <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
+                                                                    <p class="text-[11px] font-bold uppercase text-slate-400">
                                                                         Horario</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
+                                                                    <p class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
                                                                         {{ $datosSesion['hora_inicio'] }}{{ $datosSesion['hora_fin'] ? ' – ' . $datosSesion['hora_fin'] : '' }}
                                                                     </p>
                                                                 </div>
                                                                 <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
+                                                                    <p class="text-[11px] font-bold uppercase text-slate-400">
                                                                         Cupo</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
+                                                                    <p class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
                                                                         {{ $datosSesion['cupo'] }}
                                                                     </p>
                                                                 </div>
                                                                 <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
+                                                                    <p class="text-[11px] font-bold uppercase text-slate-400">
                                                                         Reserva</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
+                                                                    <p class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
                                                                         {{ $datosSesion['reserva'] }}
                                                                     </p>
                                                                 </div>
@@ -488,6 +507,23 @@
                                 class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
 
                                 <div class="mb-7 rounded-xl bg-slate-100 px-5 py-5 dark:bg-white/10">
+                                    @if ($compraBloqueadaPorInscripcion)
+                                        <div
+                                            class="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3
+                                                                                                                               text-sm font-semibold text-amber-800
+                                                                                                                               dark:border-amber-500/30 dark:bg-amber-500/10
+                                                                                                                               dark:text-amber-300">
+
+                                            <p class="font-black">
+                                                🔒 Compra de productos bloqueada
+                                            </p>
+
+                                            <p class="mt-1 text-xs leading-5">
+                                                Para comprar productos de esta actividad, primero debes
+                                                completar y confirmar tu inscripción.
+                                            </p>
+                                        </div>
+                                    @endif
 
                                     <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
@@ -507,13 +543,11 @@
                                                 class="shrink-0">
                                                 @csrf
 
-                                                <input type="hidden" name="selecciones" id="seleccionesCompra"
-                                                    value="">
+                                                <input type="hidden" name="selecciones" id="seleccionesCompra" value="">
 
                                                 <button type="submit" id="btnContinuarCompra" disabled
                                                     class="flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40">
-                                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"
-                                                        stroke="currentColor">
+                                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M3 3h2l2.4 10.4A2 2 0 0 0 9.35 15H17a2 2 0 0 0 1.93-1.48L21 6H6" />
 
@@ -537,10 +571,19 @@
                                                 </p>
                                             </form>
                                         @else
-                                            <a href="{{ route('login') }}"
-                                                class="flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
-                                                Iniciar sesión para comprar
-                                            </a>
+                                            @if ($compraBloqueadaPorInscripcion)
+                                                <button type="button" disabled class="flex min-w-[220px] cursor-not-allowed items-center
+                                                                   justify-center rounded-xl bg-slate-400 px-5 py-3
+                                                                   text-sm font-black text-white opacity-60">
+                                                    Requiere inscripción confirmada
+                                                </button>
+                                            @else
+                                                <a href="{{ route('login') }}" class="flex min-w-[220px] items-center justify-center
+                                                                   rounded-xl bg-sidan-500 px-5 py-3 text-sm
+                                                                   font-black text-white transition hover:bg-green-600">
+                                                    Iniciar sesión para comprar
+                                                </a>
+                                            @endif
                                         @endauth
 
                                     </div>
@@ -556,267 +599,296 @@
                                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 
                                     @foreach ($items as $item)
-                                        @php
-                                            $medioItem =
-                                                $item->medios->firstWhere('es_portada', true) ?: $item->medios->first();
+                                                        @php
+                                                            $medioItem =
+                                                                $item->medios->firstWhere('es_portada', true) ?: $item->medios->first();
 
-                                            $imagenItem = $urlMedio($medioItem?->url) ?: $actividad['imagen'];
+                                                            $imagenItem = $urlMedio($medioItem?->url) ?: $actividad['imagen'];
 
-                                            $variantes = $item->variantes
-                                                ->where('activo', true)
-                                                ->sortBy('orden')
-                                                ->values();
+                                                            $variantes = $item->variantes
+                                                                ->where('activo', true)
+                                                                ->sortBy('orden')
+                                                                ->values();
 
-                                            $variantesCompra = $variantes
-                                                ->map(function ($variante) {
-                                                    return [
-                                                        'id' => (int) $variante->id_variante_item,
+                                                            $variantesCompra = $variantes
+                                                                ->map(function ($variante) use ($stockVariantes) {
+                                                                    return [
+                                                                        'id' => (int) $variante->id_variante_item,
+                                                                        'nombre' => (string) $variante->nombre_variante,
+                                                                        'precio' => $variante->precio !== null
+                                                                            ? (float) $variante->precio
+                                                                            : null,
+                                                                        'stock' => $stockVariantes[
+                                                                            (int) $variante->id_variante_item
+                                                                        ] ?? null,
+                                                                    ];
+                                                                })
+                                                                ->values();
 
-                                                        'nombre' => (string) $variante->nombre_variante,
+                                                            $configuracionCampos = ($camposPorItem ?? collect())->get(
+                                                                $item->id_item_actividad,
+                                                            );
 
-                                                        'precio' => (float) $variante->precio,
+                                                            $configuracionPrecio = ($preciosPorItem ?? collect())->get(
+                                                                $item->id_item_actividad,
+                                                            );
 
-                                                        'stock' =>
-                                                            $variante->stock_total !== null
-                                                                ? (int) $variante->stock_total
-                                                                : null,
-                                                    ];
-                                                })
-                                                ->values();
+                                                            $campos = collect($configuracionCampos['fields'] ?? [])
+                                                                ->filter(fn($campo) => is_array($campo) && !empty($campo['key']))
+                                                                ->values();
 
-                                            $configuracionCampos = ($camposPorItem ?? collect())->get(
-                                                $item->id_item_actividad,
-                                            );
+                                                            $reglasPrecio = collect($configuracionPrecio['rules'] ?? [])
+                                                                ->filter(fn($regla) => is_array($regla))
+                                                                ->values();
 
-                                            $configuracionPrecio = ($preciosPorItem ?? collect())->get(
-                                                $item->id_item_actividad,
-                                            );
+                                                            $ahora = now();
 
-                                            $campos = collect($configuracionCampos['fields'] ?? [])
-                                                ->filter(fn($campo) => is_array($campo) && !empty($campo['key']))
-                                                ->values();
+                                                            $disponible =
+                                                                (bool) $item->activo &&
+                                                                (!$item->venta_desde || $ahora->gte($item->venta_desde)) &&
+                                                                (!$item->venta_hasta || $ahora->lte($item->venta_hasta));
 
-                                            $reglasPrecio = collect($configuracionPrecio['rules'] ?? [])
-                                                ->filter(fn($regla) => is_array($regla))
-                                                ->values();
+                                                            $minimo = max(1, (int) ($item->min_por_inscripcion ?? 1));
 
-                                            $ahora = now();
+                                                            $maximo =
+                                                                $item->max_por_inscripcion !== null
+                                                                ? (int) $item->max_por_inscripcion
+                                                                : null;
 
-                                            $disponible =
-                                                (bool) $item->activo &&
-                                                (!$item->venta_desde || $ahora->gte($item->venta_desde)) &&
-                                                (!$item->venta_hasta || $ahora->lte($item->venta_hasta));
+                                                            $stockItem = $stockItems[(int) $item->id_item_actividad] ?? null;
 
-                                            $minimo = max(1, (int) ($item->min_por_inscripcion ?? 1));
+                                                            $limite = $maximo;
 
-                                            $maximo =
-                                                $item->max_por_inscripcion !== null
-                                                    ? (int) $item->max_por_inscripcion
-                                                    : null;
+                                                            if ($stockItem !== null) {
+                                                                $limite = $limite === null ? $stockItem : min($limite, $stockItem);
+                                                            }
 
-                                            $stockItem = $item->stock_total !== null ? (int) $item->stock_total : null;
+                                                            // Disponibilidad real del producto.
+                                                            $tieneDisponibilidad =
+                                                                $disponible
+                                                                && ($limite === null || $limite >= $minimo);
 
-                                            $limite = $maximo;
+                                                            // Permiso para comprar según inscripción.
+                                                            $puedeConfigurar =
+                                                                $tieneDisponibilidad
+                                                                && !$compraBloqueadaPorInscripcion;
 
-                                            if ($stockItem !== null) {
-                                                $limite = $limite === null ? $stockItem : min($limite, $stockItem);
-                                            }
+                                                            $sesionesItem = $item->sesiones->sortBy('fecha_inicio')->values();
+                                                        @endphp
 
-                                            $puedeConfigurar = $disponible && ($limite === null || $limite >= $minimo);
+                                                        <article
+                                                            class="sidan-producto flex flex-col rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_5px_25px_rgba(0,0,0,0.09)] dark:border-white/10 dark:bg-sidan-900 {{ $loop->index >= 6 ? 'hidden' : '' }}"
+                                                            data-producto-config data-item-id="{{ $item->id_item_actividad }}"
+                                                            data-precio-base="{{ (float) $item->precio }}" data-minimo="{{ $minimo }}"
+                                                            data-maximo="{{ $limite ?? '' }}" data-stock="{{ $stockItem ?? '' }}"
+                                                            data-reglas='@json($reglasPrecio->all())'
+                                                            data-variantes='@json($variantesCompra->all())'>
 
-                                            $sesionesItem = $item->sesiones->sortBy('fecha_inicio')->values();
-                                        @endphp
-
-                                        <article
-                                            class="sidan-producto flex flex-col rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_5px_25px_rgba(0,0,0,0.09)] dark:border-white/10 dark:bg-sidan-900 {{ $loop->index >= 6 ? 'hidden' : '' }}"
-                                            data-producto-config data-item-id="{{ $item->id_item_actividad }}"
-                                            data-precio-base="{{ (float) $item->precio }}"
-                                            data-minimo="{{ $minimo }}" data-maximo="{{ $limite ?? '' }}"
-                                            data-stock="{{ $stockItem ?? '' }}"
-                                            data-reglas='@json($reglasPrecio->all())'
-                                            data-variantes='@json($variantesCompra->all())'>
-
-                                            <div
-                                                class="flex h-44 items-center justify-center rounded-xl bg-slate-50 p-3 dark:bg-white/5">
-                                                <img src="{{ $imagenItem }}" alt="{{ $item->nombre }}" loading="lazy"
-                                                    class="h-full w-full object-contain">
-                                            </div>
-
-                                            <div class="mt-4 flex flex-1 flex-col">
-
-                                                <span class="text-[11px] font-bold uppercase tracking-wide text-sidan-500">
-                                                    {{ ucfirst($item->tipo) }}
-                                                </span>
-
-                                                <h3 class="mt-1 text-lg font-black text-sidan-900 dark:text-white">
-                                                    {{ $item->nombre }}
-                                                </h3>
-
-                                                @if ($item->descripcion)
-                                                    <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                        {{ $item->descripcion }}
-                                                    </p>
-                                                @endif
-
-                                                @if ($sesiones->count() > 1)
-                                                    @if (($item->alcance_sesiones ?? 'actividad') === 'actividad')
-                                                        <div
-                                                            class="mt-3 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                                                            Disponible para toda la actividad
-                                                        </div>
-                                                    @elseif ($sesionesItem->isNotEmpty())
-                                                        <div
-                                                            class="mt-3 rounded-xl bg-cyan-50 px-3 py-2.5 dark:bg-cyan-500/10">
-                                                            <p
-                                                                class="text-[10px] font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">
-                                                                Aplica a
-                                                                {{ $sesionesItem->count() === 1 ? 'esta sesión' : 'estas sesiones' }}
-                                                            </p>
-
-                                                            <p
-                                                                class="mt-1 text-xs font-semibold leading-5 text-slate-700 dark:text-slate-200">
-                                                                {{ $sesionesItem->pluck('nombre')->implode(' · ') }}
-                                                            </p>
-                                                        </div>
-                                                    @else
-                                                        <div
-                                                            class="mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                                                            Sesión pendiente de asignación
-                                                        </div>
-                                                    @endif
-                                                @elseif ($sesionesItem->isNotEmpty())
-                                                    <div
-                                                        class="mt-3 rounded-xl bg-cyan-50 px-3 py-2.5 text-xs font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300">
-                                                        Sesión: {{ $sesionesItem->first()->nombre }}
-                                                    </div>
-                                                @endif
-
-                                                @if ($campos->isNotEmpty())
-                                                    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-
-                                                        @foreach ($campos as $campo)
-                                                            @php
-                                                                $tipo = $campo['type'] ?? 'texto';
-                                                                $clave = $campo['key'] ?? '';
-                                                                $etiqueta = $campo['label'] ?? $clave;
-                                                                $obligatorio = !empty($campo['required']);
-                                                            @endphp
-
-                                                            <div>
-                                                                <label class="mb-2 block text-sm font-semibold">
-                                                                    {{ $etiqueta }}
-
-                                                                    @if ($obligatorio)
-                                                                        <span class="text-red-500">*</span>
-                                                                    @endif
-                                                                </label>
-
-                                                                @if ($tipo === 'lista')
-                                                                    <select data-campo-clave="{{ $clave }}"
-                                                                        @required($obligatorio)
-                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2">
-                                                                        <option value="">Seleccionar...</option>
-
-                                                                        @foreach ($campo['options'] ?? [] as $opcion)
-                                                                            <option value="{{ $opcion }}">
-                                                                                {{ $opcion }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                @elseif ($tipo === 'numero')
-                                                                    <input type="number" step="any"
-                                                                        data-campo-clave="{{ $clave }}"
-                                                                        @required($obligatorio)
-                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
-                                                                        placeholder="Ingresar número">
-                                                                @else
-                                                                    <input type="text" maxlength="200"
-                                                                        data-campo-clave="{{ $clave }}"
-                                                                        @required($obligatorio)
-                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
-                                                                        placeholder="Escribir {{ mb_strtolower($etiqueta) }}">
-                                                                @endif
+                                                            <div
+                                                                class="flex h-44 items-center justify-center rounded-xl bg-slate-50 p-3 dark:bg-white/5">
+                                                                <img src="{{ $imagenItem }}" alt="{{ $item->nombre }}" loading="lazy"
+                                                                    class="h-full w-full object-contain">
                                                             </div>
-                                                        @endforeach
 
-                                                    </div>
-                                                @endif
+                                                            <div class="mt-4 flex flex-1 flex-col">
 
-                                                <div class="mt-auto pt-5">
+                                                                <span class="text-[11px] font-bold uppercase tracking-wide text-sidan-500">
+                                                                    {{ ucfirst($item->tipo) }}
+                                                                </span>
 
-                                                    <div
-                                                        class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/10">
+                                                                <h3 class="mt-1 text-lg font-black text-sidan-900 dark:text-white">
+                                                                    {{ $item->nombre }}
+                                                                </h3>
 
-                                                        <div>
-                                                            <p
-                                                                class="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                                                Precio unitario
-                                                            </p>
+                                                                @if ($item->descripcion)
+                                                                    <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                                                        {{ $item->descripcion }}
+                                                                    </p>
+                                                                @endif
 
-                                                            <p class="text-2xl font-black text-red-700 dark:text-red-400"
-                                                                data-precio-unitario>
-                                                                ${{ number_format((float) $item->precio, 2) }}
-                                                            </p>
-                                                        </div>
+                                                                @if ($sesiones->count() > 1)
+                                                                    @if (($item->alcance_sesiones ?? 'actividad') === 'actividad')
+                                                                        <div
+                                                                            class="mt-3 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                                                            Disponible para toda la actividad
+                                                                        </div>
+                                                                    @elseif ($sesionesItem->isNotEmpty())
+                                                                        <div class="mt-3 rounded-xl bg-cyan-50 px-3 py-2.5 dark:bg-cyan-500/10">
+                                                                            <p
+                                                                                class="text-[10px] font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">
+                                                                                Aplica a
+                                                                                {{ $sesionesItem->count() === 1 ? 'esta sesión' : 'estas sesiones' }}
+                                                                            </p>
 
-                                                        <div class="flex items-center rounded-full border border-slate-200 dark:border-white/20"
-                                                            data-cantidad-control>
-                                                            <button type="button" data-restar disabled
-                                                                class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
-                                                                aria-label="Restar cantidad">
-                                                                −
-                                                            </button>
+                                                                            <p
+                                                                                class="mt-1 text-xs font-semibold leading-5 text-slate-700 dark:text-slate-200">
+                                                                                {{ $sesionesItem->pluck('nombre')->implode(' · ') }}
+                                                                            </p>
+                                                                        </div>
+                                                                    @else
+                                                                        <div
+                                                                            class="mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                                                                            Sesión pendiente de asignación
+                                                                        </div>
+                                                                    @endif
+                                                                @elseif ($sesionesItem->isNotEmpty())
+                                                                    <div
+                                                                        class="mt-3 rounded-xl bg-cyan-50 px-3 py-2.5 text-xs font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300">
+                                                                        Sesión: {{ $sesionesItem->first()->nombre }}
+                                                                    </div>
+                                                                @endif
 
-                                                            <output data-cantidad
-                                                                class="min-w-7 text-center text-sm font-black dark:text-white">
-                                                                0
-                                                            </output>
+                                                                @if ($campos->isNotEmpty())
+                                                                    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
 
-                                                            <button type="button" data-sumar
-                                                                class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
-                                                                @disabled(!$puedeConfigurar) aria-label="Sumar cantidad">
-                                                                +
-                                                            </button>
-                                                        </div>
+                                                                        @foreach ($campos as $campo)
+                                                                            @php
+                                                                                $tipo = $campo['type'] ?? 'texto';
+                                                                                $clave = $campo['key'] ?? '';
+                                                                                $etiqueta = $campo['label'] ?? $clave;
+                                                                                $obligatorio = !empty($campo['required']);
+                                                                            @endphp
 
-                                                    </div>
+                                                                            <div>
+                                                                                <label class="mb-2 block text-sm font-semibold">
+                                                                                    {{ $etiqueta }}
 
-                                                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400"
-                                                        data-disponibilidad>
-                                                        {{ $puedeConfigurar ? 'Configura el producto para continuar.' : 'No disponible actualmente.' }}
-                                                    </p>
+                                                                                    @if ($obligatorio)
+                                                                                        <span class="text-red-500">*</span>
+                                                                                    @endif
+                                                                                </label>
 
-                                                    <p class="mt-2 hidden text-xs font-semibold text-red-600" data-error
-                                                        role="alert"></p>
+                                                                                @if ($tipo === 'lista')
+                                                                                    <select data-campo-clave="{{ $clave }}" @required($obligatorio)
+                                                                                        @required($obligatorio) @disabled($compraBloqueadaPorInscripcion)
+                                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2">
+                                                                                        <option value="">Seleccionar...</option>
 
-                                                    <button type="button" data-agregar-configuracion
-                                                        class="mt-4 w-full rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
-                                                        @disabled(!$puedeConfigurar)>
-                                                        Agregar configuración
-                                                    </button>
+                                                                                        @foreach ($campo['options'] ?? [] as $opcion)
+                                                                                            <option value="{{ $opcion }}">
+                                                                                                {{ $opcion }}
+                                                                                            </option>
+                                                                                        @endforeach
+                                                                                    </select>
+                                                                                @elseif ($tipo === 'numero')
+                                                                                    <input type="number" step="any" data-campo-clave="{{ $clave }}"
+                                                                                        @required($obligatorio) @disabled($compraBloqueadaPorInscripcion)
+                                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
+                                                                                        placeholder="Ingresar número">
 
-                                                    <div class="mt-4 hidden rounded-xl bg-slate-50 p-3 dark:bg-white/5"
-                                                        data-resumen-configuraciones>
-                                                        <p class="mb-2 text-sm font-black text-sidan-900 dark:text-white">
-                                                            Configuraciones preparadas
-                                                        </p>
+                                                                                @else
+                                                                                    <input type="text" maxlength="200" data-campo-clave="{{ $clave }}"
+                                                                                        @required($obligatorio) @disabled($compraBloqueadaPorInscripcion)
+                                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
+                                                                                        placeholder="Escribir {{ mb_strtolower($etiqueta) }}">
+                                                                                @endif
+                                                                            </div>
+                                                                        @endforeach
 
-                                                        <div class="space-y-2" data-lineas-configuracion></div>
+                                                                    </div>
+                                                                @endif
 
-                                                        <p
-                                                            class="mt-3 border-t border-slate-200 pt-2 text-sm font-black text-sidan-900 dark:border-white/10 dark:text-white">
-                                                            Subtotal:
+                                                                <div class="mt-auto pt-5">
 
-                                                            <span data-subtotal>
-                                                                $0.00
-                                                            </span>
-                                                        </p>
-                                                    </div>
+                                                                    <div
+                                                                        class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/10">
 
-                                                </div>
-                                            </div>
+                                                                        <div>
+                                                                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                                                                Precio unitario
+                                                                            </p>
 
-                                        </article>
+                                                                            <p class="text-2xl font-black text-red-700 dark:text-red-400"
+                                                                                data-precio-unitario>
+                                                                                ${{ number_format((float) $item->precio, 2) }}
+                                                                            </p>
+                                                                        </div>
+
+                                                                        <div class="flex items-center rounded-full border border-slate-200 dark:border-white/20"
+                                                                            data-cantidad-control>
+                                                                            <button type="button" data-restar disabled
+                                                                                class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
+                                                                                aria-label="Restar cantidad">
+                                                                                −
+                                                                            </button>
+
+                                                                            <output data-cantidad
+                                                                                class="min-w-7 text-center text-sm font-black dark:text-white">
+                                                                                0
+                                                                            </output>
+
+                                                                            <button type="button" data-sumar
+                                                                                class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
+                                                                                @disabled(!$puedeConfigurar) aria-label="Sumar cantidad">
+                                                                                +
+                                                                            </button>
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                    {{-- Disponibilidad real: mensaje permanente --}}
+                                                                    <p class="mt-2 text-xs font-semibold
+                                                                        {{ $stockItem === 0
+                                                                            ? 'text-red-600 dark:text-red-400'
+                                                                            : 'text-slate-500 dark:text-slate-400' }}">
+
+                                                                        @if ($stockItem === 0)
+                                                                            Producto agotado
+                                                                        @elseif (!$disponible)
+                                                                            Producto no disponible actualmente
+                                                                        @elseif (!$tieneDisponibilidad)
+                                                                            No hay unidades suficientes para la cantidad mínima
+                                                                        @elseif ($stockItem !== null)
+                                                                            Disponibles: {{ $stockItem }}
+                                                                        @else
+                                                                            Stock sin límite
+                                                                        @endif
+                                                                    </p>
+
+                                                                    {{-- Mensaje dinámico controlado por JavaScript --}}
+                                                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400"
+                                                                        data-disponibilidad>
+
+                                                                        @if ($compraBloqueadaPorInscripcion)
+                                                                            Debes tener una inscripción confirmada para comprar.
+                                                                        @elseif ($puedeConfigurar)
+                                                                            Configura el producto para continuar.
+                                                                        @else
+                                                                            No disponible actualmente.
+                                                                        @endif
+                                                                    </p>
+
+                                                                    <p class="mt-2 hidden text-xs font-semibold text-red-600" data-error
+                                                                        role="alert"></p>
+
+                                                                    <button type="button" data-agregar-configuracion
+                                                                        class="mt-4 w-full rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                                        @disabled(!$puedeConfigurar)>
+                                                                        Agregar configuración
+                                                                    </button>
+
+                                                                    <div class="mt-4 hidden rounded-xl bg-slate-50 p-3 dark:bg-white/5"
+                                                                        data-resumen-configuraciones>
+                                                                        <p class="mb-2 text-sm font-black text-sidan-900 dark:text-white">
+                                                                            Configuraciones preparadas
+                                                                        </p>
+
+                                                                        <div class="space-y-2" data-lineas-configuracion></div>
+
+                                                                        <p
+                                                                            class="mt-3 border-t border-slate-200 pt-2 text-sm font-black text-sidan-900 dark:border-white/10 dark:text-white">
+                                                                            Subtotal:
+
+                                                                            <span data-subtotal>
+                                                                                $0.00
+                                                                            </span>
+                                                                        </p>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+
+                                                        </article>
                                     @endforeach
 
                                 </div>
@@ -874,8 +946,7 @@
                                         @endphp
                                         <article
                                             class="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-5 dark:border-amber-500/20 dark:from-amber-500/10 dark:via-white/[0.03] dark:to-emerald-500/10">
-                                            <div
-                                                class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-amber-300/20 blur-2xl">
+                                            <div class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-amber-300/20 blur-2xl">
                                             </div>
                                             <div class="relative">
                                                 <div class="flex items-start justify-between gap-4">
@@ -910,8 +981,7 @@
                                                         Se aplica automáticamente</div>
                                                 @endif
 
-                                                <div
-                                                    class="mt-4 space-y-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                                                <div class="mt-4 space-y-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
                                                     <p>
                                                         <strong class="text-slate-700 dark:text-slate-200">Aplica
                                                             a:</strong>
@@ -926,8 +996,7 @@
                                                             ${{ number_format((float) $promocion->monto_minimo, 2) }}</p>
                                                     @endif
                                                     @if ($promocion->vigente_desde || $promocion->vigente_hasta)
-                                                        <p><strong
-                                                                class="text-slate-700 dark:text-slate-200">Vigencia:</strong>
+                                                        <p><strong class="text-slate-700 dark:text-slate-200">Vigencia:</strong>
                                                             {{ $promocion->vigente_desde?->format('d/m/Y') ?: 'ahora' }} –
                                                             {{ $promocion->vigente_hasta?->format('d/m/Y') ?: 'sin límite' }}
                                                         </p>
@@ -1062,10 +1131,20 @@
                                 {{ $actividad['participacion_descripcion'] }}
                             </p>
 
-                            <a href="{{ $actividad['accion_url'] }}"
-                                class="mt-4 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
-                                {{ $actividad['accion_texto'] }}
-                            </a>
+                            @if (
+                                    $actividadModelo->requiereInscripcionGeneral()
+                                    && $cuposDisponibles === 0
+                                )
+                                <button type="button" disabled
+                                    class="mt-4 flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-slate-500 px-5 py-3 text-sm font-black text-white opacity-60">
+                                    Cupos agotados
+                                </button>
+                            @else
+                                <a href="{{ $actividad['accion_url'] }}"
+                                    class="mt-4 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
+                                    {{ $actividad['accion_texto'] }}
+                                </a>
+                            @endif
                         @endif
 
                     </div>
@@ -1083,7 +1162,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const raiz = document.getElementById('detalleActividad');
             const tabs = Array.from(document.querySelectorAll('.sidan-tab'));
             const panels = Array.from(document.querySelectorAll('.sidan-panel'));
@@ -1112,7 +1191,7 @@
             }
 
             document.querySelectorAll('[data-panel-target]').forEach(boton => {
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     activarPanel(this.dataset.panelTarget, true);
                 });
             });
@@ -1126,7 +1205,7 @@
 
                 if (!boton) return;
 
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     visibles += lote;
                     elementos.forEach((elemento, indice) => elemento.classList.toggle('hidden', indice >=
                         visibles));
@@ -1174,11 +1253,11 @@
                 const totalProductos =
                     compraActividad.reduce(
                         (total, linea) =>
-                        total +
-                        (
-                            Number(linea.precioVisual) *
-                            Number(linea.cantidad)
-                        ),
+                            total +
+                            (
+                                Number(linea.precioVisual) *
+                                Number(linea.cantidad)
+                            ),
                         0
                     );
 
@@ -1202,8 +1281,12 @@
                     }
                 }
 
+                const compraBloqueadaPorInscripcion =
+                    @json($compraBloqueadaPorInscripcion);
+
                 if (btnContinuarCompra) {
                     btnContinuarCompra.disabled =
+                        compraBloqueadaPorInscripcion ||
                         cantidadConfiguraciones === 0;
                 }
             }
@@ -1282,17 +1365,17 @@
 
                     const limiteItem =
                         tarjeta.dataset.maximo === '' ?
-                        Infinity :
-                        Number(
-                            tarjeta.dataset.maximo
-                        );
+                            Infinity :
+                            Number(
+                                tarjeta.dataset.maximo
+                            );
 
                     const stockItem =
                         tarjeta.dataset.stock === '' ?
-                        Infinity :
-                        Number(
-                            tarjeta.dataset.stock
-                        );
+                            Infinity :
+                            Number(
+                                tarjeta.dataset.stock
+                            );
 
                     const minimo =
                         Number(
@@ -1311,41 +1394,41 @@
 
                         return variantes.find(
                             variante =>
-                            String(variante.id) ===
-                            String(
-                                selectorVariante.value
-                            )
+                                String(variante.id) ===
+                                String(
+                                    selectorVariante.value
+                                )
                         ) || null;
                     };
 
                     const unidadesPreparadas = () =>
                         configuraciones.reduce(
                             (total, linea) =>
-                            total +
-                            Number(
-                                linea.cantidad
-                            ),
+                                total +
+                                Number(
+                                    linea.cantidad
+                                ),
                             0
                         );
 
                     const stockVariantePreparado =
                         idVariante =>
-                        configuraciones
-                        .filter(
-                            linea =>
-                            String(
-                                linea.varianteId
-                            ) ===
-                            String(idVariante)
-                        )
-                        .reduce(
-                            (total, linea) =>
-                            total +
-                            Number(
-                                linea.cantidad
-                            ),
-                            0
-                        );
+                            configuraciones
+                                .filter(
+                                    linea =>
+                                        String(
+                                            linea.varianteId
+                                        ) ===
+                                        String(idVariante)
+                                )
+                                .reduce(
+                                    (total, linea) =>
+                                        total +
+                                        Number(
+                                            linea.cantidad
+                                        ),
+                                    0
+                                );
 
                     function precioActual() {
                         let precio = Number(tarjeta.dataset.precioBase);
@@ -1397,11 +1480,11 @@
 
                         const stockVariante =
                             variante.stock === null ||
-                            variante.stock === undefined ?
-                            Infinity :
-                            Number(
-                                variante.stock
-                            );
+                                variante.stock === undefined ?
+                                Infinity :
+                                Number(
+                                    variante.stock
+                                );
 
                         const restanteVariante =
                             Math.max(
@@ -1431,13 +1514,13 @@
                         ) {
                             if (
                                 campo.dataset
-                                .requerido === '1' &&
+                                    .requerido === '1' &&
                                 !campo.value.trim()
                             ) {
                                 return (
                                     'Completa el campo ' +
                                     campo.dataset
-                                    .campoClave +
+                                        .campoClave +
                                     '.'
                                 );
                             }
@@ -1479,8 +1562,8 @@
                         ) {
                             cantidad =
                                 limite >= minimo ?
-                                limite :
-                                0;
+                                    limite :
+                                    0;
                         }
 
                         if (cantidadTexto) {
@@ -1496,7 +1579,7 @@
                         if (sumar) {
                             sumar.disabled =
                                 sumar.dataset
-                                .bloqueado === '1' ||
+                                    .bloqueado === '1' ||
                                 limite < minimo ||
                                 cantidad >= limite;
                         }
@@ -1546,7 +1629,7 @@
                                     ([clave, valor]) => {
                                         if (
                                             String(valor)
-                                            .trim() !== ''
+                                                .trim() !== ''
                                         ) {
                                             detalles.push(
                                                 `${clave}: ${valor}`
@@ -1557,10 +1640,10 @@
 
                                 const descripcion =
                                     detalles.length ?
-                                    detalles.join(
-                                        ' · '
-                                    ) :
-                                    'Sin configuración adicional';
+                                        detalles.join(
+                                            ' · '
+                                        ) :
+                                        'Sin configuración adicional';
 
                                 texto.textContent =
                                     `${linea.cantidad} × ` +
@@ -1589,7 +1672,7 @@
                                     () => {
                                         const lineaEliminada =
                                             configuraciones[
-                                                indice
+                                            indice
                                             ];
 
                                         configuraciones.splice(
@@ -1599,9 +1682,9 @@
 
                                         const indiceGlobal =
                                             compraActividad
-                                            .indexOf(
-                                                lineaEliminada
-                                            );
+                                                .indexOf(
+                                                    lineaEliminada
+                                                );
 
                                         if (
                                             indiceGlobal !==
@@ -1639,18 +1722,18 @@
                                 .classList.toggle(
                                     'hidden',
                                     configuraciones
-                                    .length === 0
+                                        .length === 0
                                 );
                         }
 
                         const subtotal =
                             configuraciones.reduce(
                                 (total, linea) =>
-                                total +
-                                (
-                                    linea.precioVisual *
-                                    linea.cantidad
-                                ),
+                                    total +
+                                    (
+                                        linea.precioVisual *
+                                        linea.cantidad
+                                    ),
                                 0
                             );
 
@@ -1673,16 +1756,16 @@
                             disponibilidadTexto
                                 .textContent =
                                 unidades > 0 ?
-                                `${unidades} unidad${unidades === 1 ? '' : 'es'} preparada${unidades === 1 ? '' : 's'}.` :
-                                'Configura el producto para continuar.';
+                                    `${unidades} unidad${unidades === 1 ? '' : 'es'} preparada${unidades === 1 ? '' : 's'}.` :
+                                    'Configura el producto para continuar.';
                         }
                     }
 
                     if (sumar) {
                         sumar.dataset.bloqueado =
                             sumar.disabled ?
-                            '1' :
-                            '0';
+                                '1' :
+                                '0';
 
                         sumar.addEventListener(
                             'click',
@@ -1717,8 +1800,8 @@
                             () => {
                                 cantidad =
                                     cantidad <= minimo ?
-                                    0 :
-                                    cantidad - 1;
+                                        0 :
+                                        cantidad - 1;
 
                                 refrescar();
                             }
@@ -1729,7 +1812,7 @@
                         ...campos,
                         selectorVariante
                     ]
-                    .filter(Boolean)
+                        .filter(Boolean)
                         .forEach(
                             campo => {
                                 campo.addEventListener(
@@ -1858,6 +1941,10 @@
                     .addEventListener(
                         'submit',
                         evento => {
+                            if (compraBloqueadaPorInscripcion) {
+                                evento.preventDefault();
+                                return;
+                            }
                             if (
                                 compraActividad.length ===
                                 0
@@ -1892,29 +1979,29 @@
                             btnContinuarCompra
                                 .innerHTML =
                                 `
-                                            <svg
-                                                class="h-5 w-5 animate-spin"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                            >
-                                                <circle
-                                                    class="opacity-25"
-                                                    cx="12"
-                                                    cy="12"
-                                                    r="10"
-                                                    stroke="currentColor"
-                                                    stroke-width="4"
-                                                ></circle>
+                                    <svg
+                                        class="h-5 w-5 animate-spin"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                    >
+                                        <circle
+                                            class="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            stroke-width="4"
+                                        ></circle>
 
-                                                <path
-                                                    class="opacity-75"
-                                                    fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                                                ></path>
-                                            </svg>
+                                        <path
+                                            class="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                        ></path>
+                                    </svg>
 
-                                            Preparando orden...
-                                        `;
+                                    Preparando orden...
+                                `;
                         }
                     );
             }
@@ -1948,7 +2035,7 @@
             }
 
             botonesDia.forEach(boton => {
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     activarDia(this.dataset.diaTarget, this.classList.contains(
                         'sidan-dia-resumen'));
                 });
@@ -1959,7 +2046,7 @@
             }
 
             document.querySelectorAll('.btnCopiarPromo').forEach(boton => {
-                boton.addEventListener('click', async function() {
+                boton.addEventListener('click', async function () {
                     const codigo = this.dataset.codigo || '';
                     if (!codigo) return;
 
@@ -1982,7 +2069,7 @@
             const imagenGaleria = document.getElementById('imagenGaleriaActividad');
 
             document.querySelectorAll('.sidan-galeria').forEach(boton => {
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function () {
                     imagenGaleria.src = this.dataset.imagen || '';
                     imagenGaleria.alt = this.dataset.alt || '';
                     modalGaleria.classList.remove('hidden');

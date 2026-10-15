@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Services\DisponibilidadService;
 use Illuminate\Support\Facades\DB;
 
 class WelcomeController extends Controller
@@ -55,11 +56,11 @@ class WelcomeController extends Controller
             ->where('activo', true)
             ->whereHas(
                 'actividades',
-                fn (Builder $query) => $query->visiblesEnPortal()
+                fn(Builder $query) => $query->visiblesEnPortal()
             )
             ->withCount([
                 'actividades as actividades_publicas_count' =>
-                    fn (Builder $query) => $query->visiblesEnPortal(),
+                    fn(Builder $query) => $query->visiblesEnPortal(),
             ])
             ->orderByDesc('actividades_publicas_count')
             ->orderBy('orden')
@@ -72,11 +73,11 @@ class WelcomeController extends Controller
             ->where('activo', true)
             ->whereHas(
                 'actividades',
-                fn (Builder $query) => $query->visiblesEnPortal()
+                fn(Builder $query) => $query->visiblesEnPortal()
             )
             ->withCount([
                 'actividades as actividades_publicas_count' =>
-                    fn (Builder $query) => $query->visiblesEnPortal(),
+                    fn(Builder $query) => $query->visiblesEnPortal(),
             ])
             ->orderByDesc('actividades_publicas_count')
             ->orderBy('nombre')
@@ -110,7 +111,7 @@ class WelcomeController extends Controller
             ->withQueryString();
 
         $paginador->through(
-            fn (Actividad $actividad) => $this->mapearActividad($actividad)
+            fn(Actividad $actividad) => $this->mapearActividad($actividad)
         );
 
         return view('activities.index', [
@@ -158,23 +159,23 @@ class WelcomeController extends Controller
                 'medios',
                 'etiquetas',
                 'creador.informacion_personal',
-                'sesiones' => fn ($query) => $query
+                'sesiones' => fn($query) => $query
                     ->with(['espacio', 'recursos'])
                     ->orderBy('fecha_inicio')
                     ->orderBy('orden'),
-                'items' => fn ($query) => $query
+                'items' => fn($query) => $query
                     ->where('activo', true)
                     ->with([
-                        'variantes' => fn ($query) => $query
+                        'variantes' => fn($query) => $query
                             ->where('activo', true)
                             ->orderBy('orden'),
                         'medios',
                     ])
                     ->orderBy('orden'),
-                'promociones' => fn ($query) => $query
+                'promociones' => fn($query) => $query
                     ->publicables()
                     ->with([
-                        'items' => fn ($items) => $items
+                        'items' => fn($items) => $items
                             ->where('activo', true)
                             ->orderBy('orden'),
                     ])
@@ -208,7 +209,7 @@ class WelcomeController extends Controller
         $camposPorItem = collect(
             $decodificar($contenido->purchase_fields ?? null)
         )
-            ->filter(fn ($config) => is_array($config)
+            ->filter(fn($config) => is_array($config)
                 && !empty($config['enabled'])
                 && isset($config['id_item_pg']))
             ->keyBy('id_item_pg');
@@ -216,10 +217,41 @@ class WelcomeController extends Controller
         $preciosPorItem = collect(
             $decodificar($contenido->pricing_configuration ?? null)
         )
-            ->filter(fn ($config) => is_array($config)
+            ->filter(fn($config) => is_array($config)
                 && !empty($config['enabled'])
                 && isset($config['id_item_pg']))
             ->keyBy('id_item_pg');
+
+        $disponibilidadService = app(DisponibilidadService::class);
+
+        // Cupos de inscripción general.
+        $cuposDisponibles = $actividadModelo->requiereInscripcionGeneral()
+            ? $disponibilidadService->cuposDisponibles(
+                (int) $actividadModelo->id_actividad
+            )
+            : null;
+
+        // Stock disponible por producto.
+        $stockItems = [];
+
+        foreach ($actividadModelo->items as $item) {
+            $stockItems[(int) $item->id_item_actividad] =
+                $disponibilidadService->stockDisponibleItem(
+                    (int) $item->id_item_actividad
+                );
+        }
+
+        // Stock disponible por variante PostgreSQL.
+        $stockVariantes = [];
+
+        foreach ($actividadModelo->items as $item) {
+            foreach ($item->variantes as $variante) {
+                $stockVariantes[(int) $variante->id_variante_item] =
+                    $disponibilidadService->stockDisponibleVariante(
+                        (int) $variante->id_variante_item
+                    );
+            }
+        }
 
         $accionSolicitada = $request->query('accion');
 
@@ -229,7 +261,10 @@ class WelcomeController extends Controller
             'accionSolicitada',
             'modoPreview',
             'camposPorItem',
-            'preciosPorItem'
+            'preciosPorItem',
+            'cuposDisponibles',
+            'stockItems',
+            'stockVariantes'
         ));
     }
 
@@ -267,7 +302,7 @@ class WelcomeController extends Controller
             ->where('seccion', $seccion)
             ->whereNotNull('id_actividad')
             ->with([
-                'actividad' => fn ($query) => $query->with($relaciones),
+                'actividad' => fn($query) => $query->with($relaciones),
             ])
             ->orderBy('orden')
             ->get();
@@ -307,17 +342,17 @@ class WelcomeController extends Controller
             'categoria',
             'espacio',
             'portada',
-            'etiquetas' => fn ($query) => $query
+            'etiquetas' => fn($query) => $query
                 ->where('activo', true)
                 ->orderBy('nombre'),
-            'sesiones' => fn ($query) => $query
+            'sesiones' => fn($query) => $query
                 ->with('espacio')
                 ->orderBy('fecha_inicio')
                 ->orderBy('orden'),
-            'items' => fn ($query) => $query
+            'items' => fn($query) => $query
                 ->where('activo', true)
                 ->with([
-                    'variantes' => fn ($query) => $query
+                    'variantes' => fn($query) => $query
                         ->where('activo', true)
                         ->orderBy('orden'),
                 ])
@@ -344,7 +379,7 @@ class WelcomeController extends Controller
         if ($categoria !== '') {
             $query->whereHas(
                 'categoria',
-                fn (Builder $q) => $q
+                fn(Builder $q) => $q
                     ->where('activo', true)
                     ->where('nombre', 'ILIKE', $this->patronLike($categoria))
             );
@@ -353,7 +388,7 @@ class WelcomeController extends Controller
         if ($etiqueta !== '') {
             $query->whereHas(
                 'etiquetas',
-                fn (Builder $q) => $q
+                fn(Builder $q) => $q
                     ->where('activo', true)
                     ->where('nombre', 'ILIKE', $this->patronLike($etiqueta))
             );
@@ -376,17 +411,17 @@ class WelcomeController extends Controller
                 ->orWhere('ubicacion_externa', 'ILIKE', $patron)
                 ->orWhereHas(
                     'categoria',
-                    fn (Builder $q) => $q->where('nombre', 'ILIKE', $patron)
+                    fn(Builder $q) => $q->where('nombre', 'ILIKE', $patron)
                 )
                 ->orWhereHas(
                     'etiquetas',
-                    fn (Builder $q) => $q
+                    fn(Builder $q) => $q
                         ->where('activo', true)
                         ->where('nombre', 'ILIKE', $patron)
                 )
                 ->orWhereHas(
                     'espacio',
-                    fn (Builder $q) => $q
+                    fn(Builder $q) => $q
                         ->where('nombre', 'ILIKE', $patron)
                         ->orWhere('direccion', 'ILIKE', $patron)
                 )
@@ -397,7 +432,7 @@ class WelcomeController extends Controller
                             ->orWhere('ubicacion', 'ILIKE', $patron)
                             ->orWhereHas(
                                 'espacio',
-                                fn (Builder $espacio) => $espacio
+                                fn(Builder $espacio) => $espacio
                                     ->where('nombre', 'ILIKE', $patron)
                                     ->orWhere('direccion', 'ILIKE', $patron)
                             );
@@ -415,7 +450,7 @@ class WelcomeController extends Controller
                 ->where('ubicacion_externa', 'ILIKE', $patron)
                 ->orWhereHas(
                     'espacio',
-                    fn (Builder $q) => $q
+                    fn(Builder $q) => $q
                         ->where('nombre', 'ILIKE', $patron)
                         ->orWhere('direccion', 'ILIKE', $patron)
                 )
@@ -425,7 +460,7 @@ class WelcomeController extends Controller
                         $q->where('ubicacion', 'ILIKE', $patron)
                             ->orWhereHas(
                                 'espacio',
-                                fn (Builder $espacio) => $espacio
+                                fn(Builder $espacio) => $espacio
                                     ->where('nombre', 'ILIKE', $patron)
                                     ->orWhere('direccion', 'ILIKE', $patron)
                             );
@@ -480,7 +515,7 @@ class WelcomeController extends Controller
                 'categoria',
                 'espacio',
                 'portada',
-                'sesiones' => fn ($q) => $q
+                'sesiones' => fn($q) => $q
                     ->with('espacio')
                     ->orderBy('fecha_inicio')
                     ->orderBy('orden'),
@@ -494,7 +529,7 @@ class WelcomeController extends Controller
             ->orderBy('realizacion_desde')
             ->limit(8)
             ->get()
-            ->map(fn (Actividad $actividad) => $this->mapearSugerenciaActividad($actividad))
+            ->map(fn(Actividad $actividad) => $this->mapearSugerenciaActividad($actividad))
             ->values()
             ->all();
     }
@@ -504,7 +539,7 @@ class WelcomeController extends Controller
         $query = $this->actividadesPublicas()
             ->with([
                 'espacio',
-                'sesiones' => fn ($q) => $q->with('espacio'),
+                'sesiones' => fn($q) => $q->with('espacio'),
             ]);
 
         if ($buscar !== '') {
@@ -571,7 +606,7 @@ class WelcomeController extends Controller
                     || str_contains($item['normalizado'], $buscarNormalizado);
             })
             ->take(8)
-            ->map(fn (array $item) => [
+            ->map(fn(array $item) => [
                 'valor' => $item['valor'],
                 'detalle' => $item['detalle'],
             ])
@@ -585,11 +620,11 @@ class WelcomeController extends Controller
             ->where('activo', true)
             ->whereHas(
                 'actividades',
-                fn (Builder $q) => $q->visiblesEnPortal()
+                fn(Builder $q) => $q->visiblesEnPortal()
             )
             ->withCount([
                 'actividades as actividades_publicas_count' =>
-                    fn (Builder $q) => $q->visiblesEnPortal(),
+                    fn(Builder $q) => $q->visiblesEnPortal(),
             ]);
 
         if ($buscar !== '') {
@@ -601,7 +636,7 @@ class WelcomeController extends Controller
             ->orderBy('nombre')
             ->limit(8)
             ->get()
-            ->map(fn (Categoria $categoria) => [
+            ->map(fn(Categoria $categoria) => [
                 'valor' => $categoria->nombre,
                 'detalle' => $categoria->actividades_publicas_count . ' actividades',
             ])
@@ -615,11 +650,11 @@ class WelcomeController extends Controller
             ->where('activo', true)
             ->whereHas(
                 'actividades',
-                fn (Builder $q) => $q->visiblesEnPortal()
+                fn(Builder $q) => $q->visiblesEnPortal()
             )
             ->withCount([
                 'actividades as actividades_publicas_count' =>
-                    fn (Builder $q) => $q->visiblesEnPortal(),
+                    fn(Builder $q) => $q->visiblesEnPortal(),
             ]);
 
         if ($buscar !== '') {
@@ -631,7 +666,7 @@ class WelcomeController extends Controller
             ->orderBy('nombre')
             ->limit(8)
             ->get()
-            ->map(fn (Etiqueta $etiqueta) => [
+            ->map(fn(Etiqueta $etiqueta) => [
                 'valor' => $etiqueta->nombre,
                 'detalle' => $etiqueta->actividades_publicas_count . ' actividades',
             ])
@@ -729,7 +764,7 @@ class WelcomeController extends Controller
             ->all();
 
         $tieneProductos = $actividad->items->contains(
-            fn ($item) => strtolower((string) $item->tipo) === 'producto'
+            fn($item) => strtolower((string) $item->tipo) === 'producto'
         );
 
         $precio = $this->precioActividad($actividad);
@@ -821,8 +856,8 @@ class WelcomeController extends Controller
     {
         $espacio = $actividad->espacio
             ?? $actividad->sesiones
-                ->first(fn ($sesion) => $sesion->espacio !== null)
-                ?->espacio;
+                ->first(fn($sesion) => $sesion->espacio !== null)
+                    ?->espacio;
 
         if ($espacio) {
             $latitud = $espacio->latitud !== null
@@ -895,12 +930,14 @@ class WelcomeController extends Controller
     {
         $tipo = (string) ($actividad->tipo_participacion ?? '');
 
-        if (in_array($tipo, [
-            Actividad::PARTICIPACION_INFORMATIVA,
-            Actividad::PARTICIPACION_REGISTRO_GRATUITO,
-            Actividad::PARTICIPACION_REGISTRO_PAGO,
-            Actividad::PARTICIPACION_VENTA_DIRECTA,
-        ], true)) {
+        if (
+            in_array($tipo, [
+                Actividad::PARTICIPACION_INFORMATIVA,
+                Actividad::PARTICIPACION_REGISTRO_GRATUITO,
+                Actividad::PARTICIPACION_REGISTRO_PAGO,
+                Actividad::PARTICIPACION_VENTA_DIRECTA,
+            ], true)
+        ) {
             return $tipo;
         }
 

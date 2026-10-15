@@ -103,24 +103,10 @@ class InscripcionService
             }
 
             // Contamos inscripciones confirmadas y reservas vigentes.
-            $ocupados = Inscripcion::query()
-                ->where('id_actividad', $actividad->id_actividad)
-                ->where(function ($query) {
-                    $query->whereIn('estado', [
-                        'confirmada',
-                        'confirmada_prueba',
-                    ])->orWhere(function ($pendiente) {
-                        $pendiente
-                            ->where('estado', 'pendiente_pago')
-                            ->where('expira_en', '>', now('UTC'));
-                    });
-                })
-                ->count();
+            $disponibles = app(DisponibilidadService::class)
+                ->cuposDisponibles((int) $actividad->id_actividad);
 
-            if (
-                $actividad->cupo_total !== null &&
-                $ocupados >= $actividad->cupo_total
-            ) {
+            if ($disponibles !== null && $disponibles < 1) {
                 throw ValidationException::withMessages([
                     'actividad' => 'No hay cupos disponibles.',
                 ]);

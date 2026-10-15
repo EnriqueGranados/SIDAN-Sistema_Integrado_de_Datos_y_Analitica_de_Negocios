@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Services\DisponibilidadService;
 
 class CompraActividadController extends Controller
 {
@@ -425,18 +426,13 @@ class CompraActividadController extends Controller
                 |--------------------------------------------------------------------------
                 */
 
-                $idsItems =
-                    collect($selecciones)
-                        ->pluck(
-                            'id_item'
-                        )
-                        ->map(
-                            fn($id) =>
-                                (int) $id
-                        )
-                        ->unique()
-                        ->values()
-                        ->all();
+                $idsItems = collect($selecciones)
+                    ->pluck('id_item')
+                    ->map(fn($id) => (int) $id)
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->all();
 
                 $items =
                     DB::table(
@@ -454,6 +450,7 @@ class CompraActividadController extends Controller
                             'activo',
                             true
                         )
+                        ->orderBy('id_item_actividad')
                         ->lockForUpdate()
                         ->get()
                         ->keyBy(
@@ -488,6 +485,7 @@ class CompraActividadController extends Controller
                             'activo',
                             true
                         )
+                        ->orderBy('id_variante_item')
                         ->lockForUpdate()
                         ->get()
                         ->groupBy(
@@ -965,16 +963,19 @@ class CompraActividadController extends Controller
                         $item->stock_total !==
                         null
                     ) {
-                        $comprometido =
-                            $this
-                                ->cantidadComprometidaItem(
-                                    $idItem
-                                );
+                        $disponible = app(DisponibilidadService::class)
+                            ->stockDisponibleItem((int) $idItem);
 
-                        $disponible =
-                            (int) $item
-                                ->stock_total -
-                            $comprometido;
+                        if (
+                            $disponible !== null &&
+                            $cantidadSolicitada > $disponible
+                        ) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    "No hay suficiente stock de {$item->nombre}. "
+                                    . "Disponibles: {$disponible}.",
+                            ]);
+                        }
 
                         if (
                             $cantidadSolicitada >
@@ -1012,16 +1013,19 @@ class CompraActividadController extends Controller
                         $variante->stock_total !==
                         null
                     ) {
-                        $comprometido =
-                            $this
-                                ->cantidadComprometidaVariante(
-                                    $idVariante
-                                );
+                        $disponible = app(DisponibilidadService::class)
+                            ->stockDisponibleVariante((int) $idVariante);
 
-                        $disponible =
-                            (int) $variante
-                                ->stock_total -
-                            $comprometido;
+                        if (
+                            $disponible !== null &&
+                            $cantidadSolicitada > $disponible
+                        ) {
+                            throw ValidationException::withMessages([
+                                'compra' =>
+                                    "No hay suficiente stock de {$variante->nombre_variante}. "
+                                    . "Disponibles: {$disponible}.",
+                            ]);
+                        }
 
                         if (
                             $cantidadSolicitada >
@@ -1345,7 +1349,6 @@ class CompraActividadController extends Controller
                             [
                                 'pagada',
                                 'pagada_prueba',
-                                'revision_cupo',
                             ]
                         )
                         ->orWhere(
@@ -1410,7 +1413,6 @@ class CompraActividadController extends Controller
                             [
                                 'pagada',
                                 'pagada_prueba',
-                                'revision_cupo',
                             ]
                         )
                         ->orWhere(
@@ -1499,7 +1501,6 @@ class CompraActividadController extends Controller
                             [
                                 'pagada',
                                 'pagada_prueba',
-                                'revision_cupo',
                             ]
                         )
                         ->orWhere(
