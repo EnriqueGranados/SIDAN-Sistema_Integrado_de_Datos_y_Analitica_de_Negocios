@@ -56,6 +56,7 @@
                 $esVirtual = filled($registroSesion->enlace_acceso);
 
                 return [
+                    'id_sesion' => (int) $registroSesion->id_sesion,
                     'nombre' => (string) $registroSesion->nombre,
                     'virtual' => $esVirtual,
                     'modalidad' => $esVirtual ? 'Virtual' : 'Presencial',
@@ -119,6 +120,61 @@
         $compraBloqueadaPorInscripcion = $actividadModelo->requiereInscripcionGeneral() && !$usuarioInscritoActividad;
     @endphp
 
+    @push('styles')
+        <style>
+            /* Diseño visual exclusivo del detalle público de actividad. */
+            #detalleActividad .sidan-panel:not(.hidden) {
+                animation: sidanEntrada .24s ease-out both;
+            }
+
+            @keyframes sidanEntrada {
+                from {
+                    opacity: .45;
+                    transform: translateY(5px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            #detalleActividad .sidan-producto {
+                transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+            }
+
+            #detalleActividad .sidan-producto:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 14px 35px rgba(0, 0, 0, .08);
+                border-color: #a1a1aa;
+            }
+
+            #detalleActividad .sidan-tab {
+                transition: background .17s ease, color .17s ease;
+            }
+
+            #detalleActividad .sidan-tab:focus-visible,
+            #detalleActividad [data-agregar-configuracion]:focus-visible {
+                outline: 2px solid currentColor;
+                outline-offset: 2px;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #detalleActividad .sidan-panel:not(.hidden) {
+                    animation: none;
+                }
+
+                #detalleActividad .sidan-producto {
+                    transition: none;
+                }
+
+                #detalleActividad .sidan-producto:hover {
+                    transform: none;
+                }
+            }
+        </style>
+    @endpush
+
     @include('partials.public-header')
 
     <main class="min-h-screen bg-slate-50/70 dark:bg-transparent" id="detalleActividad"
@@ -133,7 +189,7 @@
 
             <div class="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
                 <a href="{{ route('activities.index') }}"
-                    class="inline-flex items-center gap-2 text-sm font-black text-white/70 transition hover:text-green-300">
+                    class="inline-flex items-center gap-2 text-sm font-black text-white/70 transition hover:text-zinc-200">
                     ← Volver a actividades
                 </a>
 
@@ -170,7 +226,7 @@
                         class="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl sm:p-6">
                         <div class="flex items-start justify-between gap-4">
                             <div>
-                                <p class="text-xs font-black uppercase tracking-[0.16em] text-green-300">
+                                <p class="text-xs font-black uppercase tracking-[0.16em] text-zinc-200">
                                     {{ $usuarioInscritoActividad ? 'Inscrito' : $actividad['accion_texto'] }}
                                 </p>
                             </div>
@@ -189,7 +245,7 @@
                                     Cupos agotados
                                 </p>
                             @elseif ($cuposDisponibles !== null)
-                                <p class="mt-4 text-center text-sm font-semibold text-green-300">
+                                <p class="mt-4 text-center text-sm font-semibold text-zinc-200">
                                     Cupos disponibles: {{ $cuposDisponibles }}
                                 </p>
                             @endif
@@ -199,7 +255,7 @@
                         @if ($usuarioInscritoActividad)
 
                             <button type="button" disabled
-                                class="mt-5 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-green-300/30 bg-green-400/15 px-5 py-3.5 text-sm font-black text-green-200">
+                                class="mt-5 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 py-3.5 text-sm font-black text-zinc-100">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="m5 12 4 4L19 6" />
@@ -208,7 +264,7 @@
                                 Inscrito
                             </button>
 
-                            <p class="mt-3 text-center text-xs leading-5 text-green-100/70">
+                            <p class="mt-3 text-center text-xs leading-5 text-white/70">
                                 Tu inscripción a esta actividad ya está confirmada.
                             </p>
                         @else
@@ -219,7 +275,7 @@
                                 </button>
                             @else
                                 <a href="{{ $actividad['accion_url'] }}"
-                                    class="mt-5 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-green-600">
+                                    class="mt-5 flex w-full items-center justify-center rounded-xl bg-sidan-900 px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-sidan-700">
                                     {{ $actividad['accion_texto'] }}
                                 </a>
                             @endif
@@ -245,7 +301,7 @@
         </section>
 
         <section
-            class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur dark:border-white/10 dark:bg-sidan-950/95">
+            class="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-sidan-950/95">
             <div class="mx-auto max-w-7xl overflow-x-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex min-w-max gap-2 py-3" role="tablist" aria-label="Secciones de la actividad">
                     <button type="button" class="sidan-tab rounded-xl px-4 py-2.5 text-sm font-black"
@@ -279,13 +335,28 @@
                             class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
                             <div class="grid gap-8 xl:grid-cols-[1fr_300px]">
                                 <div>
-                                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Acerca de esta
+                                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Información
+                                        general de la
                                         actividad</p>
-                                    <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white sm:text-3xl">Conoce
-                                        lo esencial sin perderte entre bloques</h2>
+                                    <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white sm:text-3xl">Todo lo
+                                        que necesitás saber</h2>
                                     <div
                                         class="mt-5 whitespace-pre-line text-base leading-8 text-slate-600 dark:text-slate-300">
-                                        {{ $descripcionCompleta }}
+                                        {{ $descripcionCompleta !== '' ? $descripcionCompleta : 'La organización todavía no ha publicado una descripción ampliada de esta actividad.' }}
+                                    </div>
+                                    <div class="mt-6 flex flex-wrap gap-2">
+                                        @if ($sesiones->isNotEmpty())
+                                            <button type="button" data-panel-target="cronograma"
+                                                class="rounded-full border border-zinc-300 px-3 py-2 text-xs font-bold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-sidan-800">
+                                                {{ $sesiones->count() }} sesiones programadas →
+                                            </button>
+                                        @endif
+                                        @if ($items->isNotEmpty())
+                                            <button type="button" data-panel-target="productos"
+                                                class="rounded-full border border-zinc-300 px-3 py-2 text-xs font-bold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-sidan-800">
+                                                {{ $items->count() }} productos y servicios →
+                                            </button>
+                                        @endif
                                     </div>
 
                                     @if (count($actividad['etiquetas']))
@@ -330,7 +401,8 @@
                                 class="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-6">
                                 <div class="flex items-center justify-between gap-4">
                                     <div>
-                                        <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-500">Galería</p>
+                                        <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-500">Galería
+                                        </p>
                                         <h3 class="mt-1 text-lg font-black text-sidan-900 dark:text-white">Un vistazo a la
                                             actividad</h3>
                                     </div>
@@ -374,6 +446,48 @@
                                         día{{ $sesionesPorDia->count() === 1 ? '' : 's' }}</span>
                                 </div>
 
+                                @php
+                                    $itemsTodaActividad = $items->filter(
+                                        fn($item) => ($item->alcance_sesiones ?? 'actividad') === 'actividad',
+                                    );
+                                @endphp
+                                @if ($itemsTodaActividad->isNotEmpty())
+                                    <div
+                                        class="mt-7 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-sidan-900">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div>
+                                                <p
+                                                    class="text-[11px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                                                    Durante toda la actividad</p>
+                                                <h3 class="mt-1 text-lg font-black text-sidan-950 dark:text-white">
+                                                    Productos y servicios de alcance general</h3>
+                                                <p class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">No están
+                                                    vinculados a una sesión particular. La compra depende de las condiciones
+                                                    del producto.</p>
+                                            </div>
+                                            <button type="button" data-panel-target="productos"
+                                                class="rounded-xl bg-sidan-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-sidan-800 dark:bg-white dark:text-sidan-950 dark:hover:bg-zinc-200">Ver
+                                                catálogo →</button>
+                                        </div>
+                                        <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                                            @foreach ($itemsTodaActividad as $itemGeneral)
+                                                <div
+                                                    class="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-sidan-950">
+                                                    <div class="min-w-0">
+                                                        <p
+                                                            class="truncate text-sm font-bold text-sidan-950 dark:text-white">
+                                                            {{ $itemGeneral->nombre }}</p>
+                                                        <p class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                                                            {{ ucfirst($itemGeneral->tipo) }} · Toda la actividad</p>
+                                                    </div>
+                                                    <span
+                                                        class="shrink-0 text-sm font-black text-sidan-900 dark:text-white">${{ number_format((float) $itemGeneral->precio, 2) }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
                                 <div class="mt-8">
                                     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                                         <div>
@@ -392,7 +506,7 @@
                                             <button type="button" data-dia-target="{{ $claveDia }}"
                                                 class="sidan-dia-tab shrink-0 rounded-xl border border-slate-200 px-4 py-3 text-left text-sm transition dark:border-white/10">
                                                 <span
-                                                    class="block text-[10px] font-black uppercase tracking-wide text-sidan-500">{{ ucfirst($primeraSesionDia['dia_semana']) }}</span>
+                                                    class="block text-[10px] font-black uppercase tracking-wide text-zinc-500">{{ ucfirst($primeraSesionDia['dia_semana']) }}</span>
                                                 <span
                                                     class="mt-0.5 block font-black text-sidan-900 dark:text-white">{{ $primeraSesionDia['fecha_corta'] }}</span>
                                             </button>
@@ -410,7 +524,7 @@
                                                     class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sidan-950 px-5 py-4 text-white">
                                                     <div>
                                                         <p
-                                                            class="text-xs font-black uppercase tracking-[0.15em] text-green-300">
+                                                            class="text-xs font-black uppercase tracking-[0.15em] text-zinc-200">
                                                             {{ ucfirst($primeraSesionDia['dia_semana']) }}
                                                         </p>
                                                         <p class="mt-1 text-xl font-black">
@@ -422,7 +536,31 @@
                                                         sesión{{ $sesionesDia->count() === 1 ? '' : 'es' }}</span>
                                                 </div>
 
-                                                <div class="max-h-[68vh] space-y-3 overflow-y-auto pr-1">
+                                                @php
+                                                    $idsSesionesDelDia = $sesiones
+                                                        ->filter(
+                                                            fn($sesion) => $sesion->fecha_inicio?->format('Y-m-d') ===
+                                                                $claveDia,
+                                                        )
+                                                        ->pluck('id_sesion')
+                                                        ->map(fn($id) => (int) $id)
+                                                        ->all();
+                                                    $itemsDia = $items->filter(function ($item) use (
+                                                        $idsSesionesDelDia,
+                                                    ) {
+                                                        if (($item->alcance_sesiones ?? 'actividad') === 'actividad') {
+                                                            return false;
+                                                        }
+                                                        return $item->sesiones->contains(
+                                                            fn($sesion) => in_array(
+                                                                (int) $sesion->id_sesion,
+                                                                $idsSesionesDelDia,
+                                                                true,
+                                                            ),
+                                                        );
+                                                    });
+                                                @endphp
+                                                <div class="space-y-3">
                                                     @foreach ($sesionesDia as $datosSesion)
                                                         <details
                                                             class="group overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/60 dark:border-white/10 dark:bg-white/[0.025]">
@@ -430,7 +568,7 @@
                                                                 class="flex cursor-pointer list-none flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                                                                 <div class="flex min-w-0 gap-3">
                                                                     <div
-                                                                        class="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-black text-sidan-500 shadow-sm dark:bg-white/10">
+                                                                        class="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-black text-zinc-500 shadow-sm dark:bg-white/10">
                                                                         {{ $datosSesion['hora_inicio'] }}
                                                                     </div>
                                                                     <div class="min-w-0">
@@ -495,6 +633,62 @@
                                                         </details>
                                                     @endforeach
                                                 </div>
+
+                                                <div
+                                                    class="mt-5 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-sidan-900">
+                                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                                        <div>
+                                                            <p
+                                                                class="text-[11px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                                                                Oferta de este día</p>
+                                                            <h4
+                                                                class="mt-1 text-base font-black text-sidan-950 dark:text-white">
+                                                                Productos vinculados a las sesiones del
+                                                                {{ $primeraSesionDia['fecha_corta'] }}</h4>
+                                                        </div>
+                                                        <span
+                                                            class="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:bg-sidan-900 dark:text-zinc-200">{{ $itemsDia->count() }}
+                                                            específicos</span>
+                                                    </div>
+                                                    @if ($itemsDia->isNotEmpty())
+                                                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                                            @foreach ($itemsDia as $itemDia)
+                                                                @php
+                                                                    $nombresSesionesDia = $itemDia->sesiones
+                                                                        ->filter(
+                                                                            fn($sesion) => in_array(
+                                                                                (int) $sesion->id_sesion,
+                                                                                $idsSesionesDelDia,
+                                                                                true,
+                                                                            ),
+                                                                        )
+                                                                        ->pluck('nombre')
+                                                                        ->implode(' · ');
+                                                                @endphp
+                                                                <div
+                                                                    class="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+                                                                    <p
+                                                                        class="text-sm font-black text-sidan-950 dark:text-white">
+                                                                        {{ $itemDia->nombre }}</p>
+                                                                    <p
+                                                                        class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        {{ $nombresSesionesDia }}</p>
+                                                                    <p
+                                                                        class="mt-2 text-sm font-bold text-sidan-950 dark:text-white">
+                                                                        ${{ number_format((float) $itemDia->precio, 2) }}
+                                                                    </p>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                        <button type="button" data-panel-target="productos"
+                                                            class="mt-4 rounded-xl bg-sidan-950 px-4 py-2.5 text-xs font-black text-white hover:bg-sidan-800 dark:bg-white dark:text-sidan-950 dark:hover:bg-zinc-200">Ver
+                                                            productos →</button>
+                                                    @else
+                                                        <p class="mt-3 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                                                            No hay productos asignados exclusivamente a las sesiones de este
+                                                            día. Revisá arriba los productos generales, si existen.</p>
+                                                    @endif
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
@@ -510,7 +704,8 @@
                             <div
                                 class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
 
-                                <div class="mb-7 rounded-xl bg-slate-100 px-5 py-5 dark:bg-white/10">
+                                <div
+                                    class="mb-7 rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-5 dark:border-zinc-700 dark:bg-sidan-900">
                                     @if ($compraBloqueadaPorInscripcion)
                                         <div
                                             class="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3
@@ -537,7 +732,8 @@
                                             </h2>
 
                                             <p class="mt-1 text-sm text-slate-500 dark:text-slate-300">
-                                                Personaliza cada producto y prepara tus selecciones.
+                                                Elegí el producto, configurá sus opciones si corresponde y agregalo al
+                                                carrito. La compra se confirma después.
                                             </p>
                                         </div>
 
@@ -551,7 +747,7 @@
                                                     value="">
 
                                                 <button type="submit" id="btnContinuarCompra" disabled
-                                                    class="flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40">
+                                                    class="flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-sidan-500 dark:text-white dark:hover:bg-green-600">
                                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                                                         stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -562,7 +758,7 @@
                                                     </svg>
 
                                                     <span>
-                                                        Continuar compra
+                                                        Revisar carrito
                                                     </span>
 
                                                     <span id="cantidadCompraGlobal"
@@ -587,8 +783,8 @@
                                             @else
                                                 <a href="{{ route('login') }}"
                                                     class="flex min-w-[220px] items-center justify-center
-                                                                   rounded-xl bg-sidan-500 px-5 py-3 text-sm
-                                                                   font-black text-white transition hover:bg-green-600">
+                                                                   rounded-xl bg-sidan-900 px-5 py-3 text-sm
+                                                                   font-black text-white transition hover:bg-sidan-700">
                                                     Iniciar sesión para comprar
                                                 </a>
                                             @endif
@@ -682,7 +878,7 @@
                                         @endphp
 
                                         <article
-                                            class="sidan-producto flex flex-col rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_5px_25px_rgba(0,0,0,0.09)] dark:border-white/10 dark:bg-sidan-900 {{ $loop->index >= 6 ? 'hidden' : '' }}"
+                                            class="sidan-producto flex flex-col rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-sidan-900 {{ $loop->index >= 6 ? 'hidden' : '' }}"
                                             data-producto-config data-item-id="{{ $item->id_item_actividad }}"
                                             data-precio-base="{{ (float) $item->precio }}"
                                             data-minimo="{{ $minimo }}" data-maximo="{{ $limite ?? '' }}"
@@ -691,14 +887,14 @@
                                             data-variantes='@json($variantesCompra->all())'>
 
                                             <div
-                                                class="flex h-44 items-center justify-center rounded-xl bg-slate-50 p-3 dark:bg-white/5">
+                                                class="flex h-48 items-center justify-center overflow-hidden rounded-2xl bg-zinc-50 p-3 dark:bg-sidan-900">
                                                 <img src="{{ $imagenItem }}" alt="{{ $item->nombre }}" loading="lazy"
-                                                    class="h-full w-full object-contain">
+                                                    class="h-full w-full object-contain transition-transform duration-300 hover:scale-105">
                                             </div>
 
                                             <div class="mt-4 flex flex-1 flex-col">
 
-                                                <span class="text-[11px] font-bold uppercase tracking-wide text-sidan-500">
+                                                <span class="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
                                                     {{ ucfirst($item->tipo) }}
                                                 </span>
 
@@ -715,14 +911,14 @@
                                                 @if ($sesiones->count() > 1)
                                                     @if (($item->alcance_sesiones ?? 'actividad') === 'actividad')
                                                         <div
-                                                            class="mt-3 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                                            class="mt-3 rounded-xl bg-zinc-100 px-3 py-2.5 text-xs font-semibold text-zinc-700 dark:bg-white/10 dark:text-zinc-300">
                                                             Disponible para toda la actividad
                                                         </div>
                                                     @elseif ($sesionesItem->isNotEmpty())
                                                         <div
-                                                            class="mt-3 rounded-xl bg-cyan-50 px-3 py-2.5 dark:bg-cyan-500/10">
+                                                            class="mt-3 rounded-xl bg-zinc-100 px-3 py-2.5 dark:bg-white/10">
                                                             <p
-                                                                class="text-[10px] font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">
+                                                                class="text-[10px] font-black uppercase tracking-wide text-zinc-700 dark:text-zinc-300">
                                                                 Aplica a
                                                                 {{ $sesionesItem->count() === 1 ? 'esta sesión' : 'estas sesiones' }}
                                                             </p>
@@ -740,7 +936,7 @@
                                                     @endif
                                                 @elseif ($sesionesItem->isNotEmpty())
                                                     <div
-                                                        class="mt-3 rounded-xl bg-cyan-50 px-3 py-2.5 text-xs font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300">
+                                                        class="mt-3 rounded-xl bg-zinc-100 px-3 py-2.5 text-xs font-semibold text-zinc-700 dark:bg-white/10 dark:text-zinc-300">
                                                         Sesión: {{ $sesionesItem->first()->nombre }}
                                                     </div>
                                                 @endif
@@ -797,7 +993,7 @@
                                                     </div>
                                                 @endif
 
-                                                <div class="mt-auto pt-5">
+                                                <div class="relative mt-auto pt-5">
 
                                                     <div
                                                         class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/10">
@@ -808,7 +1004,7 @@
                                                                 Precio unitario
                                                             </p>
 
-                                                            <p class="text-2xl font-black text-red-700 dark:text-red-400"
+                                                            <p class="text-2xl font-black text-sidan-950 dark:text-white"
                                                                 data-precio-unitario>
                                                                 ${{ number_format((float) $item->precio, 2) }}
                                                             </p>
@@ -817,7 +1013,7 @@
                                                         <div class="flex items-center rounded-full border border-slate-200 dark:border-white/20"
                                                             data-cantidad-control>
                                                             <button type="button" data-restar disabled
-                                                                class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
+                                                                class="px-3 py-2 font-black text-sidan-900 disabled:text-slate-300"
                                                                 aria-label="Restar cantidad">
                                                                 −
                                                             </button>
@@ -828,7 +1024,7 @@
                                                             </output>
 
                                                             <button type="button" data-sumar
-                                                                class="px-3 py-2 font-black text-red-700 disabled:text-slate-300"
+                                                                class="px-3 py-2 font-black text-sidan-900 disabled:text-slate-300"
                                                                 @disabled(!$puedeConfigurar) aria-label="Sumar cantidad">
                                                                 +
                                                             </button>
@@ -871,15 +1067,28 @@
                                                         role="alert"></p>
 
                                                     <button type="button" data-agregar-configuracion
-                                                        class="mt-4 w-full rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-3.5 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-sidan-500 dark:text-white dark:hover:bg-green-600"
                                                         @disabled(!$puedeConfigurar)>
-                                                        Agregar configuración
+                                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                                                            stroke="currentColor" stroke-width="1.8">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M3 4h2l2 11h12l2-8H6M10 20h.01M17 20h.01" />
+                                                        </svg>
+                                                        Agregar al carrito
                                                     </button>
+                                                    {{-- Aviso flotante temporal: no altera el alto de la tarjeta. --}}
+                                                    <p data-exito-carrito role="status" aria-live="polite"
+                                                        class="pointer-events-none absolute bottom-16 left-0 right-0 z-10 hidden rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-center text-xs font-black text-emerald-800 shadow-lg dark:border-emerald-500/30 dark:bg-emerald-950 dark:text-emerald-200">
+                                                        ✓ Agregado al carrito
+                                                    </p>
 
-                                                    <div class="mt-4 hidden rounded-xl bg-slate-50 p-3 dark:bg-white/5"
+                                                    {{-- Este bloque se traslada al sidebar al inicializar la vista.
+                                                         Mantenemos los mismos data-* para no alterar las validaciones,
+                                                         la eliminación de líneas ni los cálculos actuales. --}}
+                                                    <div class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-sidan-950/60"
                                                         data-resumen-configuraciones>
-                                                        <p class="mb-2 text-sm font-black text-sidan-900 dark:text-white">
-                                                            Configuraciones preparadas
+                                                        <p class="mb-3 text-sm font-black text-sidan-900 dark:text-white">
+                                                            {{ $item->nombre }}
                                                         </p>
 
                                                         <div class="space-y-2" data-lineas-configuracion></div>
@@ -919,7 +1128,7 @@
                                     <p class="text-xs leading-5 text-slate-500 dark:text-slate-400">
                                         Prepará los productos que deseas comprar y luego presioná
                                         <span class="font-bold text-sidan-900 dark:text-white">
-                                            Continuar compra
+                                            Revisar carrito
                                         </span>.
                                         La orden se generará únicamente cuando confirmés la selección.
                                     </p>
@@ -962,7 +1171,7 @@
                                                 <div class="flex items-start justify-between gap-4">
                                                     <div>
                                                         <span
-                                                            class="inline-flex rounded-lg bg-sidan-900 px-3 py-1.5 text-sm font-black text-white">{{ $promocion->textoDescuento() }}
+                                                            class="inline-flex rounded-lg bg-sidan-950 px-3 py-1.5 text-sm font-black text-white">{{ $promocion->textoDescuento() }}
                                                             OFF</span>
                                                         <h3 class="mt-3 text-lg font-black text-sidan-900 dark:text-white">
                                                             {{ $promocion->nombre }}
@@ -987,7 +1196,7 @@
                                                     </button>
                                                 @else
                                                     <div
-                                                        class="mt-4 rounded-xl bg-emerald-100/70 px-4 py-3 text-sm font-bold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                                        class="mt-4 rounded-xl bg-emerald-100/70 px-4 py-3 text-sm font-bold text-emerald-800 dark:bg-white/10 dark:text-zinc-300">
                                                         Se aplica automáticamente</div>
                                                 @endif
 
@@ -1024,30 +1233,63 @@
 
                     <section class="sidan-panel hidden" data-panel="ubicacion">
                         <div
-                            class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            class="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-sidan-900">
                             <div class="p-6 sm:p-8">
-                                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Ubicación</p>
-                                <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white sm:text-3xl">Encuentra
-                                    el lugar fácilmente</h2>
-                                <div class="mt-5 rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
-                                    <p class="font-black text-sidan-900 dark:text-white">{{ $actividad['lugar'] }}</p>
-                                    @if ($actividad['direccion'])
-                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                            {{ $actividad['direccion'] }}
+                                <p
+                                    class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500 dark:text-zinc-400">
+                                    Ubicación y acceso</p>
+                                <h2 class="mt-2 text-2xl font-black text-sidan-950 dark:text-white sm:text-3xl">Encontrá tu
+                                    actividad</h2>
+                                <p class="mt-3 max-w-xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">Revisá la sede
+                                    informada por la organización. Cuando haya un mapa configurado, podés abrirlo para
+                                    planificar cómo llegar.</p>
+                                <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                                    <div
+                                        class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-sidan-950">
+                                        <p
+                                            class="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                                            Sede o lugar</p>
+                                        <p class="mt-2 text-lg font-black text-sidan-950 dark:text-white">
+                                            {{ $actividad['lugar'] }}</p>
+                                        @if ($actividad['direccion'])
+                                            <p class="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                                                {{ $actividad['direccion'] }}</p>
+                                        @endif
+                                    </div>
+                                    <div
+                                        class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-sidan-950">
+                                        <p
+                                            class="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                                            Fecha y horario</p>
+                                        <p class="mt-2 text-lg font-black text-sidan-950 dark:text-white">
+                                            {{ $actividad['fecha'] }}</p>
+                                        <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ $actividad['hora'] }}
                                         </p>
-                                    @endif
+                                        @if ($sesiones->isNotEmpty())
+                                            <button type="button" data-panel-target="cronograma"
+                                                class="mt-3 text-sm font-bold text-sidan-900 underline underline-offset-4 dark:text-white">Ver
+                                                horarios por sesión →</button>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
-
                             @if ($actividad['mapa_disponible'])
-                                <iframe src="{{ $actividad['mapa_embed_url'] }}" class="h-[420px] w-full border-0"
-                                    loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                                <iframe src="{{ $actividad['mapa_embed_url'] }}"
+                                    class="h-[360px] w-full border-0 sm:h-[430px]" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
                                     title="Mapa de {{ $actividad['titulo'] }}"></iframe>
-                                <div class="border-t border-slate-200 p-4 text-right dark:border-white/10">
+                                <div
+                                    class="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 p-5 dark:border-zinc-800">
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">El mapa corresponde a la ubicación
+                                        configurada para esta actividad.</p>
                                     <a href="{{ $actividad['mapa_url'] }}" target="_blank" rel="noopener noreferrer"
-                                        class="inline-flex rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-black text-sidan-900 transition hover:border-sidan-500 hover:text-sidan-500 dark:border-white/10 dark:text-white">Abrir
-                                        mapa →</a>
+                                        class="inline-flex rounded-xl bg-sidan-950 px-4 py-3 text-sm font-black text-white transition hover:bg-sidan-800 dark:bg-white dark:text-sidan-950 dark:hover:bg-zinc-200">Abrir
+                                        mapa ↗</a>
                                 </div>
+                            @else
+                                <div
+                                    class="border-t border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-sidan-950 dark:text-zinc-400">
+                                    Todavía no se configuró un mapa interactivo para esta ubicación.</div>
                             @endif
                         </div>
                     </section>
@@ -1055,7 +1297,7 @@
 
                 <aside class="space-y-4 lg:sticky lg:top-24 lg:self-start">
                     <div
-                        class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-sidan-900">
+                        class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-sidan-950">
                         <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-500">Resumen rápido</p>
                         <div class="mt-4 space-y-4 text-sm">
                             <div>
@@ -1088,22 +1330,16 @@
                         </div>
                     </div>
 
-                    <div class="rounded-[1.75rem] bg-gradient-to-br from-sidan-900 to-[#0d6a43] p-5 text-white shadow-lg">
+                    <div
+                        class="rounded-[1.75rem] bg-gradient-to-br from-sidan-950 to-emerald-900 p-5 text-white shadow-lg dark:from-sidan-900 dark:to-emerald-950">
 
                         @if ($usuarioInscritoActividad)
-                            <p class="text-xs font-black uppercase tracking-[0.16em] text-green-300">
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-emerald-300">
                                 Tu participación
                             </p>
 
                             <div class="mt-3 flex items-center gap-3">
 
-                                <div
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-400/15 text-green-300">
-                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="m5 12 4 4L19 6" />
-                                    </svg>
-                                </div>
 
                                 <div>
                                     <h3 class="text-xl font-black">
@@ -1122,7 +1358,7 @@
                             </p>
 
                             <button type="button" disabled
-                                class="mt-4 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-green-300/30 bg-green-400/15 px-5 py-3 text-sm font-black text-green-200">
+                                class="mt-4 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-400/15 px-5 py-3 text-sm font-black text-emerald-200">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="m5 12 4 4L19 6" />
@@ -1131,7 +1367,7 @@
                                 Inscrito
                             </button>
                         @else
-                            <p class="text-xs font-black uppercase tracking-[0.16em] text-green-300">
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-zinc-200">
                                 ¿Te interesa?
                             </p>
 
@@ -1150,13 +1386,58 @@
                                 </button>
                             @else
                                 <a href="{{ $actividad['accion_url'] }}"
-                                    class="mt-4 flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
+                                    class="mt-4 flex w-full items-center justify-center rounded-xl bg-sidan-900 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-700">
                                     {{ $actividad['accion_texto'] }}
                                 </a>
                             @endif
                         @endif
 
                     </div>
+
+                    {{-- Resumen del carrito: aparece únicamente cuando agregan productos. --}}
+                    @if ($items->isNotEmpty())
+                        <section id="carritoLateralActividad" aria-label="Resumen del carrito"
+                            class="hidden overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-sidan-900">
+                            <div
+                                class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-white/10">
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-[0.17em] text-sidan-500">Tu
+                                        selección</p>
+                                    <h3
+                                        class="mt-1 flex items-center gap-2 text-lg font-black text-sidan-900 dark:text-white">
+                                        <svg class="h-5 w-5 text-sidan-500" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M3 3h2l2 11h12l2-8H6M9 20h.01M18 20h.01" />
+                                        </svg>
+                                        Mi carrito
+                                    </h3>
+                                </div>
+                                <span id="cantidadCarritoLateral"
+                                    class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200">0</span>
+                            </div>
+
+                            {{-- Los bloques de cada producto se trasladan aquí por JS. --}}
+                            <div id="listaCarritoLateral" class="max-h-[45vh] space-y-3 overflow-y-auto px-4 py-4"></div>
+
+                            <div
+                                class="border-t border-slate-100 bg-slate-50 px-5 py-5 dark:border-white/10 dark:bg-sidan-950/50">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Subtotal productos</p>
+                                    <p id="subtotalCarritoLateral"
+                                        class="text-xl font-black text-sidan-900 dark:text-white">$0.00</p>
+                                </div>
+                                @if ($actividadModelo->tipo_participacion === 'registro_pago' && (float) ($actividadModelo->precio_inscripcion ?? 0) > 0)
+                                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                        El precio de inscripción se agrega en el paso correspondiente.
+                                    </p>
+                                @endif
+                                
+                                <p class="mt-2 text-center text-[11px] text-slate-500 dark:text-slate-400">La orden se
+                                    genera al confirmar la compra.</p>
+                            </div>
+                        </section>
+                    @endif
                 </aside>
             </div>
         </section>
@@ -1191,17 +1472,24 @@
                     tab.classList.toggle('dark:text-slate-300', !activo);
                 });
 
-                if (desplazar) {
-                    window.setTimeout(() => panel.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    }), 60);
+                // El panel cambia sin recargar ni mover automáticamente la página.
+                // Si el enlace se activó desde el resumen lateral, acercamos la barra
+                // de pestañas únicamente cuando está fuera de la vista.
+                if (desplazar && window.scrollY > 450) {
+                    const barra = document.querySelector('[role="tablist"]');
+                    if (barra && barra.getBoundingClientRect().top < 0) {
+                        const destino = window.scrollY + barra.getBoundingClientRect().top - 80;
+                        window.scrollTo({
+                            top: Math.max(0, destino),
+                            behavior: 'smooth'
+                        });
+                    }
                 }
             }
 
             document.querySelectorAll('[data-panel-target]').forEach(boton => {
                 boton.addEventListener('click', function() {
-                    activarPanel(this.dataset.panelTarget, true);
+                    activarPanel(this.dataset.panelTarget, !this.classList.contains('sidan-tab'));
                 });
             });
 
@@ -1250,6 +1538,13 @@
             const totalCompraGlobal =
                 document.getElementById('totalCompraGlobal');
 
+            // Un único resumen visible en el lateral. El contenido de cada
+            // producto se mueve sin recrear sus datos ni sus eventos.
+            const panelCarritoLateral = document.getElementById('carritoLateralActividad');
+            const listaCarritoLateral = document.getElementById('listaCarritoLateral');
+            const cantidadCarritoLateral = document.getElementById('cantidadCarritoLateral');
+            const subtotalCarritoLateral = document.getElementById('subtotalCarritoLateral');
+
             const precioInscripcion = Number(
                 @json($actividadModelo->tipo_participacion === 'registro_pago' ? (float) ($actividadModelo->precio_inscripcion ?? 0) : 0)
             );
@@ -1296,6 +1591,18 @@
                     btnContinuarCompra.disabled =
                         compraBloqueadaPorInscripcion ||
                         cantidadConfiguraciones === 0;
+                }
+
+                // Contadores y subtotal visibles debajo de "Estás inscrito".
+                // Conservamos el precio de inscripción separado, como antes.
+                if (panelCarritoLateral) {
+                    panelCarritoLateral.classList.toggle('hidden', cantidadConfiguraciones === 0);
+                }
+                if (cantidadCarritoLateral) {
+                    cantidadCarritoLateral.textContent = String(cantidadConfiguraciones);
+                }
+                if (subtotalCarritoLateral) {
+                    subtotalCarritoLateral.textContent = dinero(totalProductos);
                 }
             }
 
@@ -1365,6 +1672,13 @@
                         tarjeta.querySelector(
                             '[data-subtotal]'
                         );
+
+                    // Reubicar el DOM del resumen fuera de la tarjeta. Al mover
+                    // el mismo nodo, renderResumen() y los botones Quitar
+                    // conservan sus referencias y lógica originales.
+                    if (contenedorResumen && listaCarritoLateral) {
+                        listaCarritoLateral.appendChild(contenedorResumen);
+                    }
 
                     const disponibilidadTexto =
                         tarjeta.querySelector(
@@ -1865,6 +2179,14 @@
                                         return;
                                     }
 
+                                    // UX: con una sola pulsación se agrega la cantidad
+                                    // mínima permitida. Se respetan variantes, campos,
+                                    // stock y todas las validaciones ya existentes.
+                                    if (cantidad === 0 && limiteActual() >= minimo) {
+                                        cantidad = minimo;
+                                        refrescar();
+                                    }
+
                                     if (
                                         cantidad <
                                         minimo
@@ -1937,6 +2259,24 @@
                                     refrescar();
 
                                     actualizarCompraGlobal();
+
+                                    // Confirmación visual: la selección ya está en compraActividad.
+                                    const nombreProducto = tarjeta.querySelector('h3')?.textContent?.trim() ||
+                                        'Producto';
+                                    window.SIDANToast?.success(`${nombreProducto} agregado al carrito`);
+                                    const avisoProducto = tarjeta.querySelector('[data-exito-carrito]');
+                                    if (avisoProducto) {
+                                        avisoProducto.classList.remove('hidden');
+                                        window.clearTimeout(tarjeta._temporizadorAvisoCarrito);
+                                        tarjeta._temporizadorAvisoCarrito = window.setTimeout(
+                                            () => avisoProducto.classList.add('hidden'), 1750
+                                        );
+                                    }
+                                    if (botonAgregar) {
+                                        botonAgregar.classList.add('ring-2', 'ring-emerald-400');
+                                        window.setTimeout(() => botonAgregar.classList.remove('ring-2',
+                                            'ring-emerald-400'), 850);
+                                    }
                                 }
                             );
                     }

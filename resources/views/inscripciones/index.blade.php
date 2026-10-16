@@ -77,6 +77,17 @@
                         @endif
                     </div>
                     <div class="flex flex-wrap gap-2 md:justify-end">
+                        {{-- Consultar la página de detalle y estado de esta inscripción. --}}
+                        <a href="{{ route('sidan.inscripciones.show', $inscripcion->id_inscripcion) }}"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#102b54] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#173e73] focus:outline-none focus:ring-2 focus:ring-[#102b54]/40 dark:bg-[#153968] dark:hover:bg-[#1d4d8b]">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            Ver detalle de inscripción
+                        </a>
                         @if ($inscripcion->actividad?->slug)
                             <a href="{{ route('activities.show', ['slug' => $inscripcion->actividad->slug]) }}"
                                 class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold transition hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800">
