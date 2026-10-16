@@ -1,3 +1,4 @@
+
 @extends('layouts.navbars')
 
 @section('title', 'Gestión de pagos')
@@ -147,17 +148,18 @@
 
                             <details>
                                 <summary class="cursor-pointer text-sm font-semibold text-red-600 dark:text-red-400">
-                                    Rechazar pago
+                                    {{ $pago->proveedor === 'efectivo' ? 'Cancelar solicitud de efectivo' : 'Rechazar pago' }}
                                 </summary>
 
                                 <form method="POST"
                                     action="{{ route('admin.pagos.rechazar', $pago) }}"
-                                    class="mt-3 space-y-3">
+                                    class="mt-3 space-y-3"
+                                    onsubmit="return confirm('¿Confirmás que querés cancelar esta solicitud y liberar la reserva?');">
                                     @csrf
 
                                     <label for="motivo-{{ $pago->id_pago }}"
                                         class="block text-sm text-slate-600 dark:text-slate-300">
-                                        Motivo del rechazo
+                                        {{ $pago->proveedor === 'efectivo' ? 'Motivo de cancelación (visible para el usuario)' : 'Motivo del rechazo' }}
                                     </label>
 
                                     <textarea id="motivo-{{ $pago->id_pago }}" name="motivo"
@@ -166,7 +168,9 @@
 
                                     <button type="submit"
                                         class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
-                                        Rechazar y liberar reserva
+                                        {{ $pago->proveedor === 'efectivo'
+                                            ? 'Cancelar orden y liberar reserva'
+                                            : 'Rechazar y liberar reserva' }}
                                     </button>
                                 </form>
                             </details>

@@ -153,7 +153,7 @@ class GestionOrdenService
 
         $ids = $promo->items()
             ->pluck('tbl_items_actividad.id_item_actividad')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->all();
 
         $elegibles = $orden->detalles
@@ -162,14 +162,14 @@ class GestionOrdenService
                     && (!$ids || in_array((int) $detalle->id_item_actividad, $ids, true))
                     && $this->centavos($detalle->precio_unitario) > 0;
             })
-            ->sortByDesc(fn ($detalle) => $this->centavos($detalle->precio_unitario));
+            ->sortByDesc(fn($detalle) => $this->centavos($detalle->precio_unitario));
 
         if ($elegibles->isEmpty()) {
             $this->error('El código no aplica a ninguno de los productos de esta orden.', 'codigo');
         }
 
         $subtotal = $orden->detalles->sum(
-            fn ($detalle) => $this->centavos($detalle->subtotal)
+            fn($detalle) => $this->centavos($detalle->subtotal)
         );
 
         if ($subtotal < $this->centavos($promo->monto_minimo ?? 0)) {
@@ -370,6 +370,12 @@ class GestionOrdenService
 
         $pago = $orden->pago;
 
+        // El efectivo queda reservado y solo administración puede decidir su cierre.
+        // Tampoco borrar pagos en efectivo rechazados: conservar el historial.
+        if ($pago?->proveedor === 'efectivo') {
+            return false;
+        }
+
         return !$pago || (
             in_array($pago->estado, ['pendiente', 'rechazado'], true)
             && !$pago->intentos()->exists()
@@ -383,18 +389,20 @@ class GestionOrdenService
     {
         if (!$this->puedeCancelar($orden)) {
             $this->error(
-                'No se puede eliminar esta orden: tiene un pago confirmado o un intento de Wompi que necesita revisión.'
+                'No podés cancelar esta orden: el efectivo debe revisarlo administración o existe un pago que necesita revisión.'
             );
         }
 
         $archivo = $orden->pago?->comprobante_path;
 
         if ($orden->tipo_orden === 'inscripcion' && $orden->inscripcion) {
-            if (!in_array(
-                $orden->inscripcion->estado,
-                ['pendiente_pago', 'vencida', 'cancelada'],
-                true
-            )) {
+            if (
+                !in_array(
+                    $orden->inscripcion->estado,
+                    ['pendiente_pago', 'vencida', 'cancelada'],
+                    true
+                )
+            ) {
                 $this->error('La inscripción asociada ya no se puede cancelar.');
             }
 

@@ -130,7 +130,7 @@ class GestionOrdenController extends Controller
 
         $archivo = $this->gestion->ejecutar(
             $orden,
-            fn (Orden $actual) => $this->gestion->cancelar($actual)
+            fn(Orden $actual) => $this->gestion->cancelar($actual)
         );
 
         if ($archivo) {
@@ -236,8 +236,14 @@ class GestionOrdenController extends Controller
                 'observacion_revision' => $datos['motivo'],
             ]);
 
+            // El efectivo se cancela administrativamente; la transferencia
+            // conserva su comportamiento anterior al ser rechazada.
+            $estadoFinal = $actualPago->proveedor === 'efectivo'
+                ? 'cancelada'
+                : 'vencida';
+
             $actual->update([
-                'estado' => 'vencida',
+                'estado' => $estadoFinal,
                 'expira_en' => now(),
             ]);
 
@@ -246,7 +252,7 @@ class GestionOrdenController extends Controller
                 && $actual->inscripcion?->estado === 'pendiente_pago'
             ) {
                 $actual->inscripcion->update([
-                    'estado' => 'vencida',
+                    'estado' => $estadoFinal,
                     'expira_en' => now(),
                 ]);
             }
@@ -254,7 +260,9 @@ class GestionOrdenController extends Controller
 
         return back()->with(
             'success',
-            'Pago rechazado. La reserva fue liberada; el comprador puede crear otra orden.'
+            $pago->proveedor === 'efectivo'
+            ? 'Orden cancelada por administración. La reserva fue liberada y el usuario puede generar otra compra.'
+            : 'Pago rechazado. La reserva fue liberada; el comprador puede crear otra orden.'
         );
     }
 }

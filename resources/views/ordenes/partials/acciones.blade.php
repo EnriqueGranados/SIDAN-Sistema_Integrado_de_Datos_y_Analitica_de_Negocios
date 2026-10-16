@@ -88,13 +88,27 @@
                     : 'Realizá el pago en el lugar y horario indicados en la actividad. El administrador confirmará su recepción.' }}
             </p>
 
-            <p class="mt-2">Tu orden todavía no está pagada.</p>
+            @if ($pagoActual->proveedor === 'efectivo')
+                <p class="mt-2 font-semibold">
+                    La reserva sigue activa sin vencimiento automático. Solamente el administrador
+                    puede cancelarla o confirmar el efectivo recibido.
+                </p>
+            @else
+                <p class="mt-2">Tu orden todavía no está pagada.</p>
+            @endif
         </div>
     @elseif ($pagoActual?->estado === 'rechazado')
         <div class="rounded-xl bg-red-50 p-4 text-sm text-red-800 dark:bg-red-500/10 dark:text-red-300">
-            <p class="font-bold">Pago rechazado</p>
-            <p class="mt-1">{{ $pagoActual->observacion_revision }}</p>
-            <p class="mt-2">Podés crear una nueva orden.</p>
+            <p class="font-bold">
+                {{ $pagoActual->proveedor === 'efectivo' ? 'Orden cancelada por administración' : 'Pago rechazado' }}
+            </p>
+            <p class="mt-1">Motivo: {{ $pagoActual->observacion_revision }}</p>
+            <p class="mt-2">La reserva fue liberada. Podés crear una nueva orden con el método de pago que prefirás.
+            </p>
+            <a href="{{ route('activities.index') }}"
+                class="mt-3 inline-flex rounded-xl bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700">
+                Explorar actividades
+            </a>
         </div>
     @elseif ($vigente)
         @if ($sinPago && $totalCero)
