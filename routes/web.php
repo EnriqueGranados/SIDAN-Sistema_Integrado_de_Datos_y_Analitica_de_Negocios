@@ -26,6 +26,8 @@ use App\Http\Controllers\OrdenController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\CompraActividadController;
 use App\Http\Controllers\Admin\ControlActividadController;
+use App\Http\Controllers\GestionOrdenController;
+
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -422,3 +424,38 @@ Route::post(
 // Google desde el perfil (Autenticado)
 Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])->middleware(['auth', 'force.password.change'])->name('profile.google.link');
 Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])->middleware(['auth', 'force.password.change'])->name('profile.google.unlink');
+
+
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/ordenes/{orden}/promocion', [GestionOrdenController::class, 'promocion'])
+        ->middleware(['auth', 'user.status'])
+        ->name('sidan.ordenes.promocion');
+
+    Route::post('/ordenes/{orden}/pago-manual', [GestionOrdenController::class, 'manual'])
+        ->name('sidan.ordenes.manual');
+
+    Route::post('/ordenes/{orden}/confirmar-gratuita', [GestionOrdenController::class, 'gratuita'])
+        ->name('sidan.ordenes.gratuita');
+
+    Route::delete('/ordenes/{orden}', [GestionOrdenController::class, 'cancelar'])
+        ->name('sidan.ordenes.cancelar');
+});
+
+Route::middleware([
+    'auth',
+    'force.password.change',
+    'rol:superadmin,admin',
+    'user.status',
+])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/pagos', [GestionOrdenController::class, 'index'])
+        ->name('pagos.index');
+
+    Route::get('/pagos/{pago}/comprobante', [GestionOrdenController::class, 'comprobante'])
+        ->name('pagos.comprobante');
+
+    Route::post('/pagos/{pago}/aprobar', [GestionOrdenController::class, 'aprobar'])
+        ->name('pagos.aprobar');
+
+    Route::post('/pagos/{pago}/rechazar', [GestionOrdenController::class, 'rechazar'])
+        ->name('pagos.rechazar');
+});

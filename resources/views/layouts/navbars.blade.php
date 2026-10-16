@@ -225,7 +225,7 @@
 
                                         Consolidado de pedidos
                                     </a>
-                                    <a href="#"
+                                    <a href="{{ route('admin.pagos.index') }}"
                                         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white">
                                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

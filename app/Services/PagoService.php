@@ -29,6 +29,37 @@ class PagoService
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                $pagoExistente = Pago::where('id_orden', $orden->id_orden)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (
+                    $pagoExistente
+                    && (
+                        $pagoExistente->proveedor !== 'wompi'
+                        || $pagoExistente->estado !== 'pendiente'
+                    )
+                ) {
+                    throw ValidationException::withMessages([
+                        'pago' => 'Esta orden ya tiene otro pago registrado. Revisá su estado.',
+                    ]);
+                }
+
+                if ((float) $orden->total <= 0) {
+                    throw ValidationException::withMessages([
+                        'pago' => 'Esta orden no requiere cobro. Confirmala desde el resumen.',
+                    ]);
+                }
+
+                if (
+                    $pagoExistente
+                    && $this->centavos($pagoExistente->monto) !== $this->centavos($orden->total)
+                ) {
+                    throw ValidationException::withMessages([
+                        'pago' => 'El importe del pago no coincide con la orden. Se requiere revisión.',
+                    ]);
+                }
+
                 /*
                 |--------------------------------------------------------------------------
                 | Estado de orden
@@ -503,6 +534,18 @@ class PagoService
                         ->lockForUpdate()
                         ->firstOrFail();
 
+
+                if ($pago->proveedor !== 'wompi') {
+                    throw new RuntimeException('El pago no pertenece a Wompi.');
+                }
+
+                if (
+                    $this->centavos($intento->monto_solicitado)
+                    !== $this->centavos($orden->total)
+                ) {
+                    throw new RuntimeException('El importe del enlace no coincide con la orden.');
+                }
+                
                 $inscripcion =
                     $orden->inscripcion;
 

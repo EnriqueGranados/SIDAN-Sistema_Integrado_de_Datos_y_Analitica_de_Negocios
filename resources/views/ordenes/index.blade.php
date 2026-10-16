@@ -3,6 +3,12 @@
 @section('title', 'Mis órdenes - SIDAN')
 
 @section('user-content')
+    @if (session('success'))
+        <div role="status"
+            class="mx-auto mb-5 max-w-7xl rounded-xl bg-emerald-50 px-5 py-4 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+            {{ session('success') }}
+        </div>
+    @endif
     <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -250,7 +256,7 @@
                                                 </td>
                                                 <td
                                                     class="px-4 py-4 text-right align-top font-black text-emerald-600 dark:text-emerald-400">
-                                                    ${{ number_format((float) $detalle->subtotal, 2) }}
+                                                    ${{ number_format((float) $detalle->subtotal - (float) $detalle->descuento, 2) }}
                                                 </td>
                                             </tr>
                                         @empty
@@ -297,10 +303,17 @@
                             Ver detalle de la orden
                         </a>
 
+                        @include('ordenes.partials.cancelar', ['orden' => $orden])
+
                         @if ($puedePagar)
                             <a href="{{ route('sidan.ordenes.show', $orden->id_orden) }}"
                                 class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
-                                Continuar al pago <span aria-hidden="true">→</span>
+                                {{ $orden->pago &&
+                                in_array($orden->pago->proveedor, ['transferencia', 'efectivo'], true) &&
+                                $orden->pago->estado === 'pendiente'
+                                    ? 'Consultar pago pendiente'
+                                    : 'Continuar al pago' }}
+                                <span aria-hidden="true">→</span>
                             </a>
                         @endif
                     </div>

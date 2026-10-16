@@ -30,10 +30,10 @@ class MisInscripcionesController extends Controller
                 $inscripcion->estado === 'vencida' => 'vencida',
                 $inscripcion->estado === 'revision_cupo' => 'pendiente_revision',
                 $inscripcion->estado === 'pendiente_pago' &&
-                    $inscripcion->expira_en?->isPast() => 'vencida',
+                $inscripcion->expira_en?->isPast() => 'vencida',
                 $inscripcion->estado === 'pendiente_pago' => 'pendiente',
                 in_array($inscripcion->estado, ['confirmada', 'confirmada_prueba'], true)
-                    && $fin?->isPast() => 'finalizada',
+                && $fin?->isPast() => 'finalizada',
                 in_array($inscripcion->estado, ['confirmada', 'confirmada_prueba'], true) => 'activa',
                 default => 'pendiente_revision',
             };
@@ -55,9 +55,9 @@ class MisInscripcionesController extends Controller
             'actividad.categoria',
             'actividad.espacio',
             'actividad.portada',
-            'actividad.sesiones' => fn ($q) => $q->orderBy('fecha_inicio'),
-            'actividad.items' => fn ($q) => $q->where('activo', true)->orderBy('orden'),
-            'actividad.items.variantes' => fn ($q) => $q->where('activo', true)->orderBy('orden'),
+            'actividad.sesiones' => fn($q) => $q->orderBy('fecha_inicio'),
+            'actividad.items' => fn($q) => $q->where('activo', true)->orderBy('orden'),
+            'actividad.items.variantes' => fn($q) => $q->where('activo', true)->orderBy('orden'),
             'actividad.items.imagenPrincipal',
             'orden.pago',
         ]);
@@ -78,10 +78,13 @@ class MisInscripcionesController extends Controller
         // La compra de adicionales requiere un flujo de órdenes independiente.
         // Nunca considerar como adquiridos los artículos mostrados en el catálogo.
         $puedeComprar = in_array($inscripcion->estado, ['confirmada', 'confirmada_prueba'], true)
-            && ! ($fin?->isPast());
+            && !($fin?->isPast());
 
         return view('activities.show', compact(
-            'inscripcion', 'actividad', 'estadoVista', 'puedeComprar'
+            'inscripcion',
+            'actividad',
+            'estadoVista',
+            'puedeComprar'
         ));
     }
 
@@ -104,9 +107,13 @@ class MisInscripcionesController extends Controller
                 403
             );
 
-            if (!in_array($actual->estado, [
-                'confirmada', 'confirmada_prueba', 'pendiente_pago',
-            ], true)) {
+            if (
+                !in_array($actual->estado, [
+                    'confirmada',
+                    'confirmada_prueba',
+                    'pendiente_pago',
+                ], true)
+            ) {
                 throw ValidationException::withMessages([
                     'inscripcion' => 'Esta inscripción ya no se puede cancelar automáticamente.',
                 ]);
@@ -120,7 +127,15 @@ class MisInscripcionesController extends Controller
                     'inscripcion' => 'La actividad ya finalizó.',
                 ]);
             }
+            $tieneOrdenPendiente = Orden::where('id_inscripcion', $actual->id_inscripcion)
+                ->where('estado', 'pendiente_pago')
+                ->exists();
 
+            if ($tieneOrdenPendiente) {
+                throw ValidationException::withMessages([
+                    'inscripcion' => 'Primero cancelá las órdenes pendientes desde su resumen. Si tienen un pago de Wompi iniciado, solicitá revisión al administrador.',
+                ]);
+            }
             $actual->update(['estado' => 'cancelada']);
 
             // Nunca anular un cobro confirmado: se conserva la trazabilidad.

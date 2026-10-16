@@ -350,47 +350,7 @@ class CompraActividadController extends Controller
                             $ahoraUtc,
                     ]);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Revisar si ya existe una compra pendiente
-                |--------------------------------------------------------------------------
-                |
-                | Evitamos crear dos órdenes de productos activas simultáneamente
-                | para la misma inscripción.
-                |
-                */
-
-                $ordenPendiente = DB::table('tbl_ordenes')
-                    ->where('id_actividad', $actividad->id_actividad)
-                    ->where('id_usuario', $idUsuario)
-                    ->where('tipo_orden', 'productos')
-                    ->when(
-                        $inscripcion !== null,
-                        fn($query) => $query->where(
-                            'id_inscripcion',
-                            $inscripcion->id_inscripcion
-                        ),
-                        fn($query) => $query->whereNull('id_inscripcion')
-                    )
-                    ->where('estado', 'pendiente_pago')
-                    ->where(function ($query) use ($ahoraUtc) {
-                        $query
-                            ->whereNull('expira_en')
-                            ->orWhere('expira_en', '>', $ahoraUtc);
-                    })
-                    ->orderByDesc('id_orden')
-                    ->first();
-
-                if ($ordenPendiente) {
-                    return [
-                        'id_orden' =>
-                            $ordenPendiente->id_orden,
-
-                        'existente' =>
-                            true,
-                    ];
-                }
-
+                
 
                 $contenido = DB::connection('mongodb')
                     ->table('activity_content')

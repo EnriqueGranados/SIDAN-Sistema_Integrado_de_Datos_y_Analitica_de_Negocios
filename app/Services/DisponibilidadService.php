@@ -28,7 +28,10 @@ class DisponibilidadService
                     'confirmada_prueba',
                 ])->orWhere(function ($query) {
                     $query->where('estado', 'pendiente_pago')
-                        ->where('expira_en', '>', now('UTC'));
+                        ->where(function ($reserva) {
+                            $reserva->whereNull('expira_en')
+                                ->orWhere('expira_en', '>', now('UTC'));
+                        });
                 });
             })
             ->count();
