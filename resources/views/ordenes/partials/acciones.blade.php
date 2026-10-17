@@ -114,64 +114,61 @@
         </div>
     @endif
     @if ($parcial)
+        {{-- Resumen compacto: los detalles para completar el pago se encuentran en un diálogo. --}}
         <div role="status"
-            class="space-y-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-            <h3 class="font-bold text-lg">Pago parcial acreditado ({{ $pagoActual->proveedor }})</h3>
-            <p>El administrador verificó un abono, pero tu orden todavía no se encuentra pagada.
-                No necesitás crear otra orden.</p>
-            <p class="font-semibold">Los abonos ya acreditados no son reembolsables,
-                aunque decidas no completar el saldo restante.</p>
-            <div class="space-y-1 font-semibold">
-                <p>Total de la orden: ${{ number_format((float) $orden->total, 2) }}</p>
-                <p>Dinero acreditado: ${{ number_format($acreditadoCentavos / 100, 2) }}</p>
-                @if($orden->modalidad_pago === 'anticipo')
-                    <p class="text-lg">{{ $faltanteAnticipo > 0 ? 'Faltante para cumplir el anticipo mínimo' : 'Anticipo mínimo cubierto' }}:
-                        ${{ number_format($faltanteAnticipo / 100, 2) }}</p>
-                @endif
-                <p class="text-lg">Saldo para pagar toda la orden: ${{ number_format($saldoCentavos / 100, 2) }}</p>
+            class="space-y-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex h-2 w-2 rounded-full bg-amber-500" aria-hidden="true"></span>
+                <h3 class="font-bold text-base">Pago parcial acreditado</h3>
+                <span class="rounded-full bg-amber-200/60 px-2.5 py-1 text-xs font-semibold dark:bg-amber-500/15">
+                    {{ $pagoActual->proveedor === 'transferencia' ? 'Transferencia' : 'Efectivo' }}
+                </span>
             </div>
-            @if ($ultimoAbono?->estado === 'rechazado')
-                <p class="rounded-lg bg-red-100 p-3 text-red-800 dark:bg-red-500/15 dark:text-red-200">
-                    El comprobante más reciente fue rechazado.
-                    Motivo: {{ $ultimoAbono->observacion_revision }}
-                    Tus abonos anteriores siguen acreditados.
+
+            <div class="grid grid-cols-2 gap-3 rounded-lg border border-amber-200/70 p-3 dark:border-amber-500/20">
+                <div>
+                    <p class="text-xs opacity-80">Dinero acreditado</p>
+                    <p class="mt-1 text-xl font-bold">${{ number_format($acreditadoCentavos / 100, 2) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs opacity-80">Saldo pendiente</p>
+                    <p class="mt-1 text-xl font-bold">${{ number_format($saldoCentavos / 100, 2) }}</p>
+                </div>
+            </div>
+
+            @if ($orden->modalidad_pago === 'anticipo')
+                <p class="font-medium">
+                    @if ($faltanteAnticipo > 0)
+                        Te faltan <strong>${{ number_format($faltanteAnticipo / 100, 2) }}</strong> para cubrir el anticipo mínimo.
+                    @else
+                        Anticipo mínimo cubierto. Solo falta completar el saldo de tu compra.
+                    @endif
                 </p>
             @endif
-            @if ($pagoActual->proveedor==='efectivo')
-                <p class="rounded-lg border border-amber-300 p-3">Para completar tu saldo de
-                    <strong>${{ number_format($saldoCentavos / 100,2) }}</strong>, acercate al lugar de cobro.
-                    El administrador registrará cada nuevo importe de efectivo recibido sobre esta misma orden.</p>
-            @elseif ($abonoEnRevision)
-                <p class="font-semibold">Tu comprobante complementario ya fue enviado y está en revisión.
-                    No necesitás volver a subirlo.</p>
-            @elseif ($cuentaLista && $saldoCentavos > 0)
-                <div class="rounded-lg border border-amber-200 bg-white p-4 text-slate-800 dark:border-white/10 dark:bg-slate-900 dark:text-white">
-                    <h4 class="font-bold">Completá tu transferencia</h4>
-                    <p class="mt-2">Transferí únicamente <strong>${{ number_format($saldoCentavos / 100, 2) }}</strong>
-                        a la misma cuenta y enviá el nuevo comprobante aquí.</p>
-                    <p class="mt-2">Banco: <strong>{{ $cuenta['banco'] }}</strong></p>
-                    <p>Titular: <strong>{{ $cuenta['titular'] }}</strong></p>
-                    <p>Cuenta: <strong>{{ $cuenta['cuenta'] }}</strong></p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Referencia sugerida: SIDAN-ORD-{{ $orden->id_orden }}</p>
-                    <form method="POST" enctype="multipart/form-data"
-                        action="{{ route('sidan.ordenes.complemento', $orden) }}" class="mt-4 space-y-3">
-                        @csrf
-                        <label for="complemento-{{ $orden->id_orden }}" class="block font-semibold">
-                            Nuevo comprobante bancario
-                        </label>
-                        <input id="complemento-{{ $orden->id_orden }}" type="file" name="comprobante"
-                            required accept="image/jpeg,image/png,image/webp"
-                            class="block w-full rounded-lg border border-slate-300 p-2 text-sm dark:border-white/20">
-                        <button type="submit"
-                            class="w-full rounded-lg bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
-                            Enviar comprobante del saldo faltante
-                        </button>
-                    </form>
-                    <p class="mt-2 text-xs">La orden se confirmará únicamente después de que
-                        administración verifique el monto restante. Los abonos acreditados no son reembolsables.</p>
-                </div>
-            @else
-                <p>Contactá al administrador para completar el saldo pendiente.</p>
+
+            @if ($ultimoAbono?->estado === 'rechazado')
+                <p class="rounded-lg border border-red-200 bg-red-50 p-3 text-red-800 dark:border-red-500/20 dark:bg-red-500/15 dark:text-red-200">
+                    El último comprobante fue rechazado.
+                    @if ($ultimoAbono->observacion_revision)
+                        Motivo: {{ $ultimoAbono->observacion_revision }}.
+                    @endif
+                    Tus abonos anteriores permanecen acreditados.
+                </p>
+            @endif
+
+            @if ($abonoEnRevision)
+                <p class="rounded-lg border border-amber-200/70 p-3 font-medium dark:border-amber-500/20">
+                    Tu nuevo comprobante está en revisión. Esperá la validación administrativa antes de enviar otro.
+                </p>
+            @elseif ($saldoCentavos > 0)
+                <button type="button" data-abrir-pago="modal-continuar-{{ $orden->id_orden }}"
+                    aria-haspopup="dialog"
+                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30">
+                    Continuar pago →
+                </button>
+                <p class="text-xs leading-5 opacity-85">
+                    Los abonos acreditados no son reembolsables, sin perjuicio de los derechos legales aplicables.
+                </p>
             @endif
         </div>
     @elseif ($manualPendiente)
@@ -226,7 +223,8 @@
                     action="{{ route('sidan.pagos.iniciar', $orden->id_orden) }}" target="wompiPayment">
                     @csrf
 
-                    <button id="wompi-payment-button" type="submit"
+                    <button id="wompi-payment-button" type="button"
+                        data-abrir-pago="modal-confirmar-wompi" aria-haspopup="dialog"
                         class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
                         {{ $sinPago ? 'Pagar con Wompi' : 'Continuar con Wompi' }}
                     </button>
@@ -256,6 +254,138 @@
 
     @include('ordenes.partials.cancelar', ['orden' => $orden])
 </div>
+
+{{-- Confirmación visual previa: el formulario real de Wompi solo se envía al confirmar. --}}
+@if ($vigente && !$totalCero && ($sinPago || ($pagoActual?->proveedor === 'wompi' && $pagoActual?->estado === 'pendiente')))
+    <dialog id="modal-confirmar-wompi" aria-labelledby="modal-confirmar-wompi-titulo"
+        class="w-[calc(100%-2rem)] max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 dark:bg-slate-900 dark:text-white">
+        <div class="p-6 sm:p-7">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Confirmación de pago</p>
+                    <h2 id="modal-confirmar-wompi-titulo" class="mt-2 text-xl font-bold">¿Querés pagar con tarjeta?</h2>
+                </div>
+                <button type="button" data-cerrar-pago aria-label="Cerrar confirmación de Wompi"
+                    class="rounded-lg px-3 py-1 text-2xl hover:bg-slate-100 dark:hover:bg-white/10">×</button>
+            </div>
+            <p class="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Vas a continuar al pago seguro con Wompi. Revisá el importe antes de continuar.
+                @if ($sinPago)
+                    Si preferís transferencia o efectivo, cerrá este mensaje y elegí otro método disponible.
+                @else
+                    Esta orden ya tiene un intento Wompi pendiente. Podés cerrar la confirmación sin volver a enviar el pago.
+                @endif
+            </p>
+            <div class="mt-5 flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-4 dark:bg-white/5">
+                <span class="text-sm text-slate-500 dark:text-slate-300">Total a pagar · Orden #{{ $orden->id_orden }}</span>
+                <strong class="text-2xl text-emerald-600 dark:text-emerald-400">${{ number_format((float) $orden->total, 2) }}</strong>
+            </div>
+            <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                Cancelar este cuadro no crea un pago ni cambia tu orden.
+            </p>
+            <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                <button type="button" data-cerrar-pago
+                    class="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/20 dark:text-slate-200 dark:hover:bg-white/5">
+                    {{ $sinPago ? 'Elegir otro método' : 'Volver a la orden' }}
+                </button>
+                <button type="submit" form="wompi-payment-form"
+                    class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700">
+                    Sí, continuar con tarjeta
+                </button>
+            </div>
+        </div>
+    </dialog>
+@endif
+
+{{-- Complementar el pago sin saturar el resumen lateral de la orden. --}}
+@if ($parcial && $saldoCentavos > 0)
+    <dialog id="modal-continuar-{{ $orden->id_orden }}" aria-labelledby="modal-continuar-titulo-{{ $orden->id_orden }}"
+        class="w-[calc(100%-2rem)] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 dark:bg-slate-900 dark:text-white">
+        <div class="p-6 sm:p-7">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Orden #{{ $orden->id_orden }}</p>
+                    <h2 id="modal-continuar-titulo-{{ $orden->id_orden }}" class="mt-2 text-xl font-bold">Continuar pago</h2>
+                </div>
+                <button type="button" data-cerrar-pago aria-label="Cerrar detalles para continuar el pago"
+                    class="rounded-lg px-3 py-1 text-2xl hover:bg-slate-100 dark:hover:bg-white/10">×</button>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4 text-sm dark:bg-white/5">
+                <div>
+                    <p class="text-slate-500 dark:text-slate-400">Ya acreditado</p>
+                    <p class="mt-1 text-lg font-bold">${{ number_format($acreditadoCentavos / 100, 2) }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 dark:text-slate-400">Saldo pendiente</p>
+                    <p class="mt-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">${{ number_format($saldoCentavos / 100, 2) }}</p>
+                </div>
+            </div>
+
+            @if ($orden->modalidad_pago === 'anticipo')
+                <p class="mt-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {{ $faltanteAnticipo > 0 ? 'Falta para completar el anticipo mínimo:' : 'Anticipo mínimo cubierto.' }}
+                    @if ($faltanteAnticipo > 0)
+                        ${{ number_format($faltanteAnticipo / 100, 2) }}
+                    @endif
+                </p>
+            @endif
+
+            @if ($pagoActual->proveedor === 'efectivo')
+                <p class="mt-5 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    Para completar tu pago, acercate al lugar y horario de cobro de la actividad.
+                    Indicá tu número de orden y entregá el importe pendiente. El administrador registrará
+                    únicamente el dinero realmente recibido; no necesitás crear otra orden.
+                </p>
+                <a href="{{ route('activities.show', $orden->actividad->slug) }}" target="_blank" rel="noopener"
+                    class="mt-4 inline-flex text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                    Consultar lugar y horario de la actividad →
+                </a>
+            @elseif ($abonoEnRevision)
+                <p class="mt-5 text-sm font-medium text-amber-700 dark:text-amber-300">
+                    Hay un comprobante complementario en revisión. Esperá su validación antes de subir otro.
+                </p>
+            @elseif ($cuentaLista)
+                <p class="mt-5 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    Transferí el saldo pendiente a la misma cuenta y adjuntá tu nuevo comprobante.
+                </p>
+                <dl class="mt-4 space-y-3 rounded-xl bg-slate-50 p-4 text-sm dark:bg-white/5">
+                    <div><dt class="text-slate-500 dark:text-slate-400">Banco</dt><dd class="font-semibold">{{ $cuenta['banco'] }}</dd></div>
+                    <div><dt class="text-slate-500 dark:text-slate-400">Titular</dt><dd class="font-semibold">{{ $cuenta['titular'] }}</dd></div>
+                    <div><dt class="text-slate-500 dark:text-slate-400">Cuenta</dt><dd class="break-all font-semibold">{{ $cuenta['cuenta'] }}</dd></div>
+                    <div><dt class="text-slate-500 dark:text-slate-400">Referencia sugerida</dt><dd class="font-semibold">SIDAN-ORD-{{ $orden->id_orden }}</dd></div>
+                </dl>
+                <form method="POST" enctype="multipart/form-data"
+                    action="{{ route('sidan.ordenes.complemento', $orden) }}" class="mt-5 space-y-3">
+                    @csrf
+                    <label for="complemento-{{ $orden->id_orden }}" class="block text-sm font-semibold">
+                        Nuevo comprobante bancario
+                    </label>
+                    <input id="complemento-{{ $orden->id_orden }}" type="file" name="comprobante" required
+                        accept="image/jpeg,image/png,image/webp"
+                        class="block w-full rounded-xl border border-slate-300 p-3 text-sm dark:border-white/20 dark:bg-slate-950">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">JPG, PNG o WEBP. Máximo 5 MB.</p>
+                    @error('comprobante')
+                        <p role="alert" class="text-sm font-medium text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                    <button type="submit" class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
+                        Enviar comprobante del saldo faltante
+                    </button>
+                </form>
+                <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    Tu orden se confirmará cuando el administrador valide el importe completo.
+                </p>
+            @else
+                <p class="mt-5 text-sm text-amber-700 dark:text-amber-300">
+                    La cuenta bancaria aún no está configurada. Contactá al administrador antes de enviar otro pago.
+                </p>
+            @endif
+            <p class="mt-5 border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500 dark:border-white/10 dark:text-slate-400">
+                Los abonos acreditados no son reembolsables, sin perjuicio de los derechos legales aplicables.
+            </p>
+        </div>
+    </dialog>
+@endif
 
 @if ($vigente && $sinPago && !$totalCero)
     <dialog id="modal-transferencia"
@@ -418,8 +548,14 @@
             });
         });
 
+        // Si falló la validación del comprobante, volver a abrir el modal para mostrar el error.
+        @if ($parcial && $pagoActual?->proveedor === 'transferencia' && $errors->has('comprobante'))
+            document.getElementById('modal-continuar-{{ $orden->id_orden }}')?.showModal();
+        @endif
+
         // Evitar seleccionar otro método mientras se inicia Wompi.
         document.getElementById('wompi-payment-form')?.addEventListener('submit', () => {
+            document.getElementById('modal-confirmar-wompi')?.close();
             document.getElementById('opciones-pago-manual')?.classList.add('hidden');
         });
     });
