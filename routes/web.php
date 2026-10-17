@@ -449,6 +449,9 @@ Route::middleware('throttle:10,1')->group(function () {
     Route::post('/ordenes/{orden}/pago-manual', [GestionOrdenController::class, 'manual'])
         ->name('sidan.ordenes.manual');
 
+    Route::post('/ordenes/{orden}/complemento-transferencia', [GestionOrdenController::class, 'complemento'])
+        ->name('sidan.ordenes.complemento');
+
     Route::post('/ordenes/{orden}/confirmar-gratuita', [GestionOrdenController::class, 'gratuita'])
         ->name('sidan.ordenes.gratuita');
 
@@ -462,11 +465,20 @@ Route::middleware([
     'rol:superadmin,admin',
     'user.status',
 ])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/ordenes-vencidas', [\App\Http\Controllers\Admin\AbonosOrdenController::class, 'vencidas'])
+        ->name('ordenes.vencidas');
+    Route::post('/ordenes-vencidas/{orden}/cerrar', [\App\Http\Controllers\Admin\AbonosOrdenController::class, 'cerrar'])
+        ->name('ordenes.cerrar');
+    Route::post('/ordenes/{orden}/entregar/{detalle}', [\App\Http\Controllers\Admin\AbonosOrdenController::class, 'entregar'])
+        ->name('ordenes.entregar');
     Route::get('/pagos', [GestionOrdenController::class, 'index'])
         ->name('pagos.index');
 
     Route::get('/pagos/{pago}/comprobante', [GestionOrdenController::class, 'comprobante'])
         ->name('pagos.comprobante');
+
+    Route::get('/abonos-transferencia/{abono}/comprobante', [GestionOrdenController::class, 'comprobanteAbono'])
+        ->name('pagos.abonos.comprobante');
 
     Route::post('/pagos/{pago}/aprobar', [GestionOrdenController::class, 'aprobar'])
         ->name('pagos.aprobar');

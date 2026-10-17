@@ -13,6 +13,10 @@ class Orden extends Model
     protected $primaryKey = 'id_orden';
     protected $guarded = ['id_orden'];
 
+    // En PostgreSQL timestampTz exige conservar el desplazamiento horario.
+    // Sin él, una hora local -06:00 podría interpretarse erróneamente como UTC.
+    protected $dateFormat = 'Y-m-d H:i:sP';
+
     protected function casts(): array
     {
         return [
@@ -20,6 +24,8 @@ class Orden extends Model
             'descuento_total' => 'decimal:2',
             'total' => 'decimal:2',
             'expira_en' => 'datetime',
+            'limite_saldo_en' => 'datetime',
+            'minimo_inicial' => 'decimal:2',
         ];
     }
 

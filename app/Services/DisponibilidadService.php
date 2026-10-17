@@ -83,32 +83,28 @@ class DisponibilidadService
         return max(0, (int) $variante->stock_total - $comprometido);
     }
 
-    private function cantidadComprometida(
-        string $columna,
-        int $id
-    ): int {
-        $ahoraUtc = now('UTC');
-
-        return (int) DB::table('tbl_detalles_orden as detalle')
-            ->join(
-                'tbl_ordenes as orden',
-                'orden.id_orden',
-                '=',
-                'detalle.id_orden'
-            )
-            ->where($columna, $id)
-            ->where(function ($query) use ($ahoraUtc) {
-                $query->whereIn('orden.estado', [
-                    'pagada',
-                    'pagada_prueba',
-                ])->orWhere(function ($query) use ($ahoraUtc) {
-                    $query->where('orden.estado', 'pendiente_pago')
-                        ->where(function ($query) use ($ahoraUtc) {
-                            $query->whereNull('orden.expira_en')
-                                ->orWhere('orden.expira_en', '>', $ahoraUtc);
-                        });
-                });
-            })
-            ->sum('detalle.cantidad');
+    /** Stock: una orden vencida libera solo unidades SIN pago completo y no entregadas. */
+    public function cantidadComprometida(string $columna, int $id, ?int $inscripcion = null): int
+    {
+        $permitidas=['detalle.id_item_actividad','detalle.id_variante_item'];
+        if (!in_array($columna,$permitidas,true)) throw new \InvalidArgumentException('Columna inválida');
+        $sql=<<<'SQL'
+            CASE
+              WHEN orden.estado IN ('pagada','pagada_prueba') THEN detalle.cantidad
+              WHEN orden.estado='pendiente_pago'
+                   AND (orden.expira_en IS NULL OR orden.expira_en > ?) THEN detalle.cantidad
+              WHEN (SELECT COALESCE(SUM(a.monto),0) FROM tbl_aplicaciones_abono a
+                    WHERE a.id_detalle_orden=detalle.id_detalle_orden)
+                    >= detalle.subtotal - COALESCE(detalle.descuento,0)
+                   THEN detalle.cantidad
+              ELSE COALESCE(detalle.cantidad_entregada,0)
+            END
+        SQL;
+        $q=DB::table('tbl_detalles_orden as detalle')
+            ->join('tbl_ordenes as orden','orden.id_orden','=','detalle.id_orden')
+            ->where($columna,$id);
+        if($inscripcion!==null) $q->where('orden.id_inscripcion',$inscripcion)->where('orden.tipo_orden','productos');
+        return (int)$q->selectRaw("COALESCE(SUM({$sql}),0) AS comprometido",[now('UTC')])
+            ->first()->comprometido;
     }
 }

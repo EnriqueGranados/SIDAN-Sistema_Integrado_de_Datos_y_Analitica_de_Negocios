@@ -11,6 +11,15 @@ class DetalleOrden extends Model
     protected $primaryKey = 'id_detalle_orden';
     protected $guarded = ['id_detalle_orden'];
 
+    protected function casts(): array
+    {
+        return [
+            'permite_anticipo'=>'boolean',
+            'valor_anticipo'=>'decimal:2',
+            'cantidad_entregada'=>'integer',
+        ];
+    }
+
     public function orden(): BelongsTo
     {
         return $this->belongsTo(

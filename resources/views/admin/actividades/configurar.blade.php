@@ -615,6 +615,9 @@
                                                     data-nombre="{{ $item->nombre }}"
                                                     data-descripcion="{{ $item->descripcion }}"
                                                     data-tipo="{{ $item->tipo }}" data-precio="{{ $item->precio }}"
+                                                    data-permite-anticipo="{{ $item->permite_anticipo ? '1' : '0' }}"
+                                                    data-tipo-anticipo="{{ $item->tipo_anticipo }}"
+                                                    data-valor-anticipo="{{ $item->valor_anticipo }}"
                                                     data-costo="{{ $item->costo_referencia }}"
                                                     data-stock="{{ $item->stock_total }}"
                                                     data-desde="{{ $item->venta_desde ? \Carbon\Carbon::parse($item->venta_desde)->format('Y-m-d\TH:i') : '' }}"
@@ -1732,6 +1735,29 @@
                             </div>
                         </div>
 
+                        <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+                            <label class="flex items-center gap-3 text-sm font-semibold text-emerald-200">
+                                <input id="item_permite_anticipo" type="checkbox" name="item_permite_anticipo" value="1">
+                                Permitir pago con anticipo (solo efectivo y transferencia)
+                            </label>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div>
+                                    <label for="item_tipo_anticipo" class="block mb-2 text-sm text-gray-300">Forma del anticipo</label>
+                                    <select id="item_tipo_anticipo" name="item_tipo_anticipo" class="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white">
+                                        <option value="porcentaje">Porcentaje (%)</option>
+                                        <option value="monto_fijo">Monto fijo por unidad ($)</option>
+                                    </select>
+                                    <p data-item-error="item_tipo_anticipo" class="hidden text-xs text-red-400"></p>
+                                </div>
+                                <div>
+                                    <label for="item_valor_anticipo" class="block mb-2 text-sm text-gray-300">Valor (porcentaje o dólares)</label>
+                                    <input id="item_valor_anticipo" type="number" step="0.01" min="0.01" name="item_valor_anticipo" value="60"
+                                        class="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white">
+                                    <p data-item-error="item_valor_anticipo" class="hidden text-xs text-red-400"></p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400">Un porcentaje se aplica al precio neto. El importe fijo se multiplica por la cantidad comprada.</p>
+                        </div>
                         <div data-item-field="item_stock_total">
                             <label class="mb-2 block text-sm font-medium text-gray-300">
                                 Cantidad disponible
@@ -2230,6 +2256,9 @@
                     metodoItem.disabled = true;
                     tituloItem.textContent = 'Agregar producto o servicio';
                     guardarItemTexto.textContent = 'Agregar elemento';
+                    document.getElementById('item_permite_anticipo').checked = false;
+                    document.getElementById('item_tipo_anticipo').value = 'porcentaje';
+                    document.getElementById('item_valor_anticipo').value = '60';
                     document.getElementById('item_precio').value = '0.00';
                     document.getElementById('item_costo_referencia').value = '0.00';
                     document.getElementById('item_min_por_inscripcion').value = '1';
@@ -2460,6 +2489,9 @@
                             document.getElementById('item_precio').value =
                                 this.dataset.precio ?? '0.00';
 
+                            document.getElementById('item_permite_anticipo').checked = this.dataset.permiteAnticipo === '1';
+                            document.getElementById('item_tipo_anticipo').value = this.dataset.tipoAnticipo || 'porcentaje';
+                            document.getElementById('item_valor_anticipo').value = this.dataset.valorAnticipo || '60';
                             document.getElementById('item_costo_referencia').value =
                                 this.dataset.costo ?? '0.00';
 

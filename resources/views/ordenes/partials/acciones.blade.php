@@ -1,6 +1,11 @@
 @php
     $gestion = app(\App\Services\GestionOrdenService::class);
     $pagoActual = $orden->pago;
+    $distribucion = app(\App\Services\AbonosProductosService::class);
+    $minimoCalculado = $orden->tipo_orden === 'productos' ? $distribucion->minimoOrden($orden) : $gestion->centavos($orden->total);
+    $puedeAnticipo = $orden->tipo_orden === 'productos' && $minimoCalculado > 0 && $minimoCalculado < $gestion->centavos($orden->total);
+    $minimoActual = $pagoActual && $orden->modalidad_pago==='anticipo'
+        ? $gestion->centavos($orden->minimo_inicial) : $gestion->centavos($orden->total);
 
     $vigente = $orden->estado === 'pendiente_pago' && (!$orden->expira_en || $orden->expira_en->isFuture());
 
@@ -19,6 +24,16 @@
         $pagoActual &&
         in_array($pagoActual->proveedor, ['transferencia', 'efectivo'], true) &&
         $pagoActual->estado === 'pendiente';
+
+    $parcial = $vigente && in_array($pagoActual?->proveedor, ['transferencia','efectivo'],true)
+        && $pagoActual->estado === 'parcial';
+    $acreditadoCentavos = $parcial ? $pagoActual->montoAcreditadoCentavos() : 0;
+    $saldoCentavos = $parcial
+        ? max(0, $gestion->centavos($orden->total) - $acreditadoCentavos) : 0;
+    $abonoEnRevision = $parcial && $pagoActual->proveedor==='transferencia'
+        ? $pagoActual->abonos->firstWhere('estado', 'pendiente') : null;
+    $faltanteAnticipo = $parcial ? $distribucion->faltanteAnticipo($orden) : 0;
+    $ultimoAbono = $parcial ? $pagoActual->abonos->last() : null;
 @endphp
 
 <div class="space-y-4 border-t border-slate-200 p-6 dark:border-white/10">
@@ -73,7 +88,93 @@
         </form>
     @endif
 
-    @if ($manualPendiente)
+    @if(!$vigente && $pagoActual && in_array($pagoActual->proveedor,['transferencia','efectivo'],true)
+        && $pagoActual->montoAcreditadoCentavos()>0 && $orden->estado!=='pagada')
+        <div class="rounded-xl border border-amber-500 bg-amber-50 p-4 text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+            <h3 class="font-bold">Pago vencido con dinero recibido</h3>
+            <p>Conservamos ${{ number_format($pagoActual->montoAcreditadoCentavos()/100,2) }} acreditados.
+                La orden requiere revisión de administración. No enviés nuevos pagos sin autorización.</p>
+        </div>
+    @endif
+    @if ($orden->tipo_orden === 'productos' && $pagoActual && in_array($pagoActual->proveedor,['transferencia','efectivo'],true))
+        <div class="rounded-xl border border-slate-300 p-4 text-sm dark:border-white/20">
+            <h3 class="font-bold mb-2">Estado de pago por producto</h3>
+            @foreach($orden->detalles as $detalle)
+                @php $p=$distribucion->aplicado($detalle); $n=$distribucion->neto($detalle); $m=$distribucion->minimo($detalle); @endphp
+                <div class="py-2 border-t border-slate-200 dark:border-white/10">
+                    <p class="font-semibold">{{ $detalle->nombre_concepto }} × {{ $detalle->cantidad }}</p>
+                    <p>Acreditado ${{ number_format($p/100,2) }} / ${{ number_format($n/100,2) }}
+                        · {{ $p >= $n ? 'Completamente pagado' : ($p >= $m ? 'Anticipo cubierto' : 'Falta anticipo') }}</p>
+                    <p class="text-xs">{{ $detalle->cantidad_entregada }} de {{ $detalle->cantidad }} entregados</p>
+                </div>
+            @endforeach
+            @if($orden->limite_saldo_en)
+                <p class="mt-3 font-semibold">Fecha límite: {{ $orden->limite_saldo_en->timezone('America/El_Salvador')->format('d/m/Y H:i') }}</p>
+            @endif
+        </div>
+    @endif
+    @if ($parcial)
+        <div role="status"
+            class="space-y-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+            <h3 class="font-bold text-lg">Pago parcial acreditado ({{ $pagoActual->proveedor }})</h3>
+            <p>El administrador verificó un abono, pero tu orden todavía no se encuentra pagada.
+                No necesitás crear otra orden.</p>
+            <p class="font-semibold">Los abonos ya acreditados no son reembolsables,
+                aunque decidas no completar el saldo restante.</p>
+            <div class="space-y-1 font-semibold">
+                <p>Total de la orden: ${{ number_format((float) $orden->total, 2) }}</p>
+                <p>Dinero acreditado: ${{ number_format($acreditadoCentavos / 100, 2) }}</p>
+                @if($orden->modalidad_pago === 'anticipo')
+                    <p class="text-lg">{{ $faltanteAnticipo > 0 ? 'Faltante para cumplir el anticipo mínimo' : 'Anticipo mínimo cubierto' }}:
+                        ${{ number_format($faltanteAnticipo / 100, 2) }}</p>
+                @endif
+                <p class="text-lg">Saldo para pagar toda la orden: ${{ number_format($saldoCentavos / 100, 2) }}</p>
+            </div>
+            @if ($ultimoAbono?->estado === 'rechazado')
+                <p class="rounded-lg bg-red-100 p-3 text-red-800 dark:bg-red-500/15 dark:text-red-200">
+                    El comprobante más reciente fue rechazado.
+                    Motivo: {{ $ultimoAbono->observacion_revision }}
+                    Tus abonos anteriores siguen acreditados.
+                </p>
+            @endif
+            @if ($pagoActual->proveedor==='efectivo')
+                <p class="rounded-lg border border-amber-300 p-3">Para completar tu saldo de
+                    <strong>${{ number_format($saldoCentavos / 100,2) }}</strong>, acercate al lugar de cobro.
+                    El administrador registrará cada nuevo importe de efectivo recibido sobre esta misma orden.</p>
+            @elseif ($abonoEnRevision)
+                <p class="font-semibold">Tu comprobante complementario ya fue enviado y está en revisión.
+                    No necesitás volver a subirlo.</p>
+            @elseif ($cuentaLista && $saldoCentavos > 0)
+                <div class="rounded-lg border border-amber-200 bg-white p-4 text-slate-800 dark:border-white/10 dark:bg-slate-900 dark:text-white">
+                    <h4 class="font-bold">Completá tu transferencia</h4>
+                    <p class="mt-2">Transferí únicamente <strong>${{ number_format($saldoCentavos / 100, 2) }}</strong>
+                        a la misma cuenta y enviá el nuevo comprobante aquí.</p>
+                    <p class="mt-2">Banco: <strong>{{ $cuenta['banco'] }}</strong></p>
+                    <p>Titular: <strong>{{ $cuenta['titular'] }}</strong></p>
+                    <p>Cuenta: <strong>{{ $cuenta['cuenta'] }}</strong></p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Referencia sugerida: SIDAN-ORD-{{ $orden->id_orden }}</p>
+                    <form method="POST" enctype="multipart/form-data"
+                        action="{{ route('sidan.ordenes.complemento', $orden) }}" class="mt-4 space-y-3">
+                        @csrf
+                        <label for="complemento-{{ $orden->id_orden }}" class="block font-semibold">
+                            Nuevo comprobante bancario
+                        </label>
+                        <input id="complemento-{{ $orden->id_orden }}" type="file" name="comprobante"
+                            required accept="image/jpeg,image/png,image/webp"
+                            class="block w-full rounded-lg border border-slate-300 p-2 text-sm dark:border-white/20">
+                        <button type="submit"
+                            class="w-full rounded-lg bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
+                            Enviar comprobante del saldo faltante
+                        </button>
+                    </form>
+                    <p class="mt-2 text-xs">La orden se confirmará únicamente después de que
+                        administración verifique el monto restante. Los abonos acreditados no son reembolsables.</p>
+                </div>
+            @else
+                <p>Contactá al administrador para completar el saldo pendiente.</p>
+            @endif
+        </div>
+    @elseif ($manualPendiente)
         <div role="status"
             class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
             <p class="font-bold">
@@ -90,8 +191,8 @@
 
             @if ($pagoActual->proveedor === 'efectivo')
                 <p class="mt-2 font-semibold">
-                    La reserva sigue activa sin vencimiento automático. Solamente el administrador
-                    puede cancelarla o confirmar el efectivo recibido.
+                    La reserva estará vigente hasta la fecha límite indicada en la orden.
+                    El administrador deberá confirmar el efectivo realmente recibido.
                 </p>
             @else
                 <p class="mt-2">Tu orden todavía no está pagada.</p>
@@ -185,8 +286,8 @@
                         <dd>{{ $cuenta['tipo'] }}</dd>
                     </div>
                     <div class="border-t border-slate-200 pt-3 dark:border-white/10">
-                        <dt>Monto exacto a transferir</dt>
-                        <dd class="text-2xl font-bold text-emerald-600">
+                        <dt>Monto recomendado a transferir</dt>
+                        <dd id="transferencia-monto-recomendado" data-total="{{ number_format((float)$orden->total,2,'.','') }}" data-minimo="{{ number_format($minimoCalculado/100,2,'.','') }}" class="text-2xl font-bold text-emerald-600">
                             ${{ number_format((float) $orden->total, 2) }}
                         </dd>
                     </div>
@@ -201,6 +302,14 @@
                     class="mt-5 space-y-4">
                     @csrf
                     <input type="hidden" name="metodo" value="transferencia">
+                    <fieldset class="my-4 rounded-xl border border-emerald-500/20 p-3 text-sm">
+                        <legend class="font-bold">Modalidad de pago</legend>
+                        <label class="block mt-2"><input type="radio" name="modalidad" value="completo" checked data-modalidad-manual="transferencia"> Pago completo: ${{ number_format((float)$orden->total,2) }}</label>
+                        @if($puedeAnticipo)
+                        <label class="block mt-2"><input type="radio" name="modalidad" value="anticipo" data-modalidad-manual="transferencia"> Anticipo mínimo: ${{ number_format($minimoCalculado/100,2) }}</label>
+                        @endif
+                        <p class="mt-2 text-xs">Los productos de pago completo se cubren primero. Los abonos confirmados no son reembolsables, sin perjuicio de los derechos legales aplicables.</p>
+                    </fieldset>
 
                     <div>
                         <label for="comprobante-transferencia" class="mb-2 block text-sm font-semibold">
@@ -218,6 +327,8 @@
 
                     <p class="text-sm text-amber-700 dark:text-amber-300">
                         Subir el comprobante no confirma el pago. El administrador debe validarlo.
+                        Los pagos y abonos acreditados no son reembolsables.
+                        Si transferís menos del importe total, deberás completar el saldo restante.
                     </p>
 
                     <button type="submit"
@@ -263,6 +374,14 @@
             <form method="POST" action="{{ route('sidan.ordenes.manual', $orden) }}">
                 @csrf
                 <input type="hidden" name="metodo" value="efectivo">
+                <fieldset class="my-4 rounded-xl border border-emerald-500/20 p-3 text-sm">
+                    <legend class="font-bold">Modalidad de pago</legend>
+                    <label class="block mt-2"><input type="radio" name="modalidad" value="completo" checked> Pago completo: ${{ number_format((float)$orden->total,2) }}</label>
+                    @if($puedeAnticipo)
+                    <label class="block mt-2"><input type="radio" name="modalidad" value="anticipo"> Anticipo mínimo: ${{ number_format($minimoCalculado/100,2) }}</label>
+                    @endif
+                    <p class="mt-2 text-xs">El administrador registrará el dinero recibido. Los abonos confirmados no son reembolsables, salvo los derechos que correspondan por ley.</p>
+                </fieldset>
 
                 <button type="submit"
                     class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
@@ -275,6 +394,16 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // Actualizar el importe sugerido según el anticipo/completo.
+        document.querySelectorAll('input[name="modalidad"][data-modalidad-manual]').forEach(input => {
+            input.addEventListener('change', () => {
+                const monto = document.getElementById('transferencia-monto-recomendado');
+                if (monto && input.checked) {
+                    monto.textContent = '$' + Number(input.value === 'anticipo'
+                        ? monto.dataset.minimo : monto.dataset.total).toFixed(2);
+                }
+            });
+        });
         // Abrir el modal seleccionado utilizando el diálogo nativo del navegador.
         document.querySelectorAll('[data-abrir-pago]').forEach((button) => {
             button.addEventListener('click', () => {

@@ -68,6 +68,9 @@
                 'punto' => 'bg-slate-400',
             ],
         };
+        if ($orden->estado === 'pendiente_pago' && $orden->pago?->estado === 'parcial') {
+            $estadoConfiguracion['texto'] = 'Abono recibido · saldo pendiente';
+        }
     @endphp
 
 

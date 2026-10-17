@@ -298,39 +298,161 @@ class GestionOrdenService
     public function registrarManual(
         Orden $orden,
         string $metodo,
-        ?string $comprobante
+        ?string $comprobante,
+        string $modalidad = 'completo'
     ): void {
         $this->validarSinPago($orden);
+        if (!in_array($modalidad, ['completo','anticipo'], true)) {
+            $this->error('Modalidad de pago no válida.');
+        }
 
         if ($this->centavos($orden->total) <= 0) {
             $this->error('Esta orden no requiere pago. Usá el botón de confirmar.');
         }
 
-        Pago::create([
+        $parciales = app(AbonosProductosService::class);
+        $minimo = $parciales->minimoOrden($orden);
+        if ($orden->tipo_orden !== 'productos' || $minimo >= $this->centavos($orden->total)) {
+            $modalidad='completo';
+        }
+        $limite=$parciales->limite($orden);
+        $orden->update([
+            'modalidad_pago'=>$modalidad,
+            'minimo_inicial'=>$parciales->dinero($modalidad==='anticipo'?$minimo:$this->centavos($orden->total)),
+            'limite_saldo_en'=>$limite,
+            'expira_en'=>$limite,
+        ]);
+        $pago = Pago::create([
             'id_orden' => $orden->id_orden,
             'proveedor' => $metodo,
-            'monto' => $orden->total,
+            'monto' => $orden->total, // El pago principal representa el importe TOTAL de la orden.
             'estado' => 'pendiente',
             'comprobante_path' => $comprobante,
         ]);
 
-        $orden->update(['expira_en' => null]);
-
+        // Tanto efectivo como transferencia tienen abonos auditables.
+        $pago->abonos()->create([
+            'metodo'=>$metodo,
+            'comprobante_path'=>$comprobante,
+            'estado'=>'pendiente',
+        ]);
         if ($orden->tipo_orden === 'inscripcion') {
-            $orden->inscripcion->update(['expira_en' => null]);
+            $orden->inscripcion->update(['expira_en'=>$limite]);
         }
     }
 
-    public function confirmar(Orden $orden, Pago $pago, ?int $administrador): void
+    public function registrarComplemento(Orden $orden, string $comprobante): void
     {
         $this->validarPendiente($orden);
+        $pago = $orden->pago;
+
+        if (!$pago || $pago->proveedor !== 'transferencia' || $pago->estado !== 'parcial') {
+            $this->error('Esta orden no admite un comprobante complementario.');
+        }
+
+        $acreditado = $pago->montoAcreditadoCentavos();
+        if ($acreditado <= 0 || $acreditado >= $this->centavos($orden->total)) {
+            $this->error('La orden no tiene un saldo parcial válido.');
+        }
+
+        if ($pago->abonos()->where('estado', 'pendiente')->exists()) {
+            $this->error('Ya hay un comprobante esperando revisión del administrador.');
+        }
+
+        $pago->abonos()->create([
+            'metodo'=>'transferencia',
+            'comprobante_path' => $comprobante,
+            'estado' => 'pendiente',
+        ]);
+    }
+
+    // Se llama DENTRO de ejecutar() para mantener el bloqueo de la orden.
+    public function acreditarAbono(
+        Orden $orden,
+        Pago $pago,
+        \App\Models\AbonoTransferencia $abono,
+        int $recibidoCentavos,
+        int $administrador,
+        ?string $observacion
+    ): int {
+        // Conciliar comprobantes presentados antes del vencimiento, aunque
+        // administración los revise después de la fecha límite.
+        $revisionFueraPlazo = $orden->expira_en && !$orden->expira_en->isFuture();
+        if ($orden->estado!=='pendiente_pago'
+            || ($revisionFueraPlazo && !($pago->proveedor==='transferencia'
+                && $abono->created_at && $abono->created_at->lte($orden->expira_en)))) {
+            $this->error('El pago no se puede acreditar fuera de plazo.');
+        }
+
+        if ($pago->id_orden !== $orden->id_orden
+            || !in_array($pago->proveedor, ['transferencia','efectivo'], true)
+            || !in_array($pago->estado, ['pendiente', 'parcial'], true)
+            || $abono->id_pago !== $pago->id_pago
+            || $abono->estado !== 'pendiente') {
+            $this->error('Este comprobante ya no admite revisión.');
+        }
+
+        $saldo = $this->centavos($orden->total) - $pago->montoAcreditadoCentavos();
+        if ($recibidoCentavos <= 0 || $recibidoCentavos > $saldo) {
+            $this->error('El monto recibido debe ser mayor que cero y no superar el saldo pendiente.');
+        }
+
+        $abono->update([
+            'monto_recibido' => $this->dinero($recibidoCentavos),
+            'estado' => 'confirmado',
+            'observacion_revision' => $observacion,
+            'revisado_por' => $administrador,
+            'revisado_en' => now(),
+        ]);
+
+        // Aplicar primero a productos con pago íntegro, luego al anticipo mínimo.
+        app(AbonosProductosService::class)->distribuir($orden, $abono);
+
+        $faltante = $saldo - $recibidoCentavos;
+        if ($faltante === 0) {
+            // La observación anterior (si algún comprobante fue rechazado)
+            // permanece en el historial de abonos, no en el pago confirmado.
+            $pago->update(['observacion_revision' => null]);
+            // El método original confirma el pago principal y dispara
+            // los procesos existentes de inscripción, recibo y rentabilidad.
+            $this->confirmar($orden, $pago, $administrador, (bool)$revisionFueraPlazo);
+        } else {
+            $pago->update([
+                'estado' => 'parcial',
+                'observacion_revision' => null,
+                'revisado_por' => $administrador,
+                'revisado_en' => now(),
+            ]);
+            if ($pago->proveedor==='efectivo') {
+                // El siguiente cobro presencial se registra en esta misma orden.
+                $pago->abonos()->create(['metodo'=>'efectivo','estado'=>'pendiente']);
+            }
+        }
+
+        return $faltante;
+    }
+
+    public function confirmar(Orden $orden, Pago $pago, ?int $administrador, bool $conciliacionEnPlazo = false): void
+    {
+        if ($conciliacionEnPlazo) {
+            if ($orden->estado!=='pendiente_pago') $this->error('La orden ya fue cerrada.');
+        } else {
+            $this->validarPendiente($orden);
+        }
 
         if ($this->centavos($pago->monto) !== $this->centavos($orden->total)) {
             $this->error('El monto del pago no coincide con el total de la orden.');
         }
 
-        if ($pago->estado !== 'pendiente') {
+        if (!in_array($pago->estado, ['pendiente', 'parcial'], true)) {
             $this->error('Este pago ya fue procesado.');
+        }
+
+        // Un pago manual solo se confirma cuando TODOS sus abonos aprobados
+        // suman el total; no aceptar el monto declarado por el usuario.
+        if (in_array($pago->proveedor,['transferencia','efectivo'],true)
+            && $pago->montoAcreditadoCentavos() !== $this->centavos($orden->total)) {
+            $this->error('Los abonos recibidos todavía no cubren el total.');
         }
 
         $pago->update([
@@ -364,14 +486,23 @@ class GestionOrdenService
 
     public function puedeCancelar(Orden $orden): bool
     {
+        if ($orden->cierre_financiero_estado === 'autorizado') return false;
         if (!in_array($orden->estado, ['pendiente_pago', 'vencida'], true)) {
             return false;
         }
 
         $pago = $orden->pago;
 
+        // Una transferencia enviada puede contener dinero aunque siga en revisión.
+        // No borrar la orden hasta que el administrador la rechace sin abonos acreditados.
+        if ($pago?->proveedor === 'transferencia') {
+            if ($pago->estado !== 'rechazado'
+                || $pago->abonos()->where('estado', 'confirmado')->exists()) {
+                return false;
+            }
+        }
+
         // El efectivo queda reservado y solo administración puede decidir su cierre.
-        // Tampoco borrar pagos en efectivo rechazados: conservar el historial.
         if ($pago?->proveedor === 'efectivo') {
             return false;
         }

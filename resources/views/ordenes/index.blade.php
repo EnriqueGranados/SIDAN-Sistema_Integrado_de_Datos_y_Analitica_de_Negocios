@@ -140,7 +140,7 @@
                                         {{ $orden->actividad?->nombre ?? 'Actividad no disponible' }}
                                     </p>
                                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                        Creada el {{ $orden->created_at?->format('d/m/Y H:i') ?? '—' }}
+                                        Creada el {{ $orden->created_at?->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? '—' }}
                                     </p>
                                 </div>
 
@@ -154,7 +154,7 @@
                                     <div>
                                         <p class="text-xs text-slate-500 dark:text-slate-400">Fecha de pago</p>
                                         <p class="text-sm font-bold text-slate-900 dark:text-white">
-                                            {{ $fechaPago?->format('d/m/Y H:i') ?? 'Sin pago confirmado' }}
+                                            {{ $fechaPago?->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? 'Sin pago confirmado' }}
                                         </p>
                                     </div>
                                     <svg class="h-5 w-5 text-slate-400 transition group-open:rotate-180" viewBox="0 0 24 24"
@@ -174,7 +174,11 @@
                                     @if ($orden->expira_en)
                                         Paga antes del {{ $orden->expira_en->format('d/m/Y H:i') }}.
                                     @else
-                                        Tu orden está pendiente de pago.
+                                        @if ($orden->pago?->estado === 'parcial')
+                                            Tu transferencia tiene abonos acreditados. Falta completar el saldo.
+                                        @else
+                                            Tu orden está pendiente de pago.
+                                        @endif
                                     @endif
                                 @else
                                     Consulta el resumen de tu orden.
@@ -187,7 +191,7 @@
                                 <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900/60">
                                     <p class="text-xs text-slate-500 dark:text-slate-400">Fecha de creación</p>
                                     <p class="mt-1 font-bold text-slate-900 dark:text-white">
-                                        {{ $orden->created_at?->format('d/m/Y H:i') ?? '—' }}
+                                        {{ $orden->created_at?->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? '—' }}
                                     </p>
                                 </div>
                                 <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900/60">
@@ -199,7 +203,7 @@
                                 <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900/60">
                                     <p class="text-xs text-slate-500 dark:text-slate-400">Fecha de confirmación</p>
                                     <p class="mt-1 font-bold text-slate-900 dark:text-white">
-                                        {{ $fechaPago?->format('d/m/Y H:i') ?? 'Pendiente' }}
+                                        {{ $fechaPago?->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? 'Pendiente' }}
                                     </p>
                                 </div>
                             </div>
@@ -308,11 +312,13 @@
                         @if ($puedePagar)
                             <a href="{{ route('sidan.ordenes.show', $orden->id_orden) }}"
                                 class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
-                                {{ $orden->pago &&
-                                in_array($orden->pago->proveedor, ['transferencia', 'efectivo'], true) &&
-                                $orden->pago->estado === 'pendiente'
-                                    ? 'Consultar pago pendiente'
-                                    : 'Continuar al pago' }}
+                                {{ $orden->pago?->estado === 'parcial'
+                                    ? 'Completar saldo pendiente'
+                                    : ($orden->pago &&
+                                        in_array($orden->pago->proveedor, ['transferencia', 'efectivo'], true) &&
+                                        $orden->pago->estado === 'pendiente'
+                                        ? 'Consultar pago pendiente'
+                                        : 'Continuar al pago') }}
                                 <span aria-hidden="true">→</span>
                             </a>
                         @endif

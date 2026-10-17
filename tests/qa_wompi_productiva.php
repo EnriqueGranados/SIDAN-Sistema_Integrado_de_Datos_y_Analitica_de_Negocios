@@ -10,7 +10,7 @@
 
 (static function (): void {
     // CAMBIAR ESTE ID por una orden NUEVA y vigente con intento Wompi pendiente.
-    $idOrden = 77;
+    $idOrden = 41;
 
     if (!app()->environment(['local', 'testing'])) {
         throw new RuntimeException('Esta prueba solamente se permite con APP_ENV=local o testing.');

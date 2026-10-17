@@ -454,6 +454,9 @@ class ActividadController extends Controller
 
             ],
 
+            'item_permite_anticipo'=>['nullable','boolean'],
+            'item_tipo_anticipo'=>['required_if:item_permite_anticipo,1','nullable','in:porcentaje,monto_fijo'],
+            'item_valor_anticipo'=>['required_if:item_permite_anticipo,1','nullable','numeric','decimal:0,2','gt:0','max:9999999999.99'],
             'item_stock_total' => [
 
                 'nullable',
@@ -639,6 +642,20 @@ class ActividadController extends Controller
 
 
 
+        if (($validated['item_permite_anticipo'] ?? false)) {
+            if (($validated['item_tipo_anticipo'] ?? '')==='porcentaje'
+                && (float)($validated['item_valor_anticipo'] ?? 0)>100) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'item_valor_anticipo'=>'El porcentaje no puede superar el 100%.',
+                ]);
+            }
+            if (($validated['item_tipo_anticipo'] ?? '')==='monto_fijo'
+                && (float)($validated['item_valor_anticipo'] ?? 0)>(float)$validated['item_precio']) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'item_valor_anticipo'=>'El anticipo por unidad no debe superar su precio base.',
+                ]);
+            }
+        }
         $ventaHasta = !empty($validated['item_venta_hasta'])
 
             ? \Illuminate\Support\Carbon::parse(
@@ -871,6 +888,9 @@ class ActividadController extends Controller
                     'tipo' => $validated['item_tipo'],
 
                     'precio' => $validated['item_precio'],
+                    'permite_anticipo'=>(bool)($validated['item_permite_anticipo']??false),
+                    'tipo_anticipo'=>!empty($validated['item_permite_anticipo'])?($validated['item_tipo_anticipo']??null):null,
+                    'valor_anticipo'=>!empty($validated['item_permite_anticipo'])?($validated['item_valor_anticipo']??null):null,
 
                     'costo_referencia' => $validated['item_costo_referencia'],
 
@@ -1123,6 +1143,9 @@ class ActividadController extends Controller
                     'tipo' => $validated['item_tipo'],
 
                     'precio' => $validated['item_precio'],
+                    'permite_anticipo'=>(bool)($validated['item_permite_anticipo']??false),
+                    'tipo_anticipo'=>!empty($validated['item_permite_anticipo'])?($validated['item_tipo_anticipo']??null):null,
+                    'valor_anticipo'=>!empty($validated['item_permite_anticipo'])?($validated['item_valor_anticipo']??null):null,
 
                     'costo_referencia' => $validated['item_costo_referencia'],
 

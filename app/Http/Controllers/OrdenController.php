@@ -74,7 +74,8 @@ class OrdenController extends Controller
                 'actividad',
                 'inscripcion',
                 'detalles',
-                'pago.intentos'
+                'pago.intentos',
+                'pago.abonos'
             ),
         ]);
     }

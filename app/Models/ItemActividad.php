@@ -23,6 +23,9 @@ class ItemActividad extends Model
         'descripcion',
         'tipo',
         'precio',
+        'permite_anticipo',
+        'tipo_anticipo',
+        'valor_anticipo',
         'costo_referencia',
         'stock_total',
         'venta_desde',
@@ -39,6 +42,8 @@ class ItemActividad extends Model
     {
         return [
             'precio' => 'decimal:2',
+            'permite_anticipo' => 'boolean',
+            'valor_anticipo' => 'decimal:2',
             'costo_referencia' => 'decimal:2',
             'stock_total' => 'integer',
             'venta_desde' => 'datetime',

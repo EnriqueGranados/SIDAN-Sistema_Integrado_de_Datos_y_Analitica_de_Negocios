@@ -819,6 +819,9 @@ class CompraActividadController extends Controller
                     $lineas[] = [
                         'id_item_actividad' =>
                             $idItem,
+                        'permite_anticipo'=>(bool)$item->permite_anticipo,
+                        'tipo_anticipo'=>$item->permite_anticipo?$item->tipo_anticipo:null,
+                        'valor_anticipo'=>$item->permite_anticipo?$item->valor_anticipo:null,
 
                         'id_variante_item' =>
                             $variante
@@ -1134,6 +1137,9 @@ class CompraActividadController extends Controller
                                         'id_item_actividad'
                                     ],
 
+                                'permite_anticipo'=>$linea['permite_anticipo'],
+                                'tipo_anticipo'=>$linea['tipo_anticipo'],
+                                'valor_anticipo'=>$linea['valor_anticipo'],
                                 'id_variante_item' =>
                                     $linea[
                                         'id_variante_item'
@@ -1282,62 +1288,10 @@ class CompraActividadController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    private function cantidadComprometidaItem(
-        int $idItem
-    ): int {
-        $ahoraUtc =
-            now('UTC');
-
-        return (int) DB::table(
-            'tbl_detalles_orden as detalle'
-        )
-            ->join(
-                'tbl_ordenes as orden',
-                'orden.id_orden',
-                '=',
-                'detalle.id_orden'
-            )
-            ->where(
-                'detalle.id_item_actividad',
-                $idItem
-            )
-            ->where(
-                function ($query) use ($ahoraUtc) {
-                    $query
-                        ->whereIn(
-                            'orden.estado',
-                            [
-                                'pagada',
-                                'pagada_prueba',
-                            ]
-                        )
-                        ->orWhere(
-                            function ($query) use ($ahoraUtc) {
-                                $query
-                                    ->where(
-                                        'orden.estado',
-                                        'pendiente_pago'
-                                    )
-                                    ->where(
-                                        function ($query) use ($ahoraUtc) {
-                                            $query
-                                                ->whereNull(
-                                                    'orden.expira_en'
-                                                )
-                                                ->orWhere(
-                                                    'orden.expira_en',
-                                                    '>',
-                                                    $ahoraUtc
-                                                );
-                                        }
-                                    );
-                            }
-                        );
-                }
-            )
-            ->sum(
-                'detalle.cantidad'
-            );
+    private function cantidadComprometidaItem(int $idItem): int
+    {
+        return app(\App\Services\DisponibilidadService::class)
+            ->cantidadComprometida('detalle.id_item_actividad',$idItem);
     }
 
     /*
@@ -1346,62 +1300,10 @@ class CompraActividadController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    private function cantidadComprometidaVariante(
-        int $idVariante
-    ): int {
-        $ahoraUtc =
-            now('UTC');
-
-        return (int) DB::table(
-            'tbl_detalles_orden as detalle'
-        )
-            ->join(
-                'tbl_ordenes as orden',
-                'orden.id_orden',
-                '=',
-                'detalle.id_orden'
-            )
-            ->where(
-                'detalle.id_variante_item',
-                $idVariante
-            )
-            ->where(
-                function ($query) use ($ahoraUtc) {
-                    $query
-                        ->whereIn(
-                            'orden.estado',
-                            [
-                                'pagada',
-                                'pagada_prueba',
-                            ]
-                        )
-                        ->orWhere(
-                            function ($query) use ($ahoraUtc) {
-                                $query
-                                    ->where(
-                                        'orden.estado',
-                                        'pendiente_pago'
-                                    )
-                                    ->where(
-                                        function ($query) use ($ahoraUtc) {
-                                            $query
-                                                ->whereNull(
-                                                    'orden.expira_en'
-                                                )
-                                                ->orWhere(
-                                                    'orden.expira_en',
-                                                    '>',
-                                                    $ahoraUtc
-                                                );
-                                        }
-                                    );
-                            }
-                        );
-                }
-            )
-            ->sum(
-                'detalle.cantidad'
-            );
+    private function cantidadComprometidaVariante(int $idVariante): int
+    {
+        return app(\App\Services\DisponibilidadService::class)
+            ->cantidadComprometida('detalle.id_variante_item',$idVariante);
     }
 
     /*
@@ -1425,71 +1327,11 @@ class CompraActividadController extends Controller
     |
     */
 
-    private function cantidadComprometidaInscripcionItem(
-        int $idInscripcion,
-        int $idItem
-    ): int {
-        $ahoraUtc =
-            now('UTC');
-
-        return (int) DB::table(
-            'tbl_detalles_orden as detalle'
-        )
-            ->join(
-                'tbl_ordenes as orden',
-                'orden.id_orden',
-                '=',
-                'detalle.id_orden'
-            )
-            ->where(
-                'orden.id_inscripcion',
-                $idInscripcion
-            )
-            ->where(
-                'orden.tipo_orden',
-                'productos'
-            )
-            ->where(
-                'detalle.id_item_actividad',
-                $idItem
-            )
-            ->where(
-                function ($query) use ($ahoraUtc) {
-                    $query
-                        ->whereIn(
-                            'orden.estado',
-                            [
-                                'pagada',
-                                'pagada_prueba',
-                            ]
-                        )
-                        ->orWhere(
-                            function ($query) use ($ahoraUtc) {
-                                $query
-                                    ->where(
-                                        'orden.estado',
-                                        'pendiente_pago'
-                                    )
-                                    ->where(
-                                        function ($query) use ($ahoraUtc) {
-                                            $query
-                                                ->whereNull(
-                                                    'orden.expira_en'
-                                                )
-                                                ->orWhere(
-                                                    'orden.expira_en',
-                                                    '>',
-                                                    $ahoraUtc
-                                                );
-                                        }
-                                    );
-                            }
-                        );
-                }
-            )
-            ->sum(
-                'detalle.cantidad'
-            );
+    private function cantidadComprometidaInscripcionItem(int $idInscripcion,
+        int $idItem): int
+    {
+        return app(\App\Services\DisponibilidadService::class)
+            ->cantidadComprometida('detalle.id_item_actividad',$idItem,$idInscripcion);
     }
 
     private function calcularPrecioConfigurado(
