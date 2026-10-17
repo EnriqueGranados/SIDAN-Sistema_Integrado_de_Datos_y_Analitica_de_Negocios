@@ -36,11 +36,31 @@ class AbonosProductosService
         return $orden->detalles->sum(fn($d)=>$this->minimo($d));
     }
 
+    
     public function aplicado(DetalleOrden $detalle): int
     {
-        return $this->centavos(DB::table('tbl_aplicaciones_abono')
-            ->where('id_detalle_orden',$detalle->id_detalle_orden)->sum('monto'));
+        $orden = $detalle->orden()
+            ->with('pago')
+            ->first();
+
+        if (
+            $orden?->estado === 'pagada'
+            && $orden->pago?->proveedor === 'wompi'
+            && $orden->pago?->estado === 'confirmado'
+        ) {
+            return $this->neto($detalle);
+        }
+
+        return $this->centavos(
+            DB::table('tbl_aplicaciones_abono')
+                ->where(
+                    'id_detalle_orden',
+                    $detalle->id_detalle_orden
+                )
+                ->sum('monto')
+        );
     }
+
 
     public function faltanteAnticipo(Orden $orden): int
     {
