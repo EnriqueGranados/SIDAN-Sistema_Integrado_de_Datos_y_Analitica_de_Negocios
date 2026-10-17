@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\AccesoModulos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class ForcePasswordChangeController extends Controller
@@ -12,7 +14,9 @@ class ForcePasswordChangeController extends Controller
     public function create(Request $request)
     {
         if (!$request->user()->must_change_password) {
-            return redirect()->route('welcome');
+            return redirect()->route(
+                AccesoModulos::inicio($request->user())
+            );
         }
 
         return view('auth.force-password-change');
@@ -23,7 +27,7 @@ class ForcePasswordChangeController extends Controller
         $user = $request->user();
 
         if (!$user->must_change_password) {
-            return redirect()->route('welcome');
+            return redirect()->route(AccesoModulos::inicio($user));
         }
 
         $validated = $request->validate([
@@ -49,13 +53,17 @@ class ForcePasswordChangeController extends Controller
 
         $user->password_hash = Hash::make($validated['password']);
         $user->must_change_password = false;
-        $user->remember_token = \Illuminate\Support\Str::random(60);
+        $user->remember_token = Str::random(60);
         $user->save();
 
         $request->session()->regenerate();
+        $request->session()->forget('url.intended');
 
         return redirect()
-            ->route('welcome')
-            ->with('success', 'Tu contraseña se actualizó correctamente. Bienvenido a SIDAN.');
+            ->route(AccesoModulos::inicio($user))
+            ->with(
+                'success',
+                'Tu contraseña se actualizó correctamente. Bienvenido a SIDAN.'
+            );
     }
 }

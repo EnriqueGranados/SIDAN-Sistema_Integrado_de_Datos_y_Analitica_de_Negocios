@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Actividad;
 use App\Models\RevisionActividad;
+use App\Support\AccesoModulos;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,13 +13,19 @@ use Illuminate\Support\Facades\DB;
 
 class ActividadPublicacionController extends Controller
 {
-    public function publicar(Request $request, Actividad $actividad): JsonResponse|RedirectResponse
-    {
+    public function publicar(
+        Request $request,
+        Actividad $actividad
+    ): JsonResponse|RedirectResponse {
         $usuario = $request->user();
         $this->autorizarAdministrador($usuario);
 
         if (!$actividad->puedePublicarse()) {
-            return $this->respuestaError($request, 'Solo una actividad aprobada puede publicarse.', 422);
+            return $this->respuestaError(
+                $request,
+                'Solo una actividad aprobada puede publicarse.',
+                422
+            );
         }
 
         try {
@@ -29,7 +36,9 @@ class ActividadPublicacionController extends Controller
                     ->firstOrFail();
 
                 if (!$bloqueada->puedePublicarse()) {
-                    throw new \DomainException('La actividad cambió de estado y ya no puede publicarse.');
+                    throw new \DomainException(
+                        'La actividad cambió de estado y ya no puede publicarse.'
+                    );
                 }
 
                 $bloqueada->update([
@@ -48,10 +57,10 @@ class ActividadPublicacionController extends Controller
 
                 return $bloqueada->fresh();
             });
-        } catch (\DomainException $e) {
-            return $this->respuestaError($request, $e->getMessage(), 409);
-        } catch (\Throwable $e) {
-            report($e);
+        } catch (\DomainException $exception) {
+            return $this->respuestaError($request, $exception->getMessage(), 409);
+        } catch (\Throwable $exception) {
+            report($exception);
 
             return $this->respuestaError(
                 $request,
@@ -67,13 +76,19 @@ class ActividadPublicacionController extends Controller
         );
     }
 
-    public function retirar(Request $request, Actividad $actividad): JsonResponse|RedirectResponse
-    {
+    public function retirar(
+        Request $request,
+        Actividad $actividad
+    ): JsonResponse|RedirectResponse {
         $usuario = $request->user();
         $this->autorizarAdministrador($usuario);
 
         if (!$actividad->puedeRetirarseDePublicacion()) {
-            return $this->respuestaError($request, 'La actividad no se encuentra publicada.', 422);
+            return $this->respuestaError(
+                $request,
+                'La actividad no se encuentra publicada.',
+                422
+            );
         }
 
         try {
@@ -84,7 +99,9 @@ class ActividadPublicacionController extends Controller
                     ->firstOrFail();
 
                 if (!$bloqueada->puedeRetirarseDePublicacion()) {
-                    throw new \DomainException('La actividad cambió de estado y ya no se encuentra publicada.');
+                    throw new \DomainException(
+                        'La actividad cambió de estado y ya no se encuentra publicada.'
+                    );
                 }
 
                 $bloqueada->update([
@@ -103,10 +120,10 @@ class ActividadPublicacionController extends Controller
 
                 return $bloqueada->fresh();
             });
-        } catch (\DomainException $e) {
-            return $this->respuestaError($request, $e->getMessage(), 409);
-        } catch (\Throwable $e) {
-            report($e);
+        } catch (\DomainException $exception) {
+            return $this->respuestaError($request, $exception->getMessage(), 409);
+        } catch (\Throwable $exception) {
+            report($exception);
 
             return $this->respuestaError(
                 $request,
@@ -124,10 +141,11 @@ class ActividadPublicacionController extends Controller
 
     private function autorizarAdministrador($usuario): void
     {
-        abort_unless($usuario, 403);
-
-        $rol = strtolower((string) $usuario->rol()->value('nombre'));
-        abort_unless(in_array($rol, ['superadmin', 'admin'], true), 403);
+        abort_unless(
+            AccesoModulos::permite($usuario, 'actividades'),
+            403,
+            'Tu rol no tiene acceso al módulo Actividades.'
+        );
     }
 
     private function mensajePublicacion(Actividad $actividad): string

@@ -1,37 +1,38 @@
 <?php
 
 use App\Http\Controllers\ActividadAccionController;
+use App\Http\Controllers\Admin\AbonosOrdenController;
 use App\Http\Controllers\Admin\ActividadConfiguracionController;
 use App\Http\Controllers\Admin\ActividadController;
-use App\Http\Controllers\Admin\ActividadPublicacionController;
 use App\Http\Controllers\Admin\ActividadPromocionController;
+use App\Http\Controllers\Admin\ActividadPublicacionController;
 use App\Http\Controllers\Admin\ActividadRevisionController;
 use App\Http\Controllers\Admin\CategoriaController;
+use App\Http\Controllers\Admin\ControlActividadController;
 use App\Http\Controllers\Admin\EspacioController;
 use App\Http\Controllers\Admin\EtiquetaController;
 use App\Http\Controllers\Admin\RecursoController;
 use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WelcomeAdministracionController;
+use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\CompraActividadController;
+use App\Http\Controllers\GestionOrdenController;
+use App\Http\Controllers\InscripcionController;
+use App\Http\Controllers\MisInscripcionesController;
+use App\Http\Controllers\OrdenController;
+use App\Http\Controllers\PagoController;
+use App\Http\Controllers\PaginasPublicasController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UbicacionController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\WompiController;
+use App\Support\AccesoModulos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\ForcePasswordChangeController;
-use App\Http\Controllers\InscripcionController;
-use App\Http\Controllers\OrdenController;
-use App\Http\Controllers\PagoController;
-use App\Http\Controllers\CompraActividadController;
-use App\Http\Controllers\Admin\ControlActividadController;
-use App\Http\Controllers\GestionOrdenController;
-use App\Http\Controllers\PaginasPublicasController;
-
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
-
 
 Route::get('/categorias', [PaginasPublicasController::class, 'categorias'])
     ->name('publico.categorias');
@@ -52,18 +53,16 @@ Route::get('/actividades/{slug}', [WelcomeController::class, 'show'])
 require __DIR__ . '/auth.php';
 
 Route::get('/dashboard', function (Request $request) {
-    $rol = $request->user()?->rol?->nombre;
-
-    return match ($rol) {
-        'admin', 'superadmin' => redirect()->route('admin.dashboard'),
-        'usuario' => redirect()->route('welcome'),
-        default => redirect()
-            ->route('welcome')
-            ->with('error', 'No se pudo determinar el panel correspondiente a tu cuenta.'),
-    };
+    return redirect()->route(AccesoModulos::inicio($request->user()));
 })
-    ->middleware(['auth', 'user.status'])
+    ->middleware(['auth', 'user.status', 'force.password.change'])
     ->name('dashboard');
+
+Route::get('/user/dashboard', function (Request $request) {
+    return redirect()->route(AccesoModulos::inicio($request->user()));
+})
+    ->middleware(['auth', 'user.status', 'force.password.change'])
+    ->name('user.dashboard');
 
 Route::get('/actividades/{slug}/participar', [ActividadAccionController::class, 'participar'])
     ->name('activities.participar');
@@ -71,52 +70,45 @@ Route::get('/actividades/{slug}/participar', [ActividadAccionController::class, 
 Route::get('/actividades/{slug}/comprar', [ActividadAccionController::class, 'comprar'])
     ->name('activities.comprar');
 
+Route::post('/actividades/{actividad:slug}/compra', [CompraActividadController::class, 'store'])
+    ->middleware(['auth', 'user.status'])
+    ->name('activities.compra.store');
 
-Route::post(
-    '/actividades/{actividad:slug}/compra',
-    [
-        CompraActividadController::class,
-        'store'
-    ]
-)
-    ->middleware([
-        'auth',
-        'user.status'
-    ])
-    ->name(
-        'activities.compra.store'
-    );
-
-// Cambio de contraseña.
 Route::middleware('auth')->group(function () {
-    Route::get('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'create',])->name('password.force.edit');
-    Route::post('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'store',])->name('password.force.update');
+    Route::get('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'create'])
+        ->name('password.force.edit');
 
-    Route::get('/user/inscripciones', [\App\Http\Controllers\MisInscripcionesController::class, 'index'])
+    Route::post('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'store'])
+        ->name('password.force.update');
+
+    Route::get('/user/inscripciones', [MisInscripcionesController::class, 'index'])
         ->name('user.inscripciones.index');
-    Route::patch('/user/inscripciones/{inscripcion}/cancelar', [\App\Http\Controllers\MisInscripcionesController::class, 'cancelar'])
+
+    Route::patch('/user/inscripciones/{inscripcion}/cancelar', [MisInscripcionesController::class, 'cancelar'])
         ->name('user.inscripciones.cancelar');
 
-    Route::get(
-        '/user/inscripciones/{inscripcion}/detalle',
-        [\App\Http\Controllers\MisInscripcionesController::class, 'detalle']
-    )->name('user.inscripciones.detalle');
+    Route::get('/user/inscripciones/{inscripcion}/detalle', [MisInscripcionesController::class, 'detalle'])
+        ->name('user.inscripciones.detalle');
 });
 
-// Perfil
 Route::middleware(['auth', 'force.password.change'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::post('/profile/password/email', [ProfileController::class, 'sendPasswordLink'])->middleware('throttle:3,1')->name('profile.password.email');
+
+    Route::post('/profile/password/email', [ProfileController::class, 'sendPasswordLink'])
+        ->middleware('throttle:3,1')
+        ->name('profile.password.email');
 });
 
-// Ubicación
-Route::middleware(['throttle:60,1'])->prefix('ubicaciones')->name('ubicaciones.')->group(function () {
-    Route::get('/paises', [UbicacionController::class, 'paises'])->name('paises');
-    Route::get('/estados/{pais}', [UbicacionController::class, 'estados'])->name('estados');
-    Route::get('/ciudades/{pais}/{estado}', [UbicacionController::class, 'ciudades'])->name('ciudades');
-});
+Route::middleware(['throttle:60,1'])
+    ->prefix('ubicaciones')
+    ->name('ubicaciones.')
+    ->group(function () {
+        Route::get('/paises', [UbicacionController::class, 'paises'])->name('paises');
+        Route::get('/estados/{pais}', [UbicacionController::class, 'estados'])->name('estados');
+        Route::get('/ciudades/{pais}/{estado}', [UbicacionController::class, 'ciudades'])->name('ciudades');
+    });
 
 Route::get('/wompi/prueba', [WompiController::class, 'prueba'])
     ->middleware('auth')
@@ -137,9 +129,12 @@ Route::get('/tunnel-test', function () {
 Route::post('/wompi/webhook', [WompiController::class, 'webhook'])
     ->name('wompi.webhook');
 
-
-// Administradores
-Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'user.status'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware([
+    'auth',
+    'force.password.change',
+    'user.status',
+    'modulo',
+])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
@@ -203,9 +198,7 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
         ->name('actividades.retirar-publicacion');
 
     Route::resource('actividades', ActividadController::class)
-        ->parameters([
-            'actividades' => 'actividad',
-        ]);
+        ->parameters(['actividades' => 'actividad']);
 
     Route::get('actividades/{actividad}/configurar', [ActividadConfiguracionController::class, 'show'])
         ->name('actividades.configurar');
@@ -264,48 +257,32 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
     Route::delete('actividades/{actividad}/medios/{medio}', [ActividadConfiguracionController::class, 'eliminarMedio'])
         ->name('actividades.medios.destroy');
 
-    Route::get(
-        '/control/inscripciones',
-        [ControlActividadController::class, 'inscripciones']
-    )->name('control.inscripciones');
+    Route::get('/control/inscripciones', [ControlActividadController::class, 'inscripciones'])
+        ->name('control.inscripciones');
 
-    Route::get(
-        '/control/ordenes',
-        [ControlActividadController::class, 'ordenes']
-    )->name('control.ordenes');
+    Route::get('/control/ordenes', [ControlActividadController::class, 'ordenes'])
+        ->name('control.ordenes');
 
-    Route::get(
-        '/control/consolidado',
-        [ControlActividadController::class, 'consolidado']
-    )->name('control.consolidado');
+    Route::get('/control/consolidado', [ControlActividadController::class, 'consolidado'])
+        ->name('control.consolidado');
 
-
-    Route::get(
-        '/control/consolidado/imprimir',
-        [ControlActividadController::class, 'imprimirConsolidado']
-    )->name('control.consolidado.imprimir');
-
+    Route::get('/control/consolidado/imprimir', [ControlActividadController::class, 'imprimirConsolidado'])
+        ->name('control.consolidado.imprimir');
 
     Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
         ->name('categorias.reorder');
 
     Route::resource('categorias', CategoriaController::class)
         ->except(['show'])
-        ->parameters([
-            'categorias' => 'categoria',
-        ]);
+        ->parameters(['categorias' => 'categoria']);
 
     Route::resource('etiquetas', EtiquetaController::class)
         ->except(['show'])
-        ->parameters([
-            'etiquetas' => 'etiqueta',
-        ]);
+        ->parameters(['etiquetas' => 'etiqueta']);
 
     Route::resource('recursos', RecursoController::class)
         ->except(['show'])
-        ->parameters([
-            'recursos' => 'recurso',
-        ]);
+        ->parameters(['recursos' => 'recurso']);
 
     Route::get('espacios/buscar', [EspacioController::class, 'buscar'])
         ->name('espacios.buscar');
@@ -318,9 +295,7 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
 
     Route::resource('espacios', EspacioController::class)
         ->except(['show'])
-        ->parameters([
-            'espacios' => 'espacio',
-        ]);
+        ->parameters(['espacios' => 'espacio']);
 
     Route::get('/users/banned', [UserController::class, 'banned'])
         ->name('users.banned');
@@ -337,41 +312,56 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
     Route::patch('/users/{user}/toggle', [UserController::class, 'toggleEstado'])
         ->name('users.toggle');
 
-    Route::post('/users/{user}/regenerar-password', [UserController::class, 'regenerarPassword'])->middleware('throttle:3,1')->name('users.regenerar-password');
+    Route::post('/users/{user}/regenerar-password', [UserController::class, 'regenerarPassword'])
+        ->middleware('throttle:3,1')
+        ->name('users.regenerar-password');
 
-    Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class)->except(['show']);
 
     Route::middleware('rol:superadmin')
         ->prefix('roles')
         ->name('roles.')
         ->group(function () {
-            Route::get('/', [RolController::class, 'index'])
-                ->name('index');
-
-            Route::get('/crear', [RolController::class, 'create'])
-                ->name('create');
-
-            Route::post('/', [RolController::class, 'store'])
-                ->name('store');
-
-            Route::get('/{rol}/editar', [RolController::class, 'edit'])
-                ->name('edit');
-
-            Route::put('/{rol}', [RolController::class, 'update'])
-                ->name('update');
-
-            Route::delete('/{rol}', [RolController::class, 'destroy'])
-                ->name('destroy');
+            Route::get('/', [RolController::class, 'index'])->name('index');
+            Route::get('/crear', [RolController::class, 'create'])->name('create');
+            Route::post('/', [RolController::class, 'store'])->name('store');
+            Route::get('/{rol}/editar', [RolController::class, 'edit'])->name('edit');
+            Route::put('/{rol}', [RolController::class, 'update'])->name('update');
+            Route::delete('/{rol}', [RolController::class, 'destroy'])->name('destroy');
         });
+
+    Route::get('/ordenes-vencidas', [AbonosOrdenController::class, 'vencidas'])
+        ->name('ordenes.vencidas');
+
+    Route::post('/ordenes-vencidas/{orden}/cerrar', [AbonosOrdenController::class, 'cerrar'])
+        ->name('ordenes.cerrar');
+
+    Route::post('/ordenes/{orden}/entregar/{detalle}', [AbonosOrdenController::class, 'entregar'])
+        ->name('ordenes.entregar');
+
+    Route::get('/pagos', [GestionOrdenController::class, 'index'])
+        ->name('pagos.index');
+
+    Route::get('/pagos/{pago}/comprobante', [GestionOrdenController::class, 'comprobante'])
+        ->name('pagos.comprobante');
+
+    Route::get('/abonos-transferencia/{abono}/comprobante', [GestionOrdenController::class, 'comprobanteAbono'])
+        ->name('pagos.abonos.comprobante');
+
+    Route::post('/pagos/{pago}/aprobar', [GestionOrdenController::class, 'aprobar'])
+        ->name('pagos.aprobar');
+
+    Route::post('/pagos/{pago}/rechazar', [GestionOrdenController::class, 'rechazar'])
+        ->name('pagos.rechazar');
 });
 
-// Usuario normal (Protegido)
-Route::middleware(['auth', 'force.password.change', 'rol:usuario', 'user.status'])->group(function () {
-    Route::get('/user/dashboard', function () {
-        return redirect()->route('welcome');
-    })->name('user.dashboard');
-
-    Route::get('/datos-personales', fn() => view('auth.datos-personales'))
+Route::middleware([
+    'auth',
+    'force.password.change',
+    'rol:usuario',
+    'user.status',
+])->group(function () {
+    Route::get('/datos-personales', fn () => view('auth.datos-personales'))
         ->name('datos.personales');
 
     Route::get('/omitir-perfil', function () {
@@ -395,51 +385,36 @@ Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])
 
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
-
 Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])
     ->name('vincular.cuenta');
 
 Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])
     ->name('vincular.cuenta.procesar');
 
+Route::get('/actividades/{slug}/inscripcion', [InscripcionController::class, 'create'])
+    ->name('sidan.inscripciones.create');
 
-// Mostrar formulario.
-Route::get(
-    '/actividades/{slug}/inscripcion',
-    [InscripcionController::class, 'create']
-)->name('sidan.inscripciones.create');
-
-// Registrar inscripción.
-Route::post(
-    '/actividades/{slug}/inscripciones',
-    [InscripcionController::class, 'store']
-)->middleware('throttle:8,1')
+Route::post('/actividades/{slug}/inscripciones', [InscripcionController::class, 'store'])
+    ->middleware('throttle:8,1')
     ->name('sidan.inscripciones.store');
 
-// Consultar inscripción.
-Route::get(
-    '/inscripciones/{inscripcion}',
-    [InscripcionController::class, 'show']
-)->name('sidan.inscripciones.show');
+Route::get('/inscripciones/{inscripcion}', [InscripcionController::class, 'show'])
+    ->name('sidan.inscripciones.show');
 
-// Ver resumen de orden.
-Route::get(
-    '/ordenes/{orden}',
-    [OrdenController::class, 'show']
-)->name('sidan.ordenes.show');
+Route::get('/ordenes/{orden}', [OrdenController::class, 'show'])
+    ->name('sidan.ordenes.show');
 
-// Iniciar pago con Wompi.
-Route::post(
-    '/ordenes/{orden}/pagar',
-    [PagoController::class, 'iniciar']
-)->middleware('throttle:5,1')
+Route::post('/ordenes/{orden}/pagar', [PagoController::class, 'iniciar'])
+    ->middleware('throttle:5,1')
     ->name('sidan.pagos.iniciar');
 
+Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])
+    ->middleware(['auth', 'force.password.change'])
+    ->name('profile.google.link');
 
-// Google desde el perfil (Autenticado)
-Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])->middleware(['auth', 'force.password.change'])->name('profile.google.link');
-Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])->middleware(['auth', 'force.password.change'])->name('profile.google.unlink');
-
+Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])
+    ->middleware(['auth', 'force.password.change'])
+    ->name('profile.google.unlink');
 
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/ordenes/{orden}/promocion', [GestionOrdenController::class, 'promocion'])
@@ -457,32 +432,4 @@ Route::middleware('throttle:10,1')->group(function () {
 
     Route::delete('/ordenes/{orden}', [GestionOrdenController::class, 'cancelar'])
         ->name('sidan.ordenes.cancelar');
-});
-
-Route::middleware([
-    'auth',
-    'force.password.change',
-    'rol:superadmin,admin',
-    'user.status',
-])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/ordenes-vencidas', [\App\Http\Controllers\Admin\AbonosOrdenController::class, 'vencidas'])
-        ->name('ordenes.vencidas');
-    Route::post('/ordenes-vencidas/{orden}/cerrar', [\App\Http\Controllers\Admin\AbonosOrdenController::class, 'cerrar'])
-        ->name('ordenes.cerrar');
-    Route::post('/ordenes/{orden}/entregar/{detalle}', [\App\Http\Controllers\Admin\AbonosOrdenController::class, 'entregar'])
-        ->name('ordenes.entregar');
-    Route::get('/pagos', [GestionOrdenController::class, 'index'])
-        ->name('pagos.index');
-
-    Route::get('/pagos/{pago}/comprobante', [GestionOrdenController::class, 'comprobante'])
-        ->name('pagos.comprobante');
-
-    Route::get('/abonos-transferencia/{abono}/comprobante', [GestionOrdenController::class, 'comprobanteAbono'])
-        ->name('pagos.abonos.comprobante');
-
-    Route::post('/pagos/{pago}/aprobar', [GestionOrdenController::class, 'aprobar'])
-        ->name('pagos.aprobar');
-
-    Route::post('/pagos/{pago}/rechazar', [GestionOrdenController::class, 'rechazar'])
-        ->name('pagos.rechazar');
 });

@@ -3,59 +3,74 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Rol;
 use App\Models\InformacionPersonal;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules;
+use App\Models\Rol;
+use App\Models\User;
 use App\Notifications\UsuarioCreadoNotification;
+use App\Support\AccesoModulos;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    // Muestra solo usuarios activos y no eliminados
     public function index(Request $request)
     {
         $search = $request->input('search');
 
         $users = User::with(['rol', 'informacion_personal'])
-            ->where('eliminado', false)  
-            ->where('estado_activo', true)   
+            ->where('eliminado', false)
+            ->where('estado_activo', true)
             ->when($search, function ($query, $search) {
-                $query->whereHas('informacion_personal', function ($q) use ($search) {
-                    $q->where('nombres', 'like', "%{$search}%")
-                        ->orWhere('apellidos', 'like', "%{$search}%")
-                        ->orWhere('documento', 'like', "%{$search}%");
-                })->orWhere('correo', 'like', "%{$search}%");
+                $query->where(function ($consulta) use ($search) {
+                    $consulta->whereHas('informacion_personal', function ($q) use ($search) {
+                        $q->where('nombres', 'like', "%{$search}%")
+                            ->orWhere('apellidos', 'like', "%{$search}%")
+                            ->orWhere('documento', 'like', "%{$search}%");
+                    })->orWhere('correo', 'like', "%{$search}%");
+                });
             })
-            ->orderBy('id_usuario', 'desc')
-            ->paginate(10);
+            ->orderByDesc('id_usuario')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.users.listado', compact('users', 'search'));
     }
 
-    // Muestra el formulario de creación (antes create)
     public function create()
     {
-        $roles = Rol::all();
+        $roles = $this->rolesAsignables();
+
         return view('admin.users.crear', compact('roles'));
     }
 
-    // Guarda el nuevo usuario
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nombres' => ['required', 'string', 'max:100'],
             'apellidos' => ['required', 'string', 'max:100'],
-            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento'],
-            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono'],
-            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
+            'documento' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{8}-[0-9]$/',
+                'unique:tbl_informacion_personal,documento',
+            ],
+            'telefono' => [
+                'nullable',
+                'string',
+                'regex:/^\+[1-9][0-9]{6,14}$/',
+                'unique:tbl_informacion_personal,telefono',
+            ],
+            'fecha_nacimiento' => [
+                'nullable',
+                'date',
+                'before_or_equal:' . now()->subYears(10)->format('Y-m-d'),
+            ],
             'genero' => ['nullable', 'string', 'max:10'],
             'ubicacion' => ['nullable', 'string', 'max:150'],
-
             'email' => [
                 'required',
                 'string',
@@ -64,29 +79,24 @@ class UserController extends Controller
                 'max:150',
                 'unique:tbl_usuarios,correo',
             ],
-
-            'rol' => ['required', 'exists:tbl_roles,id_rol'],
+            'rol' => ['required', 'integer', 'exists:tbl_roles,id_rol'],
         ], [
             'documento.unique' => 'Este DUI ya está registrado.',
             'documento.regex' => 'Ingresa un número de DUI válido.',
-
             'telefono.regex' => 'Ingresa un número de teléfono válido.',
             'telefono.unique' => 'Este número de teléfono ya está registrado.',
-
             'email.required' => 'El correo electrónico es obligatorio.',
             'email.email' => 'Ingresa un correo electrónico válido.',
             'email.unique' => 'Este correo electrónico ya está registrado.',
-
-            'fecha_nacimiento.before_or_equal' =>
-                'Debes tener al menos 10 años para registrarte.',
+            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
         ]);
 
-        // Contraseña temporal generada por SIDAN.
+        $this->validarAsignacion($validated['rol']);
+
         $passwordTemporal = Str::random(20);
 
         try {
             $user = DB::transaction(function () use ($validated, $passwordTemporal) {
-
                 $info = InformacionPersonal::create([
                     'nombres' => $validated['nombres'],
                     'apellidos' => $validated['apellidos'],
@@ -102,24 +112,21 @@ class UserController extends Controller
                     'id_rol' => $validated['rol'],
                     'correo' => $validated['email'],
                     'password_hash' => Hash::make($passwordTemporal),
-                    'estado' => 'activo',
+                    'estado_activo' => true,
+                    'eliminado' => false,
                     'must_change_password' => true,
                 ]);
             });
-
-        } catch (\Throwable $e) {
-            report($e);
+        } catch (\Throwable $exception) {
+            report($exception);
 
             return back()
                 ->with('error', 'No fue posible crear el usuario.')
                 ->withInput($request->except('password', 'password_confirmation'));
         }
 
-        // Enviar el correo después de confirmar la creación.
         try {
-            $user->notify(
-                new UsuarioCreadoNotification($passwordTemporal)
-            );
+            $user->notify(new UsuarioCreadoNotification($passwordTemporal));
 
             return redirect()
                 ->route('admin.users.index')
@@ -127,43 +134,62 @@ class UserController extends Controller
                     'success',
                     'Usuario creado correctamente. Se enviaron sus credenciales al correo electrónico.'
                 );
-
-        } catch (\Throwable $e) {
-            report($e);
+        } catch (\Throwable $exception) {
+            report($exception);
 
             return redirect()
                 ->route('admin.users.index')
                 ->with(
                     'warning',
-                    'El usuario fue creado, pero no se pudo enviar el correo. No lo crees nuevamente; será necesario habilitar el reenvío de credenciales.'
+                    'El usuario fue creado, pero no se pudo enviar el correo. No lo crees nuevamente; utilizá la opción para regenerar su contraseña.'
                 );
         }
     }
 
-    // Muestra el formulario de edición (antes edit)
     public function edit(User $user)
     {
+        $this->autorizarGestion($user);
+
         $user->load('informacion_personal');
-        $roles = Rol::all();
+        $roles = $this->rolesAsignables();
+
         return view('admin.users.editar', compact('user', 'roles'));
     }
 
-    // Actualiza el usuario
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
-            // Imagen de perfil.
-            'imagen_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120',],
-            'eliminar_imagen_perfil' => ['nullable', 'boolean',],
+        $this->autorizarGestion($user);
 
-            // Información personal.
-            'nombres' => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento,' . $user->id_informacion_personal . ',id_informacion_personal'],
-            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono,' . $user->id_informacion_personal . ',id_informacion_personal'],
-            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
-            'genero' => 'nullable|in:M,F,O',
-            
+        $validated = $request->validate([
+            'imagen_perfil' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+            'eliminar_imagen_perfil' => ['nullable', 'boolean'],
+            'nombres' => ['required', 'string', 'max:100'],
+            'apellidos' => ['required', 'string', 'max:100'],
+            'documento' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{8}-[0-9]$/',
+                'unique:tbl_informacion_personal,documento,'
+                    . $user->id_informacion_personal . ',id_informacion_personal',
+            ],
+            'telefono' => [
+                'nullable',
+                'string',
+                'regex:/^\+[1-9][0-9]{6,14}$/',
+                'unique:tbl_informacion_personal,telefono,'
+                    . $user->id_informacion_personal . ',id_informacion_personal',
+            ],
+            'fecha_nacimiento' => [
+                'nullable',
+                'date',
+                'before_or_equal:' . now()->subYears(10)->format('Y-m-d'),
+            ],
+            'genero' => ['nullable', 'in:M,F,O'],
             'email' => [
                 'required',
                 'string',
@@ -172,31 +198,27 @@ class UserController extends Controller
                 'max:150',
                 'unique:tbl_usuarios,correo,' . $user->id_usuario . ',id_usuario',
             ],
-
-            'rol' => 'required|exists:tbl_roles,id_rol',
+            'rol' => ['required', 'integer', 'exists:tbl_roles,id_rol'],
         ]);
 
-        // Guardar referencia a la imagen actual.
+        $this->validarAsignacion($validated['rol']);
+
         $imagenAnterior = $user->imagen_perfil;
         $imagenNueva = null;
-
-        // Determinar si se solicitó eliminar la imagen.
         $eliminarImagen = $request->boolean('eliminar_imagen_perfil');
 
         try {
-            // Subir imagen solamente si no se solicitó eliminarla.
             if (!$eliminarImagen && $request->hasFile('imagen_perfil')) {
-                $imagenNueva = $request->file('imagen_perfil')->store('perfiles', 'public');
+                $imagenNueva = $request->file('imagen_perfil')
+                    ->store('perfiles', 'public');
             }
 
-            // Actualizar datos dentro de una transacción.
             DB::transaction(function () use (
                 $user,
                 $validated,
                 $eliminarImagen,
                 $imagenNueva
             ) {
-                // Actualizar información personal.
                 $user->informacion_personal->update([
                     'nombres' => $validated['nombres'],
                     'apellidos' => $validated['apellidos'],
@@ -206,48 +228,44 @@ class UserController extends Controller
                     'genero' => $validated['genero'] ?? null,
                 ]);
 
-                // Datos de la cuenta.
                 $userData = [
                     'correo' => $validated['email'],
                     'id_rol' => $validated['rol'],
                 ];
 
-                // Actualizar imagen de perfil.
                 if ($eliminarImagen) {
                     $userData['imagen_perfil'] = null;
                 } elseif ($imagenNueva) {
                     $userData['imagen_perfil'] = $imagenNueva;
                 }
 
-                // Guardar cambios del usuario.
                 $user->update($userData);
             });
-
-        } catch (\Throwable $e) {
-            // Si falla la actualización, eliminar la imagen recién subida.
+        } catch (\Throwable $exception) {
             if ($imagenNueva) {
                 Storage::disk('public')->delete($imagenNueva);
             }
 
-            report($e);
+            report($exception);
 
-            return back()->with('error', 'No fue posible actualizar el usuario.')->withInput();
+            return back()
+                ->with('error', 'No fue posible actualizar el usuario.')
+                ->withInput();
         }
 
-        // Eliminar imagen anterior solo después de guardar correctamente.
-        $imagenFueReemplazada = !is_null($imagenNueva);
-
-        if ($imagenAnterior && ($eliminarImagen || $imagenFueReemplazada)) 
-        {
+        if ($imagenAnterior && ($eliminarImagen || $imagenNueva !== null)) {
             Storage::disk('public')->delete($imagenAnterior);
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'Usuario actualizado correctamente.');
     }
 
     public function regenerarPassword(User $user)
     {
-        // No permitir restablecer contraseñas de cuentas eliminadas.
+        $this->autorizarGestion($user);
+
         if ($user->eliminado) {
             return back()->with(
                 'error',
@@ -255,15 +273,6 @@ class UserController extends Controller
             );
         }
 
-        // Evitar que el administrador restablezca su propia contraseña.
-        if (auth()->id() === $user->getKey()) {
-            return back()->with(
-                'error',
-                'No puedes restablecer tu propia contraseña desde administración.'
-            );
-        }
-
-        // Generar una nueva contraseña temporal.
         $passwordTemporal = Str::random(20);
 
         try {
@@ -273,8 +282,8 @@ class UserController extends Controller
                 $user->remember_token = null;
                 $user->save();
             });
-        } catch (\Throwable $e) {
-            report($e);
+        } catch (\Throwable $exception) {
+            report($exception);
 
             return back()->with(
                 'error',
@@ -282,18 +291,15 @@ class UserController extends Controller
             );
         }
 
-        // Reutilizar la notificación que ya funciona.
         try {
-            $user->notify(
-                new UsuarioCreadoNotification($passwordTemporal, true)
-            );
+            $user->notify(new UsuarioCreadoNotification($passwordTemporal, true));
 
             return back()->with(
                 'success',
                 'Se generó una nueva contraseña temporal y se enviaron las credenciales al correo del usuario.'
             );
-        } catch (\Throwable $e) {
-            report($e);
+        } catch (\Throwable $exception) {
+            report($exception);
 
             return back()->with(
                 'warning',
@@ -302,43 +308,61 @@ class UserController extends Controller
         }
     }
 
-    // Alterna el estado y devuelve JSON para Alpine.js
     public function toggleEstado(User $user)
     {
+        $this->autorizarGestion($user);
+
         try {
             $nuevoEstado = !$user->estado_activo;
             $user->update(['estado_activo' => $nuevoEstado]);
 
             $mensaje = $nuevoEstado ? 'activado' : 'baneado';
-            return response()->json(['success' => true, 'message' => "Usuario {$mensaje} correctamente."]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error.'], 500);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Usuario {$mensaje} correctamente.",
+            ]);
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No fue posible cambiar el estado del usuario.',
+            ], 500);
         }
     }
 
-    // Eliminar (Borrado lógico completo)
     public function destroy(User $user)
     {
+        $this->autorizarGestion($user);
+
         try {
             $user->update([
                 'eliminado' => true,
                 'estado_activo' => false,
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Usuario eliminado permanentemente del sistema.']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error.'], 500);
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario eliminado permanentemente del sistema.',
+            ]);
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No fue posible eliminar el usuario.',
+            ], 500);
         }
     }
 
-    // Búsqueda en tiempo real 
     public function search(Request $request)
     {
         $search = $request->input('q', '');
 
         $users = User::with(['rol', 'informacion_personal'])
             ->where('eliminado', false)
-            ->where('estado_activo', true)  
+            ->where('estado_activo', true)
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('correo', 'like', "%{$search}%")
@@ -353,7 +377,7 @@ class UserController extends Controller
                         });
                 });
             })
-            ->orderBy('id_usuario', 'desc')
+            ->orderByDesc('id_usuario')
             ->get();
 
         return response()->json([
@@ -368,28 +392,28 @@ class UserController extends Controller
                     'estado_activo' => $user->estado_activo,
                     'edit_url' => route('admin.users.edit', $user),
                     'toggle_url' => route('admin.users.toggle', $user),
-                    'ban_url' => route('admin.users.destroy', $user), 
+                    'ban_url' => route('admin.users.destroy', $user),
                 ];
-            })
+            }),
         ]);
     }
-    // Bloqueados
+
     public function banned()
     {
         $users = User::with(['rol', 'informacion_personal'])
-            ->where('eliminado', false)         
-            ->where('estado_activo', false)     
-            ->orderBy('id_usuario', 'desc')
+            ->where('eliminado', false)
+            ->where('estado_activo', false)
+            ->orderByDesc('id_usuario')
             ->paginate(10);
 
         return view('admin.users.banned', compact('users'));
     }
 
-    // Restaurar usuario (funciona para baneados y eliminados)
-    public function restore($id)
+    public function restore(User $user)
     {
+        $this->autorizarGestion($user);
+
         try {
-            $user = User::findOrFail($id);
             $user->update([
                 'eliminado' => false,
                 'estado_activo' => true,
@@ -397,24 +421,55 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Usuario reactivado correctamente y devuelto al listado principal.'
+                'message' => 'Usuario reactivado correctamente y devuelto al listado principal.',
             ]);
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
+            report($exception);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error al reactivar el usuario.'
+                'message' => 'Error al reactivar el usuario.',
             ], 500);
         }
     }
 
-    // Ver usuarios eliminados (solo superadmin)
     public function deleted()
     {
         $users = User::with(['rol', 'informacion_personal'])
             ->where('eliminado', true)
-            ->orderBy('id_usuario', 'desc')
+            ->orderByDesc('id_usuario')
             ->paginate(10);
 
         return view('admin.users.deleted', compact('users'));
+    }
+
+    private function rolesAsignables()
+    {
+        return Rol::orderBy('nombre')
+            ->get()
+            ->filter(
+                fn (Rol $rol) => AccesoModulos::puedeAsignar(auth()->user(), $rol)
+            )
+            ->values();
+    }
+
+    private function validarAsignacion(int|string $idRol): void
+    {
+        $rol = Rol::findOrFail($idRol);
+
+        if (!AccesoModulos::puedeAsignar(auth()->user(), $rol)) {
+            throw ValidationException::withMessages([
+                'rol' => 'No tenés autorización para asignar este rol.',
+            ]);
+        }
+    }
+
+    private function autorizarGestion(User $user): void
+    {
+        abort_unless(
+            AccesoModulos::puedeGestionar(auth()->user(), $user),
+            403,
+            'No podés administrar esta cuenta. Para tus datos personales utilizá Mi perfil.'
+        );
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\AccesoModulos;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,9 +24,9 @@ class AuthenticatedSessionController extends Controller
 
         $usuario = Auth::user();
 
-        if ($usuario->must_change_password) {
-            $request->session()->forget('url.intended');
+        $request->session()->forget('url.intended');
 
+        if ($usuario->must_change_password) {
             return redirect()
                 ->route('password.force.edit')
                 ->with(
@@ -34,34 +35,11 @@ class AuthenticatedSessionController extends Controller
                 );
         }
 
-        $nombreRol = $usuario->rol?->nombre;
-
-        $esAdministrador = in_array(
-            $nombreRol,
-            ['admin', 'superadmin'],
-            true
-        );
-
-        $mensaje = $esAdministrador
-            ? 'Se ha iniciado sesión como administrador. Puedes gestionar el sistema desde aquí.'
-            : 'Se ha iniciado sesión correctamente.';
-
-        if ($nombreRol === 'usuario') {
-            $request->session()->forget('url.intended');
-
-            return redirect()
-                ->route('welcome')
-                ->with('success', $mensaje);
-        }
-
-        $destinoPredeterminado = $esAdministrador
-            ? route('admin.dashboard')
-            : route('welcome');
-
         return redirect()
-            ->intended($destinoPredeterminado)
-            ->with('success', $mensaje);
+            ->route(AccesoModulos::inicio($usuario))
+            ->with('success', 'Se ha iniciado sesión correctamente.');
     }
+
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();

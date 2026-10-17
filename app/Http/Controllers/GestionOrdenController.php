@@ -53,7 +53,7 @@ class GestionOrdenController extends Controller
 
         $datos = $request->validate([
             'metodo' => ['required', 'in:transferencia,efectivo'],
-            'modalidad'=>['required','in:completo,anticipo'],
+            'modalidad' => ['required', 'in:completo,anticipo'],
             'comprobante' => [
                 'required_if:metodo,transferencia',
                 'nullable',
@@ -108,8 +108,12 @@ class GestionOrdenController extends Controller
 
         $request->validate([
             'comprobante' => [
-                'required', 'file', 'image', 'mimes:jpg,jpeg,png,webp',
-                'max:5120', 'dimensions:max_width=12000,max_height=12000',
+                'required',
+                'file',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+                'dimensions:max_width=12000,max_height=12000',
             ],
         ]);
 
@@ -135,8 +139,10 @@ class GestionOrdenController extends Controller
             throw $exception;
         }
 
-        return back()->with('success',
-            'Comprobante complementario enviado. Esperá la revisión administrativa.');
+        return back()->with(
+            'success',
+            'Comprobante complementario enviado. Esperá la revisión administrativa.'
+        );
     }
 
     public function gratuita(Request $request, Orden $orden)
@@ -186,13 +192,29 @@ class GestionOrdenController extends Controller
             ->with('success', 'La orden fue cancelada y eliminada.');
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $estadosPagos = Pago::query()
+            ->select('estado')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('estado')
+            ->orderBy('estado')
+            ->pluck('total', 'estado');
+
+        $filtros = $request->validate([
+            'estado' => ['nullable', 'string', \Illuminate\Validation\Rule::in($estadosPagos->keys()->all())],
+        ]);
+        $estadoSeleccionado = $filtros['estado'] ?? '';
+
         return view('admin.pagos.index', [
+            'estadosPagos' => $estadosPagos,
+            'estadoSeleccionado' => $estadoSeleccionado,
             'pagos' => Pago::with(['orden.actividad', 'orden.detalles', 'abonos'])
+                ->when($estadoSeleccionado !== '', fn($query) => $query->where('estado', $estadoSeleccionado))
                 ->orderByRaw("CASE WHEN estado IN ('pendiente', 'parcial') THEN 0 ELSE 1 END")
                 ->orderByDesc('id_pago')
-                ->paginate(20),
+                ->paginate(20)
+                ->withQueryString(),
         ]);
     }
 
@@ -250,14 +272,19 @@ class GestionOrdenController extends Controller
                 $this->gestion->error('Los pagos de Wompi se confirman mediante su webhook.');
             }
 
-            $abono = $actualPago->abonos()->where('estado','pendiente')->lockForUpdate()->first();
-            if (!$abono) $this->gestion->error('No existe abono pendiente para validar.');
-            if ($actualPago->proveedor==='transferencia' && (!$abono->comprobante_path
-                || !Storage::disk('local')->exists($abono->comprobante_path))) {
+            $abono = $actualPago->abonos()->where('estado', 'pendiente')->lockForUpdate()->first();
+            if (!$abono)
+                $this->gestion->error('No existe abono pendiente para validar.');
+            if (
+                $actualPago->proveedor === 'transferencia' && (!$abono->comprobante_path
+                    || !Storage::disk('local')->exists($abono->comprobante_path))
+            ) {
                 $this->gestion->error('No existe comprobante bancario pendiente y accesible.');
             }
             return $this->gestion->acreditarAbono(
-                $actual, $actualPago, $abono,
+                $actual,
+                $actualPago,
+                $abono,
                 $this->gestion->centavos($datos['monto_recibido']),
                 (int) $request->user()->id_usuario,
                 $datos['observacion'] ?? null
@@ -266,7 +293,7 @@ class GestionOrdenController extends Controller
 
         return back()->with('success', $faltante > 0
             ? 'Abono acreditado. Quedan $' . $this->gestion->dinero($faltante)
-                . ' pendientes; el comprador ya puede enviar otro comprobante.'
+            . ' pendientes; el comprador ya puede enviar otro comprobante.'
             : 'Pago aprobado. La orden quedó pagada.');
     }
 
@@ -277,18 +304,21 @@ class GestionOrdenController extends Controller
         ]);
 
         $orden = $pago->orden()->firstOrFail();
-        $conservarOrden = $this->gestion->ejecutar($orden,
+        $conservarOrden = $this->gestion->ejecutar(
+            $orden,
             function (Orden $actual) use ($pago, $datos, $request) {
                 $actualPago = Pago::whereKey($pago->id_pago)
                     ->lockForUpdate()->firstOrFail();
 
-                if (!in_array($actualPago->proveedor, ['transferencia', 'efectivo'], true)
+                if (
+                    !in_array($actualPago->proveedor, ['transferencia', 'efectivo'], true)
                     || !in_array($actualPago->estado, ['pendiente', 'parcial'], true)
-                    || $actual->estado !== 'pendiente_pago') {
+                    || $actual->estado !== 'pendiente_pago'
+                ) {
                     $this->gestion->error('Este pago ya no se puede rechazar.');
                 }
 
-                if (in_array($actualPago->proveedor,['transferencia','efectivo'],true)) {
+                if (in_array($actualPago->proveedor, ['transferencia', 'efectivo'], true)) {
                     $abono = $actualPago->abonos()
                         ->where('estado', 'pendiente')
                         ->lockForUpdate()->first();
@@ -308,8 +338,8 @@ class GestionOrdenController extends Controller
                     // el dinero que se acreditó previamente.
                     if ($actualPago->montoAcreditadoCentavos() > 0) {
                         // Reemplazar el intento de cobro en efectivo rechazado.
-                        if ($actualPago->proveedor==='efectivo') {
-                            $actualPago->abonos()->create(['metodo'=>'efectivo','estado'=>'pendiente']);
+                        if ($actualPago->proveedor === 'efectivo') {
+                            $actualPago->abonos()->create(['metodo' => 'efectivo', 'estado' => 'pendiente']);
                         }
                         $actualPago->update([
                             'estado' => 'parcial',
@@ -339,8 +369,10 @@ class GestionOrdenController extends Controller
                     'expira_en' => now(),
                 ]);
 
-                if ($actual->tipo_orden === 'inscripcion'
-                    && $actual->inscripcion?->estado === 'pendiente_pago') {
+                if (
+                    $actual->tipo_orden === 'inscripcion'
+                    && $actual->inscripcion?->estado === 'pendiente_pago'
+                ) {
                     $actual->inscripcion->update([
                         'estado' => $estadoFinal,
                         'expira_en' => now(),
