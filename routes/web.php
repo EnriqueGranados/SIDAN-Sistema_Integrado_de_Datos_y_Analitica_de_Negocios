@@ -271,6 +271,13 @@ Route::middleware(['auth', 'force.password.change', 'rol:superadmin,admin', 'use
         [ControlActividadController::class, 'consolidado']
     )->name('control.consolidado');
 
+
+    Route::get(
+        '/control/consolidado/imprimir',
+        [ControlActividadController::class, 'imprimirConsolidado']
+    )->name('control.consolidado.imprimir');
+
+
     Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
         ->name('categorias.reorder');
 
