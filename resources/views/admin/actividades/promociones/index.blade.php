@@ -202,14 +202,14 @@
     </div>
 </div>
 
-<div id="modalPromocion" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
+<div id="modalPromocion" role="dialog" aria-modal="true" aria-labelledby="tituloModalPromocion" class="activity-ui fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
     <div class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-white shadow-2xl dark:bg-[#0b1220]">
         <div class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur dark:border-white/10 dark:bg-[#0b1220]/95 sm:px-6">
             <div>
                 <p class="text-xs font-black uppercase tracking-[0.16em] text-emerald-600">Promoción</p>
                 <h2 id="tituloModalPromocion" class="mt-1 text-xl font-black text-sidan-900 dark:text-white">Nueva promoción</h2>
             </div>
-            <button type="button" id="cerrarModalPromocion" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-xl text-slate-500 transition hover:bg-slate-100 dark:border-white/10 dark:hover:bg-white/10">×</button>
+            <button type="button" id="cerrarModalPromocion" aria-label="Cerrar promoción" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-xl text-slate-500 transition hover:bg-slate-100 dark:border-white/10 dark:hover:bg-white/10">×</button>
         </div>
 
         <form id="formPromocion" method="POST" action="{{ route('admin.actividades.promociones.store', $actividad) }}" class="p-5 sm:p-6">
@@ -321,12 +321,32 @@
             </div>
 
             <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button type="button" id="cancelarModalPromocion" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">Cancelar</button>
                 <button type="submit" id="guardarPromocion" class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">Guardar promoción</button>
             </div>
         </form>
     </div>
 </div>
+
+
+{{-- Reutiliza el mismo calendario de Crear/Editar/Configurar actividades. --}}
+@include('admin.actividades.partials.calendario')
+
+<style>
+    /* El modal de promociones usa z-1000; el selector compartido debe quedar encima. */
+    #sidanUniversalCalendarPicker { z-index: 1100 !important; }
+
+    /* Apariencia clara/oscura de las fechas, sin modificar el componente compartido. */
+    #formPromocion button[aria-haspopup="dialog"] {
+        background-color: #f8fafc;
+        border-color: #e2e8f0;
+        color: #0f172a;
+    }
+    .dark #formPromocion button[aria-haspopup="dialog"] {
+        background-color: rgba(255,255,255,.05);
+        border-color: rgba(255,255,255,.1);
+        color: #fff;
+    }
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -393,6 +413,8 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         document.body.classList.add('overflow-hidden');
+        // Actualiza las fechas visibles del selector reutilizable al crear o editar.
+        window.SIDANCalendar?.refreshAll();
     }
 
     function cerrarModal() {
@@ -522,7 +544,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btnNuevaPromocion')?.addEventListener('click', () => abrirModal());
     document.querySelectorAll('[data-crear-promocion]').forEach(boton => boton.addEventListener('click', () => abrirModal()));
     document.getElementById('cerrarModalPromocion')?.addEventListener('click', cerrarModal);
-    document.getElementById('cancelarModalPromocion')?.addEventListener('click', cerrarModal);
     aplicaTodos.addEventListener('change', actualizarItems);
     tipo.addEventListener('change', actualizarPrefijo);
     form.addEventListener('submit', enviarFormulario);
@@ -556,17 +577,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    modal.addEventListener('click', function (evento) {
-        if (evento.target === modal) {
-            cerrarModal();
-        }
-    });
-
-    document.addEventListener('keydown', function (evento) {
-        if (evento.key === 'Escape' && !modal.classList.contains('hidden')) {
-            cerrarModal();
-        }
-    });
+    // No cerrar el modal al pulsar Escape ni al hacer clic fuera de la tarjeta.
+    // Solo la X y el guardado correcto (recarga actual) finalizan este formulario.
 });
 </script>
 @endsection

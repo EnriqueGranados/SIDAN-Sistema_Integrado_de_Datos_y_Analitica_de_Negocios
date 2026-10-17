@@ -2,6 +2,14 @@
     $usuarioHeader = request()->user();
     $rolHeader = $usuarioHeader ? strtolower((string) $usuarioHeader->rol()->value('nombre')) : null;
     $esAdminHeader = in_array($rolHeader, ['admin', 'superadmin'], true);
+
+    $enInicioHeader = request()->routeIs('welcome');
+    $enExplorarHeader = request()->routeIs('activities.*', 'sidan.inscripciones.create');
+    $enInscripcionesHeader = request()->routeIs('user.inscripciones.*');
+    $enOrdenesHeader = request()->routeIs('user.ordenes.*', 'sidan.ordenes.*', 'sidan.pagos.*');
+    $enPerfilHeader = request()->routeIs('profile.*');
+    $enCategoriasHeader = request()->routeIs('publico.categorias');
+    $enComoFuncionaHeader = request()->routeIs('publico.como-funciona');
 @endphp
 
 <header x-data="{ mobileMenu: false }"
@@ -21,29 +29,58 @@
         </a>
 
         {{-- NAVEGACIÓN DESKTOP --}}
-        <nav class="hidden items-center gap-7 text-sm font-semibold text-slate-600 lg:flex dark:text-slate-300">
-            <a href="{{ route('welcome') }}#inicio" class="transition hover:text-sidan-500">
+        <nav class="hidden items-center gap-1.5 text-sm font-semibold lg:flex" aria-label="Navegación principal">
+            <a href="{{ route('welcome') }}" @class([
+                'rounded-xl px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500',
+                'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enInicioHeader,
+                'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white' => !$enInicioHeader,
+            ])
+                @if ($enInicioHeader) aria-current="page" @endif>
                 Inicio
             </a>
 
-            <a href="{{ route('activities.index') }}" class="transition hover:text-sidan-500">
+            <a href="{{ route('activities.index') }}" @class([
+                'rounded-xl px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500',
+                'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enExplorarHeader,
+                'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white' => !$enExplorarHeader,
+            ])
+                @if ($enExplorarHeader) aria-current="page" @endif>
                 Explorar
             </a>
 
             @if ($rolHeader === 'usuario')
-                <a href="{{ route('user.inscripciones.index') }}" class="transition hover:text-sidan-500">
+                <a href="{{ route('user.inscripciones.index') }}" @class([
+                    'rounded-xl px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500',
+                    'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enInscripcionesHeader,
+                    'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white' => !$enInscripcionesHeader,
+                ])
+                    @if ($enInscripcionesHeader) aria-current="page" @endif>
                     Mis inscripciones
                 </a>
 
-                <a href="{{ route('user.ordenes.index') }}" class="transition hover:text-sidan-500">
+                <a href="{{ route('user.ordenes.index') }}" @class([
+                    'rounded-xl px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500',
+                    'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enOrdenesHeader,
+                    'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white' => !$enOrdenesHeader,
+                ])
+                    @if ($enOrdenesHeader) aria-current="page" @endif>
                     Mis órdenes
                 </a>
             @else
-                <a href="{{ route('welcome') }}#categorias" class="transition hover:text-sidan-500">
+                <a href="{{ route('publico.categorias') }}" @class([
+                    'rounded-xl px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500',
+                    'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enCategoriasHeader,
+                    'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white' => !$enCategoriasHeader,
+                ])
+                    @if ($enCategoriasHeader) aria-current="page" @endif>
                     Categorías
                 </a>
-
-                <a href="{{ route('welcome') }}#como-funciona" class="transition hover:text-sidan-500">
+                <a href="{{ route('publico.como-funciona') }}" @class([
+                    'rounded-xl px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500',
+                    'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enComoFuncionaHeader,
+                    'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white' => !$enComoFuncionaHeader,
+                ])
+                    @if ($enComoFuncionaHeader) aria-current="page" @endif>
                     ¿Cómo funciona?
                 </a>
             @endif
@@ -84,10 +121,78 @@
                         Administrar Welcome
                     </a>
                 @else
-                    <a href="{{ route('profile.edit') }}"
-                        class="rounded-xl bg-sidan-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600">
-                        Editar perfil
-                    </a>
+                    <form method="POST" action="{{ route('logout') }}" class="m-0 flex items-center p-0">
+                        @csrf
+                        <button type="submit"
+                            class="group flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-400">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                aria-hidden="true">
+                                <path
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Cerrar sesión
+                        </button>
+                    </form>
+
+                    <div class="relative ml-1" x-data="{ profileOpen: false }" @click.outside="profileOpen = false"
+                        @keydown.escape.window="profileOpen = false">
+                        <button type="button" @click="profileOpen = !profileOpen" :aria-expanded="profileOpen.toString()"
+                            aria-haspopup="true" aria-controls="public-user-profile-menu" aria-label="Abrir menú de perfil"
+                            @class([
+                                'flex h-10 items-center gap-2 rounded-xl px-1 pr-3 transition hover:bg-slate-100 dark:hover:bg-white/5',
+                                'bg-emerald-500/10 dark:bg-emerald-500/15' => $enPerfilHeader,
+                            ])>
+                            <img src="{{ $usuarioHeader->imagen_perfil ? asset('storage/' . $usuarioHeader->imagen_perfil) : asset('images/usuario.png') }}"
+                                alt="Foto de perfil"
+                                class="h-8 w-8 rounded-full border border-slate-200 object-cover dark:border-white/10">
+                            <svg class="h-4 w-4 text-slate-500 dark:text-slate-400" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+
+                        <div id="public-user-profile-menu" x-show="profileOpen" x-cloak x-transition
+                            class="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+                            <div class="border-b border-slate-100 px-4 py-3 dark:border-white/10">
+                                <p class="truncate text-sm font-bold text-sidan-900 dark:text-white">
+                                    {{ $usuarioHeader->nombres }} {{ $usuarioHeader->apellidos }}
+                                </p>
+                                <p class="truncate text-xs text-slate-500 dark:text-slate-400">
+                                    {{ $usuarioHeader->correo }}
+                                </p>
+                            </div>
+
+                            <a href="{{ route('profile.edit') }}" @click="profileOpen = false" @class([
+                                'flex items-center gap-3 px-4 py-3 text-sm transition hover:bg-slate-100 dark:hover:bg-white/5',
+                                'font-bold text-emerald-700 dark:text-emerald-300' => $enPerfilHeader,
+                                'text-slate-700 dark:text-slate-200' => !$enPerfilHeader,
+                            ])
+                                @if ($enPerfilHeader) aria-current="page" @endif>
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="4" />
+                                    <path d="M4 21a8 8 0 0 1 16 0" stroke-linecap="round" />
+                                </svg>
+                                Mi perfil
+                            </a>
+
+                            <div class="my-1 border-t border-slate-100 dark:border-white/10"></div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.8" aria-hidden="true">
+                                        <path
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    Cerrar sesión
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 @endif
             @else
                 <a href="{{ route('login') }}"
@@ -101,13 +206,15 @@
                 </a>
             @endauth
             @auth
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                        class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 transition hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400">
-                        Salir
-                    </button>
-                </form>
+                @if ($esAdminHeader)
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                            class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 transition hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400">
+                            Salir
+                        </button>
+                    </form>
+                @endif
             @endauth
         </div>
 
@@ -120,8 +227,8 @@
                 <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round" />
             </svg>
 
-            <svg x-show="mobileMenu" x-cloak class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+            <svg x-show="mobileMenu" x-cloak class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
                 <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" />
             </svg>
         </button>
@@ -132,34 +239,57 @@
         class="border-t border-slate-200 bg-white px-4 py-4 lg:hidden dark:border-white/10 dark:bg-sidan-950">
         <div class="mx-auto flex max-w-7xl flex-col gap-2 text-sm font-semibold">
 
-            <a href="{{ route('welcome') }}#inicio" @click="mobileMenu = false"
-                class="rounded-lg px-3 py-2 text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5">
+            <a href="{{ route('welcome') }}" @click="mobileMenu = false" @class([
+                'rounded-xl px-3 py-2.5 transition',
+                'bg-emerald-500/10 font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enInicioHeader,
+                'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5' => !$enInicioHeader,
+            ])
+                @if ($enInicioHeader) aria-current="page" @endif>
                 Inicio
             </a>
 
-            <a href="{{ route('welcome') }}#actividades" @click="mobileMenu = false"
-                class="rounded-lg px-3 py-2 text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5">
+            <a href="{{ route('activities.index') }}" @click="mobileMenu = false" @class([
+                'rounded-xl px-3 py-2.5 transition',
+                'bg-emerald-500/10 font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enExplorarHeader,
+                'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5' => !$enExplorarHeader,
+            ])
+                @if ($enExplorarHeader) aria-current="page" @endif>
                 Explorar
             </a>
 
             @if ($rolHeader === 'usuario')
                 <a href="{{ route('user.inscripciones.index') }}" @click="mobileMenu = false"
-                    class="rounded-lg px-3 py-2 text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5">
+                    @class([
+                        'rounded-xl px-3 py-2.5 transition',
+                        'bg-emerald-500/10 font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enInscripcionesHeader,
+                        'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5' => !$enInscripcionesHeader,
+                    ]) @if ($enInscripcionesHeader) aria-current="page" @endif>
                     Mis inscripciones
                 </a>
 
-                <a href="{{ route('user.ordenes.index') }}" @click="mobileMenu = false"
-                    class="rounded-lg px-3 py-2 text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5">
+                <a href="{{ route('user.ordenes.index') }}" @click="mobileMenu = false" @class([
+                    'rounded-xl px-3 py-2.5 transition',
+                    'bg-emerald-500/10 font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enOrdenesHeader,
+                    'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5' => !$enOrdenesHeader,
+                ])
+                    @if ($enOrdenesHeader) aria-current="page" @endif>
                     Mis órdenes
                 </a>
             @else
-                <a href="{{ route('welcome') }}#categorias" @click="mobileMenu = false"
-                    class="rounded-lg px-3 py-2 text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5">
+                <a href="{{ route('publico.categorias') }}" @click="mobileMenu = false" @class([
+                    'rounded-xl px-3 py-2.5 transition',
+                    'bg-emerald-500/10 font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enCategoriasHeader,
+                    'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5' => !$enCategoriasHeader,
+                ])
+                    @if ($enCategoriasHeader) aria-current="page" @endif>
                     Categorías
                 </a>
-
-                <a href="{{ route('welcome') }}#como-funciona" @click="mobileMenu = false"
-                    class="rounded-lg px-3 py-2 text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5">
+                <a href="{{ route('publico.como-funciona') }}" @click="mobileMenu = false"
+                    @class([
+                        'rounded-xl px-3 py-2.5 transition',
+                        'bg-emerald-500/10 font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' => $enComoFuncionaHeader,
+                        'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5' => !$enComoFuncionaHeader,
+                    ]) @if ($enComoFuncionaHeader) aria-current="page" @endif>
                     ¿Cómo funciona?
                 </a>
             @endif
@@ -197,9 +327,15 @@
                             Welcome
                         </a>
                     @else
-                        <a href="{{ route('profile.edit') }}"
-                            class="flex-1 rounded-xl bg-sidan-500 px-4 py-2.5 text-center font-bold text-white">
-                            Editar perfil
+                        <a href="{{ route('profile.edit') }}" @click="mobileMenu = false" @class([
+                            'flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2 text-center font-bold',
+                            'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300' => $enPerfilHeader,
+                            'border-slate-200 bg-white text-sidan-900 dark:border-white/10 dark:bg-white/5 dark:text-white' => !$enPerfilHeader,
+                        ])
+                            @if ($enPerfilHeader) aria-current="page" @endif>
+                            <img src="{{ $usuarioHeader->imagen_perfil ? asset('storage/' . $usuarioHeader->imagen_perfil) : asset('images/usuario.png') }}"
+                                alt="" class="h-7 w-7 rounded-full object-cover">
+                            Mi perfil
                         </a>
                     @endif
                 @else

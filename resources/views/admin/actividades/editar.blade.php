@@ -30,7 +30,6 @@
     <div class="activity-ui w-full min-w-0 max-w-full overflow-x-hidden">
         <div class="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
 
-            {{-- ENCABEZADO --}}
             <div class="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div class="min-w-0">
                     <div class="mb-2 flex flex-wrap items-center gap-2">
@@ -109,7 +108,6 @@
                 </div>
             @endif
 
-            {{-- ERRORES --}}
             @if (session('error'))
                 <div class="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
                     {{ session('error') }}
@@ -128,7 +126,6 @@
                 </div>
             @endif
 
-            {{-- STEPPER ESCRITORIO --}}
             <div class="mb-8 hidden w-full sm:block">
                 <div class="flex w-full items-center">
 
@@ -175,7 +172,6 @@
                 </div>
             </div>
 
-            {{-- STEPPER MÓVIL --}}
             <div class="mb-6 sm:hidden">
                 <div class="mb-3 flex items-center justify-between gap-4">
                     <div class="min-w-0">
@@ -220,9 +216,6 @@
                 @method('PUT')
                 <input type="hidden" id="eliminar_portada" name="eliminar_portada" value="0">
 
-                {{-- ===================================================== --}}
-                {{-- PASO 1: INFORMACIÓN --}}
-                {{-- ===================================================== --}}
                 <section class="form-step space-y-5" data-step="1">
                     @if ($modoCorreccion && $correccionesInformacion->isNotEmpty())
                         <div class="rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] p-4 sm:p-5">
@@ -271,7 +264,6 @@
 
                         <div class="space-y-6 p-4 sm:p-6">
 
-                            {{-- NOMBRE --}}
                             <div class="min-w-0">
                                 <div class="mb-2 flex items-center gap-2">
                                     <label for="nombre" class="text-sm font-medium text-gray-300">
@@ -297,7 +289,6 @@
                                 @enderror
                             </div>
 
-                            {{-- CATEGORÍA SOLO SI EXISTE --}}
                             @if ($categorias->isNotEmpty())
                                 <div class="min-w-0">
                                     <div class="mb-2 flex items-center gap-2">
@@ -327,7 +318,6 @@
                                 </div>
                             @endif
 
-                            {{-- RESUMEN --}}
                             <div class="min-w-0">
                                 <div class="mb-2 flex items-center gap-2">
                                     <label for="resumen" class="text-sm font-medium text-gray-300">
@@ -353,7 +343,6 @@
                                 </div>
                             </div>
 
-                            {{-- DESCRIPCIÓN --}}
                             <div class="min-w-0">
                                 <div class="mb-2 flex items-center gap-2">
                                     <label for="descripcion" class="text-sm font-medium text-gray-300">
@@ -375,7 +364,6 @@
                         </div>
                     </div>
 
-                    {{-- VISIBILIDAD --}}
                     <div class="rounded-2xl border border-blue-500/20 bg-blue-500/[0.025]">
                         <div class="border-b border-blue-500/10 px-4 py-5 sm:px-6">
                             <h3 class="font-semibold text-white">
@@ -469,7 +457,6 @@
 
                     @include('admin.actividades.partials.selector-espacio')
 
-                    {{-- PERÍODO REAL DE LA ACTIVIDAD --}}
                     <div class="rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.04]">
                         <div class="border-b border-cyan-500/10 px-4 py-5 sm:px-6">
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -541,9 +528,6 @@
                     </div>
                 </section>
 
-                {{-- ===================================================== --}}
-                {{-- PASO 2: PRESENTACIÓN --}}
-                {{-- ===================================================== --}}
                 <section class="form-step hidden" data-step="2">
                     <div class="space-y-5">
                         @if ($modoCorreccion && $correccionesPresentacion->isNotEmpty())
@@ -578,7 +562,6 @@
                             </div>
                         @endif
 
-                        {{-- PORTADA --}}
                         <div class="rounded-2xl border border-white/10 bg-white/[0.03]">
                             <div class="border-b border-white/10 px-4 py-5 sm:px-6">
                                 <h2 class="text-lg font-semibold text-white">
@@ -592,7 +575,6 @@
 
                             <div class="grid grid-cols-1 gap-6 p-4 sm:p-6 lg:grid-cols-2">
 
-                                {{-- FOTO --}}
                                 <div class="min-w-0">
                                     <div class="mb-3 flex flex-wrap items-center gap-2">
                                         <span class="text-sm font-medium text-gray-300">
@@ -669,7 +651,6 @@
 
                                 <div class="min-w-0 space-y-5">
 
-                                    {{-- ALT --}}
                                     <div>
                                         <div class="mb-2 flex items-center gap-2">
                                             <label for="texto_alternativo_portada"
@@ -692,7 +673,6 @@
                                             class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">
                                     </div>
 
-                                    {{-- DESTACADA --}}
                                     <div class="rounded-xl border border-white/10 bg-black/10 p-4">
                                         <input type="hidden" name="destacada" value="0">
 
@@ -721,7 +701,6 @@
                                         </label>
                                     </div>
 
-                                    {{-- PRIORIDAD --}}
                                     <div>
                                         <div class="mb-2 flex items-center gap-2">
                                             <label for="prioridad" class="text-sm font-medium text-gray-300">
@@ -760,7 +739,6 @@
                             </div>
                         </div>
 
-                        {{-- ETIQUETAS SOLO SI EXISTEN --}}
                         @if ($etiquetas->isNotEmpty())
                             <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
                                 <div class="mb-4 flex items-center gap-2">
@@ -804,18 +782,12 @@
                     </div>
                 </section>
 
-                {-- ===================================================== --}
-                {-- PASO 3 --}
-                {-- ===================================================== --}
                 <section class="form-step hidden" data-step="3">
                     @include('admin.actividades.partials.participacion', [
                         'actividadParticipacion' => $actividad,
                     ])
                 </section>
 
-                {{-- ===================================================== --}}
-                {{-- PASO 4: CONFIRMACIÓN --}}
-                {{-- ===================================================== --}}
                 <section class="form-step hidden" data-step="4">
                     <div class="space-y-5">
 
@@ -832,7 +804,6 @@
 
                             <div class="grid grid-cols-1 gap-6 p-4 sm:p-6 lg:grid-cols-5">
 
-                                {{-- IMAGEN --}}
                                 <div class="min-w-0 lg:col-span-2">
                                     <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
                                         Fotografía de portada
@@ -861,7 +832,6 @@
                                         class="mt-2 break-words text-xs leading-5 text-gray-600"></p>
                                 </div>
 
-                                {{-- GENERAL --}}
                                 <div class="min-w-0 lg:col-span-3">
                                     <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
                                         Actividad
@@ -907,7 +877,6 @@
                             </div>
                         </div>
 
-                        {{-- DESCRIPCIÓN --}}
                         <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
                             <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
                                 Descripción
@@ -919,7 +888,6 @@
                             </p>
                         </div>
 
-                        {{-- REALIZACIÓN --}}
                         <div class="rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4 sm:p-6">
                             <div class="flex items-start gap-3">
                                 <div
@@ -945,7 +913,6 @@
                             </div>
                         </div>
 
-                        {{-- DETALLES --}}
                         <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
                             <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
                                 <h3 class="font-semibold text-white">
@@ -1037,7 +1004,6 @@
                     </div>
                 </section>
 
-                {{-- NAVEGACIÓN --}}
                 <div
                     class="mt-6 flex flex-col-reverse gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
                     <button type="button" id="btnAnterior"
@@ -1077,12 +1043,10 @@
         </div>
     </div>
 
-    {{-- TOOLTIP GLOBAL: NO LO CORTAN LAS TARJETAS --}}
     <div id="globalHelpTooltip"
         class="pointer-events-none fixed z-[200] hidden max-w-[calc(100vw-2rem)] rounded-xl border border-white/10 bg-gray-900 px-3 py-2.5 text-xs leading-5 text-gray-300 shadow-2xl sm:max-w-xs">
     </div>
 
-    {{-- MODAL FOTO COMPLETA --}}
     <div id="modalPortada"
         class="activity-force-dark fixed inset-0 z-[300] hidden items-center justify-center bg-black/90 p-3 backdrop-blur-sm sm:p-6">
         <button type="button" id="cerrarModalPortada"
@@ -1280,7 +1244,6 @@
                 if (tooltipButton) posicionarTooltip(tooltipButton);
             }, true);
 
-            //Fechas
             const visibleDesde = document.getElementById('visible_desde');
             const visibleHasta = document.getElementById('visible_hasta');
             const inscripcionDesde = document.getElementById('inscripcion_desde');
@@ -1347,7 +1310,6 @@
             actualizarMinimosFecha();
 
 
-            //Portada
             const inputPortada = document.getElementById('portada');
             const portadaPreview = document.getElementById('portadaPreview');
             const portadaPlaceholder = document.getElementById('portadaPlaceholder');

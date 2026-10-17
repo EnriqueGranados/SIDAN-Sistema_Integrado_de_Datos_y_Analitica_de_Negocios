@@ -86,12 +86,12 @@
                 </div>
                 <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-6">
                     <a href="{{ $dashboardRoute }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                         {{ request()->routeIs('admin.dashboard')
-            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                            ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                            : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
                             <rect x="3" y="3" width="7" height="9" rx="1" />
                             <rect x="14" y="3" width="7" height="5" rx="1" />
                             <rect x="14" y="12" width="7" height="9" rx="1" />
@@ -101,196 +101,203 @@
                     </a>
 
                     @if ($is_admin)
-                                <div class="mt-6 border-t border-slate-100 pt-6 dark:border-white/5">
-                                    <p
-                                        class="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
-                                        Administración
-                                    </p>
-                                    <a href="{{ route('admin.actividades.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                        <div class="mt-6 border-t border-slate-100 pt-6 dark:border-white/5">
+                            <p
+                                class="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
+                                Administración
+                            </p>
+                            <a href="{{ route('admin.actividades.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                                             {{ request()->routeIs('admin.actividades.*') && !request()->routeIs('admin.actividades.revision.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                            </path>
-                                        </svg>
-                                        Actividades
-                                    </a>
-                                    <a href="{{ route('admin.actividades.revision.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                                                ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                Actividades
+                            </a>
+                            <a href="{{ route('admin.actividades.revision.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                                             {{ request()->routeIs('admin.actividades.revision.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                                            </path>
-                                        </svg>
-                                        Revisión de actividades
-                                    </a>
-                                    <a href="{{ route('admin.categorias.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                                                ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                    </path>
+                                </svg>
+                                Revisión de actividades
+                            </a>
+                            <a href="{{ route('admin.categorias.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                                             {{ request()->routeIs('admin.categorias.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 6h16M4 12h16M4 18h10">
-                                            </path>
-                                        </svg>
-                                        Categorías
-                                    </a>
-                                    <a href="{{ route('admin.etiquetas.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                                                ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h10">
+                                    </path>
+                                </svg>
+                                Categorías
+                            </a>
+                            <a href="{{ route('admin.etiquetas.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                                             {{ request()->routeIs('admin.etiquetas.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M7 7h.01M3 11l8.586-8.586A2 2 0 0113 2h5a2 2 0 012 2v5a2 2 0 01-.586 1.414L10.828 19a2 2 0 01-2.828 0L3 14a2 2 0 010-3z">
-                                            </path>
-                                        </svg>
-                                        Etiquetas
-                                    </a>
-                                    <a href="{{ route('admin.recursos.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                                                ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M3 11l8.586-8.586A2 2 0 0113 2h5a2 2 0 012 2v5a2 2 0 01-.586 1.414L10.828 19a2 2 0 01-2.828 0L3 14a2 2 0 010-3z">
+                                    </path>
+                                </svg>
+                                Etiquetas
+                            </a>
+                            <a href="{{ route('admin.recursos.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                                                 {{ request()->routeIs('admin.recursos.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M20 7h-9m9 5h-9m9 5h-9M7 7H4m3 5H4m3 5H4" />
-                                        </svg>
-                                        Recursos
-                                    </a>
-                                    <a href="{{ route('admin.espacios.index') }}"
-                                        class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all
+                                                    ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                    : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 7h-9m9 5h-9m9 5h-9M7 7H4m3 5H4m3 5H4" />
+                                </svg>
+                                Recursos
+                            </a>
+                            <a href="{{ route('admin.espacios.index') }}"
+                                class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-all
                                                 {{ request()->routeIs('admin.espacios.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 21s6-4.35 6-10a6 6 0 10-12 0c0 5.65 6 10 6 10z" />
-                                            <circle cx="12" cy="11" r="2" stroke-width="2" />
-                                        </svg>
-                                        Espacios
-                                    </a>
-                                    {{-- CONTROL DE INSCRIPCIONES --}}
-                                    <a href="{{ route('admin.control.inscripciones') }}" class="flex items-center gap-3 rounded-xl px-4 py-3
-                           text-sm font-medium transition-all
+                                                    ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                    : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 21s6-4.35 6-10a6 6 0 10-12 0c0 5.65 6 10 6 10z" />
+                                    <circle cx="12" cy="11" r="2" stroke-width="2" />
+                                </svg>
+                                Espacios
+                            </a>
+                            {{-- CONTROL DE INSCRIPCIONES --}}
+                            <a href="{{ route('admin.control.inscripciones') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3
+                           text-sm transition-all
                            {{ request()->routeIs('admin.control.inscripciones')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900
-                                   dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
+                               ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                               : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900
+                                                                                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
                                  M9 11a4 4 0 100-8 4 4 0 000 8
                                  M20 8v6m3-3h-6" />
-                                        </svg>
+                                </svg>
 
-                                        Inscripciones
-                                    </a>
+                                Inscripciones
+                            </a>
 
-                                    {{-- CONTROL DE ÓRDENES --}}
-                                    <a href="{{ route('admin.control.ordenes') }}" class="flex items-center gap-3 rounded-xl px-4 py-3
-                           text-sm font-medium transition-all
+                            {{-- CONTROL DE ÓRDENES --}}
+                            <a href="{{ route('admin.control.ordenes') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3
+                           text-sm transition-all
                            {{ request()->routeIs('admin.control.ordenes')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900
-                                   dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18l-2 13H5L3 7z
+                               ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                               : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900
+                                                                                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18l-2 13H5L3 7z
                                  M8 7V5a4 4 0 018 0v2" />
-                                        </svg>
+                                </svg>
 
-                                        Órdenes y compras
-                                    </a>
+                                Órdenes y compras
+                            </a>
 
-                                    {{-- CONSOLIDADO DE PEDIDOS --}}
-                                    <a href="{{ route('admin.control.consolidado') }}" class="flex items-center gap-3 rounded-xl px-4 py-3
-                           text-sm font-medium transition-all
+                            {{-- CONSOLIDADO DE PEDIDOS --}}
+                            <a href="{{ route('admin.control.consolidado') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3
+                           text-sm transition-all
                            {{ request()->routeIs('admin.control.consolidado')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900
-                                   dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16
+                               ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                               : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900
+                                                                                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16
                                  M7 4v4M7 10v4M7 16v4" />
-                                        </svg>
+                                </svg>
 
-                                        Consolidado de pedidos
-                                    </a>
-                                    <a href="{{ route('admin.pagos.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
-                                            </path>
-                                        </svg>
-                                        Pagos
-                                    </a>
-                                    <a href="#"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                                            </path>
-                                        </svg>
-                                        Reportes
-                                    </a>
-                                    <a href="{{ route('admin.users.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                                Consolidado de pedidos
+                            </a>
+                            <a href="{{ route('admin.pagos.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
+                                            {{ request()->routeIs('admin.pagos.*')
+                                                ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                                    </path>
+                                </svg>
+                                Pagos
+                            </a>
+                            <a href="#"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                    </path>
+                                </svg>
+                                Reportes
+                            </a>
+                            <a href="{{ route('admin.users.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                                             {{ request()->routeIs('admin.users.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                                            </path>
-                                        </svg>
-                                        Usuarios
-                                    </a>
-                                    @if ($is_superadmin)
-                                            <a href="{{ route('admin.roles.index') }}"
-                                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                                                ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                                    </path>
+                                </svg>
+                                Usuarios
+                            </a>
+                            @if ($is_superadmin)
+                                <a href="{{ route('admin.roles.index') }}"
+                                    class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
                                                         {{ request()->routeIs('admin.roles.*')
-                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                                                    </path>
-                                                </svg>
-                                                Roles del Sistema
-                                            </a>
-                                            <a href="{{ route('admin.welcome.index') }}"
-                                                class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition {{ request()->routeIs('admin.welcome.*') ? 'bg-sidan-500 text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5' }}">
-                                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                                    <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5Z" />
-                                                    <path d="M3 9h18M8 9v12" />
-                                                </svg>
-                                                <span>Administrar Welcome</span>
-                                            </a>
-                                    @endif
+                                                            ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                            : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                        </path>
+                                    </svg>
+                                    Roles del Sistema
+                                </a>
+                                <a href="{{ route('admin.welcome.index') }}"
+                                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition {{ request()->routeIs('admin.welcome.*') ? 'bg-sidan-500 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5' }}">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.8">
+                                        <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5Z" />
+                                        <path d="M3 9h18M8 9v12" />
+                                    </svg>
+                                    <span>Administrar Welcome</span>
+                                </a>
+                            @endif
 
-                                    <a href="{{ route('user.inscripciones.index') }}"
-                                        class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
-                                            {{ request()->routeIs('admin.roles.*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                                            </path>
-                                        </svg>
-                                        Mis inscripciones
-                                    </a>
-                                </div>
+                            <a href="{{ route('user.inscripciones.index') }}"
+                                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all
+                                            {{ request()->routeIs('user.inscripciones.*')
+                                                ? 'bg-sidan-500 text-white font-bold shadow-lg shadow-emerald-500/20'
+                                                : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                    </path>
+                                </svg>
+                                Mis inscripciones
+                            </a>
+                        </div>
                     @endif
                 </nav>
             </aside>
@@ -328,13 +335,13 @@
                         <button type="button" onclick="toggleTheme()"
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:-translate-y-0.5 hover:border-sidan-500 hover:text-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
                             aria-label="Cambiar tema" title="Cambiar tema">
-                            <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.8">
+                            <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8">
                                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke-linecap="round"
                                     stroke-linejoin="round" />
                             </svg>
-                            <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.8">
+                            <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8">
                                 <circle cx="12" cy="12" r="4" />
                                 <path
                                     d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"
@@ -353,32 +360,8 @@
                                 class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0f172a]">
                             </span>
                         </button>
-                        <button
-                            class="hidden shrink-0 rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white sm:block">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                                </path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
-                                </path>
-                            </svg>
-                        </button>
-                        <form method="POST" action="{{ route('logout') }}" class="m-0 flex shrink-0 items-center p-0">
-                            @csrf
-                            <button type="submit"
-                                class="group flex h-9 items-center gap-2 rounded-xl px-3 text-sm text-slate-500 transition hover:bg-red-50 hover:text-red-500 dark:text-gray-400 dark:hover:bg-red-500/10 dark:hover:text-red-400">
-                                <svg class="h-4 w-4 transition-transform duration-500 group-hover:rotate-180" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                                    </path>
-                                </svg>
-                                <span class="hidden font-medium leading-none sm:inline">
-                                    Cerrar sesión
-                                </span>
-                            </button>
-                        </form>
+
+
                         <div class="relative ml-1 shrink-0" x-data="{ profileOpen: false }">
                             <button @click="profileOpen = !profileOpen" @click.outside="profileOpen = false"
                                 class="flex h-9 items-center gap-2 rounded-xl px-1 pr-3 transition hover:bg-slate-100 dark:hover:bg-white/5">
@@ -417,7 +400,8 @@
                                     @csrf
                                     <button type="submit"
                                         class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-500 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
                                             </path>

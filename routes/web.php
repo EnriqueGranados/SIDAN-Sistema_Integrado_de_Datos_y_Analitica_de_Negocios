@@ -27,9 +27,17 @@ use App\Http\Controllers\PagoController;
 use App\Http\Controllers\CompraActividadController;
 use App\Http\Controllers\Admin\ControlActividadController;
 use App\Http\Controllers\GestionOrdenController;
+use App\Http\Controllers\PaginasPublicasController;
 
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+
+
+Route::get('/categorias', [PaginasPublicasController::class, 'categorias'])
+    ->name('publico.categorias');
+
+Route::get('/como-funciona', [PaginasPublicasController::class, 'comoFunciona'])
+    ->name('publico.como-funciona');
 
 Route::get('/actividades', [WelcomeController::class, 'catalogo'])
     ->name('activities.index');
