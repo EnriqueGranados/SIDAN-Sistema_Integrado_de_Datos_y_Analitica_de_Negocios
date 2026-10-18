@@ -4525,13 +4525,7 @@
                         </div>
                     </div>
 
-                    <div class="sesionPresencialPanel mt-4 rounded-xl border border-white/10 p-4">
-                        <p class="text-sm font-medium text-gray-300">Recursos que utilizará</p>
-                        <p class="mt-1 text-xs text-gray-600">
-                            Se muestran los recursos del espacio seleccionado y los recursos móviles.
-                        </p>
-                        <div class="sesionRecursos mt-3 space-y-2"></div>
-                    </div>
+                    @include('admin.actividades.partials.recursos-sesion')
 
                     <div class="sesionVirtualPanel mt-4 hidden rounded-xl border border-cyan-500/15 bg-cyan-500/[0.03] p-4">
                         <label class="mb-2 block text-sm font-medium text-gray-300">Enlace de acceso</label>
