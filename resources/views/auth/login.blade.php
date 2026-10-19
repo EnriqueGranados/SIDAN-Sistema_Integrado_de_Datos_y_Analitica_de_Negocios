@@ -71,7 +71,7 @@
 
                     <a
                         href="{{ route('register') }}"
-                        class="rounded-xl bg-sidan-500 px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 sm:px-4 sm:py-2.5">
+                        class="rounded-xl bg-sidan-500 px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600 sm:px-4 sm:py-2.5">
                         Crear cuenta
                     </a>
 
@@ -293,7 +293,7 @@
                                 autofocus
                                 autocomplete="email"
                                 placeholder="correo@ejemplo.com"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
 
                             @error('email')
 
@@ -319,7 +319,7 @@
 
                                     <a
                                         href="{{ route('password.request') }}"
-                                        class="text-xs font-bold text-sidan-500 transition hover:text-green-600">
+                                        class="text-xs font-bold text-sidan-500 transition hover:text-sidan-600">
                                         ¿Olvidaste tu contraseña?
                                     </a>
 
@@ -334,7 +334,7 @@
                                 required
                                 autocomplete="current-password"
                                 placeholder="••••••••"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
 
                             @error('password')
 
@@ -367,7 +367,7 @@
 
                         <button
                             type="submit"
-                            class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-500/20">
+                            class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600 focus:outline-none focus:ring-4 focus:ring-sidan-500/20">
                             Iniciar sesión
                         </button>
 

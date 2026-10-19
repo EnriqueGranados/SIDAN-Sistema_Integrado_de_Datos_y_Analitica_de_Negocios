@@ -7,7 +7,7 @@
 
         <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <p class="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                <p class="text-xs font-black uppercase tracking-widest text-sidan-600 dark:text-sidan-400">
                     Administración · SIDAN
                 </p>
 
@@ -21,7 +21,7 @@
             </div>
 
             <a href="{{ route('admin.control.ordenes') }}"
-                class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700">
+                class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white hover:bg-sidan-600">
                 Ver órdenes →
             </a>
         </div>
@@ -73,7 +73,7 @@
             </div>
 
             <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white">
+                <button type="submit" class="flex-1 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white">
                     Filtrar
                 </button>
 
@@ -110,7 +110,7 @@
                                 $color = match ($estado) {
                                     'confirmada',
                                     'confirmada_prueba'
-                                        => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300',
+                                        => 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300',
 
                                     'pendiente_pago',
                                     'revision_cupo'
@@ -164,7 +164,7 @@
 
                                 <td class="px-5 py-4">
                                     <a href="{{ route('admin.control.ordenes', ['actividad' => $inscripcion->id_actividad, 'buscar' => $inscripcion->correo_participante]) }}"
-                                        class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                                        class="font-bold text-sidan-600 dark:text-sidan-400 hover:underline">
                                         {{ $inscripcion->ordenes_count }} orden(es) →
                                     </a>
                                 </td>

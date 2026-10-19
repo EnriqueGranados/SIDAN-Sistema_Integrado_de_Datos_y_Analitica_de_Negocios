@@ -61,7 +61,7 @@
 
                     <a
                         href="{{ route('login') }}"
-                        class="rounded-xl bg-sidan-500 px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 sm:px-4 sm:py-2.5">
+                        class="rounded-xl bg-sidan-500 px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600 sm:px-4 sm:py-2.5">
                         Iniciar sesión
                     </a>
                 </div>
@@ -96,10 +96,10 @@
                     {{-- Mensaje genérico --}}
                     @if (session('status'))
                         <div
-                            class="mb-6 flex items-start gap-3 rounded-2xl border border-green-200 bg-green-50 p-4 dark:border-green-500/20 dark:bg-green-500/10">
+                            class="mb-6 flex items-start gap-3 rounded-2xl border border-sidan-200 bg-sidan-50 p-4 dark:border-sidan-500/20 dark:bg-sidan-500/10">
 
                             <div
-                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400">
+                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
 
                                 <svg
                                     class="h-5 w-5"
@@ -115,11 +115,11 @@
                             </div>
 
                             <div>
-                                <p class="text-sm font-black text-green-800 dark:text-green-300">
+                                <p class="text-sm font-black text-sidan-600 dark:text-sidan-300">
                                     Solicitud recibida
                                 </p>
 
-                                <p class="mt-1 text-sm leading-5 text-green-700 dark:text-green-400">
+                                <p class="mt-1 text-sm leading-5 text-sidan-600 dark:text-sidan-400">
                                     {{ session('status') }}
                                 </p>
                             </div>
@@ -149,7 +149,7 @@
                                 autofocus
                                 autocomplete="email"
                                 placeholder="correo@ejemplo.com"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
 
                             @error('email')
                                 <p class="mt-2 text-sm font-semibold text-red-600 dark:text-red-400">
@@ -160,7 +160,7 @@
 
                         <button
                             type="submit"
-                            class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-500/20">
+                            class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600 focus:outline-none focus:ring-4 focus:ring-sidan-500/20">
                             Enviar instrucciones
                         </button>
                     </form>

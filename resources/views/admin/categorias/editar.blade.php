@@ -27,8 +27,8 @@
 
                     @if ($categoria->activo)
                         <span
-                            class="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                            class="inline-flex w-fit items-center gap-1.5 rounded-full border border-sidan-200 bg-sidan-50 px-3 py-1 text-xs font-medium text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-300">
+                            <span class="h-1.5 w-1.5 rounded-full bg-sidan-400"></span>
                             Activa
                         </span>
                     @else
@@ -84,7 +84,7 @@
                             @error('nombre')
                                 border-red-500 focus:border-red-500 focus:ring-red-500/20
                             @else
-                                border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-white/10
+                                border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10
                             @enderror">
 
                         @error('nombre')
@@ -111,7 +111,7 @@
                             @error('descripcion')
                                 border-red-500 focus:border-red-500 focus:ring-red-500/20
                             @else
-                                border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-white/10
+                                border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10
                             @enderror">{{ old('descripcion', $categoria->descripcion) }}</textarea>
 
                         @error('descripcion')
@@ -132,7 +132,7 @@
                             @error('activo')
                                 border-red-500 focus:border-red-500 focus:ring-red-500/20
                             @else
-                                border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-white/10
+                                border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10
                             @enderror">
                             <option value="1" @selected((string) old('activo', $categoria->activo ? '1' : '0') === '1')>
                                 Activa
@@ -185,16 +185,16 @@
                     </div>
 
                     <div
-                        class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 transition-colors dark:border-indigo-500/20 dark:bg-indigo-500/5">
+                        class="rounded-xl border border-sidan-200 bg-sidan-50 p-4 transition-colors dark:border-sidan-500/20 dark:bg-sidan-500/5">
                         <div class="flex gap-3">
-                            <svg class="mt-0.5 h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400" fill="none"
+                            <svg class="mt-0.5 h-5 w-5 shrink-0 text-sidan-600 dark:text-sidan-400" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
 
                             <div>
-                                <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                                <p class="text-sm font-semibold text-sidan-600 dark:text-sidan-300">
                                     Posición de la categoría
                                 </p>
 
@@ -239,7 +239,7 @@
                     </a>
 
                     <button type="submit"
-                        class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500">
+                        class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 text-sm font-semibold text-white transition hover:bg-sidan-600">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6" />
                         </svg>
@@ -295,10 +295,10 @@
 
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
 

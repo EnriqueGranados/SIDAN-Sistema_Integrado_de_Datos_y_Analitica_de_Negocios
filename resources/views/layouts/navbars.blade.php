@@ -17,7 +17,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 999px; }
         .dark *::-webkit-scrollbar-thumb { background: #334155; }
-        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        ::-webkit-scrollbar-thumb:hover { background: #22c55e; }
     </style>
 
     <script>
@@ -83,10 +83,10 @@
             >
                 <div class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-100 px-6 dark:border-white/5">
                     <a href="{{ route('welcome') }}" class="group flex items-center gap-3" title="Ir al inicio de SIDAN">
-                        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-lg font-bold text-white shadow-lg shadow-emerald-500/20">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-sidan-500 text-lg font-bold text-white shadow-lg shadow-sidan-500/20">
                             S
                         </span>
-                        <span class="text-xl font-bold tracking-tight text-sidan-900 group-hover:text-emerald-500 dark:text-white">
+                        <span class="text-xl font-bold tracking-tight text-sidan-900 group-hover:text-sidan-500 dark:text-white">
                             SIDAN
                         </span>
                     </a>
@@ -118,7 +118,7 @@
                             href="{{ route($modulo['ruta']) }}"
                             @if ($activo) aria-current="page" @endif
                             class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all {{ $activo
-                                ? 'bg-sidan-500 font-bold text-white shadow-lg shadow-emerald-500/20'
+                                ? 'bg-sidan-500 font-bold text-white shadow-lg shadow-sidan-500/20'
                                 : 'font-medium text-slate-600 hover:bg-slate-100 hover:text-sidan-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' }}"
                         >
                             <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor"
@@ -170,7 +170,7 @@
                                     type="text"
                                     aria-label="Buscar"
                                     placeholder="Buscar actividades, estudiantes, pagos..."
-                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 >
                             </div>
                         </div>
@@ -178,7 +178,7 @@
 
                     <div class="flex shrink-0 items-center gap-2">
                         <button type="button" onclick="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema"
-                            class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 hover:text-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                            class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 hover:text-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
                             <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79Z" />
@@ -196,7 +196,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 17h5l-2-3v-3a6 6 0 00-12 0v3l-2 3h11zm-6 0v1a3 3 0 006 0v-1" />
                             </svg>
-                            <span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                            <span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-sidan-500"></span>
                         </button>
 
                         <div class="relative" x-data="{ profileOpen: false }" @keydown.escape.window="profileOpen = false">

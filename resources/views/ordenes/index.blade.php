@@ -5,14 +5,14 @@
 @section('user-content')
     @if (session('success'))
         <div role="status"
-            class="mx-auto mb-5 max-w-7xl rounded-xl bg-emerald-50 px-5 py-4 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+            class="mx-auto mb-5 max-w-7xl rounded-xl bg-sidan-50 px-5 py-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
             {{ session('success') }}
         </div>
     @endif
     <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-                <p class="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                <p class="text-xs font-black uppercase tracking-widest text-sidan-600 dark:text-sidan-400">
                     Mi cuenta · SIDAN
                 </p>
                 <h1 class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
@@ -85,7 +85,7 @@
 
             <div class="flex items-end gap-2">
                 <button type="submit"
-                    class="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700">
+                    class="flex-1 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
                     Filtrar
                 </button>
                 <a href="{{ route('user.ordenes.index') }}"
@@ -109,7 +109,7 @@
                     $fechaPago = $orden->pago?->fecha_confirmacion;
 
                     $color = match ($orden->estado) {
-                        'pagada' => 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+                        'pagada' => 'bg-sidan-500/10 text-sidan-600 dark:text-sidan-300',
                         'pagada_prueba' => 'bg-blue-500/10 text-blue-700 dark:text-blue-300',
                         'pendiente_pago' => 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
                         'cancelada', 'vencida' => 'bg-red-500/10 text-red-700 dark:text-red-300',
@@ -147,7 +147,7 @@
                                 <div class="flex flex-wrap items-center gap-6">
                                     <div>
                                         <p class="text-xs text-slate-500 dark:text-slate-400">Total de la orden</p>
-                                        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                                        <p class="text-2xl font-black text-sidan-600 dark:text-sidan-400">
                                             ${{ number_format((float) $orden->total, 2) }}
                                         </p>
                                     </div>
@@ -259,7 +259,7 @@
                                                     ${{ number_format((float) $detalle->precio_unitario, 2) }}
                                                 </td>
                                                 <td
-                                                    class="px-4 py-4 text-right align-top font-black text-emerald-600 dark:text-emerald-400">
+                                                    class="px-4 py-4 text-right align-top font-black text-sidan-600 dark:text-sidan-400">
                                                     ${{ number_format((float) $detalle->subtotal - (float) $detalle->descuento, 2) }}
                                                 </td>
                                             </tr>
@@ -285,7 +285,7 @@
                                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                         Descuento: ${{ number_format((float) $orden->descuento_total, 2) }}
                                     </p>
-                                    <p class="mt-2 text-xl font-black text-emerald-600 dark:text-emerald-400">
+                                    <p class="mt-2 text-xl font-black text-sidan-600 dark:text-sidan-400">
                                         Total: ${{ number_format((float) $orden->total, 2) }}
                                     </p>
                                 </div>
@@ -311,7 +311,7 @@
 
                         @if ($puedePagar)
                             <a href="{{ route('sidan.ordenes.show', $orden->id_orden) }}"
-                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
+                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600 focus:outline-none focus:ring-2 focus:ring-sidan-500/40">
                                 {{ $orden->pago?->estado === 'parcial'
                                     ? 'Completar saldo pendiente'
                                     : ($orden->pago &&
@@ -334,7 +334,7 @@
                         Si aplicaste filtros, prueba limpiarlos para ver todas tus órdenes.
                     </p>
                     <a href="{{ route('activities.index') }}"
-                        class="mt-5 inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700">
+                        class="mt-5 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sidan-600">
                         Explorar actividades
                     </a>
                 </div>

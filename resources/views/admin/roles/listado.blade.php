@@ -16,7 +16,7 @@
             </div>
 
             <a href="{{ route('admin.roles.create') }}"
-                class="px-4 py-2 text-sm font-bold text-white bg-emerald-500 rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition flex items-center gap-2">
+                class="px-4 py-2 text-sm font-bold text-white bg-sidan-500 rounded-xl hover:bg-sidan-600 shadow-lg shadow-sidan-500/20 transition flex items-center gap-2">
 
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
@@ -76,8 +76,8 @@
                                         bg-slate-100 text-slate-600 border-slate-200
                                         dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20
                                     @else
-                                        bg-emerald-50 text-emerald-700 border-emerald-200
-                                        dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 @endif">
+                                        bg-sidan-50 text-sidan-600 border-sidan-200
+                                        dark:bg-sidan-500/10 dark:text-sidan-400 dark:border-sidan-500/20 @endif">
 
                                         {{ ucfirst($rol->nombre) }}
                                     </span>
@@ -193,10 +193,10 @@
             // Definir los estilos de la notificación según su tipo
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
 

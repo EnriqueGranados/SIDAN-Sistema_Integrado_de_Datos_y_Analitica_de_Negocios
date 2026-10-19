@@ -145,8 +145,8 @@
 
             #detalleActividad .sidan-producto:hover {
                 transform: translateY(-3px);
-                box-shadow: 0 14px 35px rgba(0, 0, 0, .08);
-                border-color: #a1a1aa;
+                box-shadow: 0 14px 35px rgba(15, 45, 91, .12);
+                border-color: #22c55e;
             }
 
             #detalleActividad .sidan-tab {
@@ -172,12 +172,17 @@
                     transform: none;
                 }
             }
+            /* En oscuro, las tarjetas siguen el contraste azul marino del resto de SIDAN. */
+            .dark #detalleActividad .sidan-producto:hover {
+                box-shadow: 0 14px 35px rgba(0, 0, 0, .28);
+                border-color: #22c55e;
+            }
         </style>
     @endpush
 
     @include('partials.public-header')
 
-    <main class="min-h-screen bg-slate-50/70 dark:bg-transparent" id="detalleActividad"
+    <main class="min-h-screen bg-[#f6f8fb] text-slate-900 dark:bg-sidan-950 dark:text-slate-100" id="detalleActividad"
         data-panel-inicial="{{ $panelInicial }}">
         <section class="relative overflow-hidden bg-sidan-950">
             <div class="absolute inset-0">
@@ -347,13 +352,13 @@
                                     <div class="mt-6 flex flex-wrap gap-2">
                                         @if ($sesiones->isNotEmpty())
                                             <button type="button" data-panel-target="cronograma"
-                                                class="rounded-full border border-zinc-300 px-3 py-2 text-xs font-bold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-sidan-800">
+                                                class="rounded-full border border-zinc-300 px-3 py-2 text-xs font-bold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-white/10">
                                                 {{ $sesiones->count() }} sesiones programadas →
                                             </button>
                                         @endif
                                         @if ($items->isNotEmpty())
                                             <button type="button" data-panel-target="productos"
-                                                class="rounded-full border border-zinc-300 px-3 py-2 text-xs font-bold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-sidan-800">
+                                                class="rounded-full border border-zinc-300 px-3 py-2 text-xs font-bold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-white/10">
                                                 {{ $items->count() }} productos y servicios →
                                             </button>
                                         @endif
@@ -506,7 +511,7 @@
                                             <button type="button" data-dia-target="{{ $claveDia }}"
                                                 class="sidan-dia-tab shrink-0 rounded-xl border border-slate-200 px-4 py-3 text-left text-sm transition dark:border-white/10">
                                                 <span
-                                                    class="block text-[10px] font-black uppercase tracking-wide text-zinc-500">{{ ucfirst($primeraSesionDia['dia_semana']) }}</span>
+                                                    class="block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-300">{{ ucfirst($primeraSesionDia['dia_semana']) }}</span>
                                                 <span
                                                     class="mt-0.5 block font-black text-sidan-900 dark:text-white">{{ $primeraSesionDia['fecha_corta'] }}</span>
                                             </button>
@@ -747,7 +752,7 @@
                                                     value="">
 
                                                 <button type="submit" id="btnContinuarCompra" disabled
-                                                    class="flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-sidan-500 dark:text-white dark:hover:bg-green-600">
+                                                    class="flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-sidan-500 dark:text-white dark:hover:bg-sidan-600">
                                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                                                         stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1013,7 +1018,7 @@
                                                         <div class="flex items-center rounded-full border border-slate-200 dark:border-white/20"
                                                             data-cantidad-control>
                                                             <button type="button" data-restar disabled
-                                                                class="px-3 py-2 font-black text-sidan-900 disabled:text-slate-300"
+                                                                class="px-3 py-2 font-black text-sidan-900 dark:text-sidan-400 disabled:text-slate-300 dark:disabled:text-slate-600"
                                                                 aria-label="Restar cantidad">
                                                                 −
                                                             </button>
@@ -1024,7 +1029,7 @@
                                                             </output>
 
                                                             <button type="button" data-sumar
-                                                                class="px-3 py-2 font-black text-sidan-900 disabled:text-slate-300"
+                                                                class="px-3 py-2 font-black text-sidan-900 dark:text-sidan-400 disabled:text-slate-300 dark:disabled:text-slate-600"
                                                                 @disabled(!$puedeConfigurar) aria-label="Sumar cantidad">
                                                                 +
                                                             </button>
@@ -1035,7 +1040,7 @@
                                                     {{-- Disponibilidad real: mensaje permanente --}}
                                                     <p
                                                         class="mt-2 text-xs font-semibold
-                                                                        {{ $stockItem === 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400' }}">
+                                                                        {{ $stockItem === 0 ? 'text-red-600 dark:text-red-400' : 'text-sidan-600 dark:text-sidan-400' }}">
 
                                                         @if ($stockItem === 0)
                                                             Producto agotado
@@ -1067,7 +1072,7 @@
                                                         role="alert"></p>
 
                                                     <button type="button" data-agregar-configuracion
-                                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-3.5 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-sidan-500 dark:text-white dark:hover:bg-green-600"
+                                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-3.5 text-sm font-black text-white transition hover:bg-sidan-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-sidan-500 dark:text-white dark:hover:bg-sidan-600"
                                                         @disabled(!$puedeConfigurar)>
                                                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"
                                                             stroke="currentColor" stroke-width="1.8">
@@ -1078,7 +1083,7 @@
                                                     </button>
                                                     {{-- Aviso flotante temporal: no altera el alto de la tarjeta. --}}
                                                     <p data-exito-carrito role="status" aria-live="polite"
-                                                        class="pointer-events-none absolute bottom-16 left-0 right-0 z-10 hidden rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-center text-xs font-black text-emerald-800 shadow-lg dark:border-emerald-500/30 dark:bg-emerald-950 dark:text-emerald-200">
+                                                        class="pointer-events-none absolute bottom-16 left-0 right-0 z-10 hidden rounded-xl border border-sidan-200 bg-sidan-50 px-3 py-2.5 text-center text-xs font-black text-sidan-600 shadow-lg dark:border-sidan-500/30 dark:bg-sidan-950 dark:text-sidan-200">
                                                         ✓ Agregado al carrito
                                                     </p>
 
@@ -1163,7 +1168,7 @@
                                                     : 'Finalizada');
                                         @endphp
                                         <article
-                                            class="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-5 dark:border-amber-500/20 dark:from-amber-500/10 dark:via-white/[0.03] dark:to-emerald-500/10">
+                                            class="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-sidan-50 p-5 dark:border-amber-500/20 dark:from-amber-500/10 dark:via-white/[0.03] dark:to-sidan-500/10">
                                             <div
                                                 class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-amber-300/20 blur-2xl">
                                             </div>
@@ -1196,7 +1201,7 @@
                                                     </button>
                                                 @else
                                                     <div
-                                                        class="mt-4 rounded-xl bg-emerald-100/70 px-4 py-3 text-sm font-bold text-emerald-800 dark:bg-white/10 dark:text-zinc-300">
+                                                        class="mt-4 rounded-xl bg-sidan-100/70 px-4 py-3 text-sm font-bold text-sidan-600 dark:bg-white/10 dark:text-zinc-300">
                                                         Se aplica automáticamente</div>
                                                 @endif
 
@@ -1236,7 +1241,7 @@
                             class="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-sidan-900">
                             <div class="p-6 sm:p-8">
                                 <p
-                                    class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500 dark:text-zinc-400">
+                                    class="text-xs font-black uppercase tracking-[0.18em] text-sidan-600 dark:text-sidan-400">
                                     Ubicación y acceso</p>
                                 <h2 class="mt-2 text-2xl font-black text-sidan-950 dark:text-white sm:text-3xl">Encontrá tu
                                     actividad</h2>
@@ -1331,10 +1336,10 @@
                     </div>
 
                     <div
-                        class="rounded-[1.75rem] bg-gradient-to-br from-sidan-950 to-emerald-900 p-5 text-white shadow-lg dark:from-sidan-900 dark:to-emerald-950">
+                        class="rounded-[1.75rem] bg-gradient-to-br from-sidan-950 to-sidan-600 p-5 text-white shadow-lg dark:from-sidan-900 dark:to-sidan-950">
 
                         @if ($usuarioInscritoActividad)
-                            <p class="text-xs font-black uppercase tracking-[0.16em] text-emerald-300">
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-300">
                                 Tu participación
                             </p>
 
@@ -1358,7 +1363,7 @@
                             </p>
 
                             <button type="button" disabled
-                                class="mt-4 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-400/15 px-5 py-3 text-sm font-black text-emerald-200">
+                                class="mt-4 flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-sidan-300/30 bg-sidan-400/15 px-5 py-3 text-sm font-black text-sidan-200">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="m5 12 4 4L19 6" />
@@ -1414,7 +1419,7 @@
                                     </h3>
                                 </div>
                                 <span id="cantidadCarritoLateral"
-                                    class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200">0</span>
+                                    class="rounded-full bg-sidan-100 px-3 py-1 text-xs font-black text-sidan-600 dark:bg-sidan-500/20 dark:text-sidan-200">0</span>
                             </div>
 
                             {{-- Los bloques de cada producto se trasladan aquí por JS. --}}
@@ -1984,7 +1989,7 @@
                                     'button';
 
                                 quitar.className =
-                                    'shrink-0 font-black text-red-700';
+                                    'shrink-0 font-black text-red-600 dark:text-red-400';
 
                                 quitar.textContent =
                                     'Quitar';
@@ -2273,9 +2278,9 @@
                                         );
                                     }
                                     if (botonAgregar) {
-                                        botonAgregar.classList.add('ring-2', 'ring-emerald-400');
+                                        botonAgregar.classList.add('ring-2', 'ring-sidan-400');
                                         window.setTimeout(() => botonAgregar.classList.remove('ring-2',
-                                            'ring-emerald-400'), 850);
+                                            'ring-sidan-400'), 850);
                                     }
                                 }
                             );
@@ -2372,6 +2377,19 @@
                     tab.classList.toggle('text-white', activo);
                     tab.classList.toggle('bg-white', !activo);
                     tab.classList.toggle('dark:bg-white/5', !activo);
+                    tab.setAttribute('aria-pressed', String(activo));
+
+                    // La fecha tiene text-sidan-900 por defecto: quitarlo en la
+                    // pestaña activa evita texto azul sobre fondo azul en modo claro.
+                    const [nombreDia, fechaDia] = tab.querySelectorAll('span');
+                    if (nombreDia) {
+                        nombreDia.classList.toggle('text-slate-500', !activo);
+                        nombreDia.classList.toggle('text-sidan-200', activo);
+                    }
+                    if (fechaDia) {
+                        fechaDia.classList.toggle('text-sidan-900', !activo);
+                        fechaDia.classList.toggle('text-white', activo);
+                    }
                 });
 
                 if (desplazar) {

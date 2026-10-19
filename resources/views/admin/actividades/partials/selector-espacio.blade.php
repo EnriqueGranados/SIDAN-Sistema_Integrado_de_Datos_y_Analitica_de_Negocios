@@ -79,7 +79,7 @@
                         id="buscarEspacioGeneral"
                         autocomplete="off"
                         placeholder="Escribe para buscar un espacio..."
-                        class="block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-12 pr-12 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm"
+                        class="block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-12 pr-12 text-base text-white outline-none placeholder:text-gray-600 focus:border-sidan-500 sm:text-sm"
                     >
 
                     <div
@@ -87,7 +87,7 @@
                         class="pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2"
                     >
                         <svg
-                            class="h-5 w-5 animate-spin text-emerald-400"
+                            class="h-5 w-5 animate-spin text-sidan-400"
                             viewBox="0 0 24 24"
                             fill="none"
                         >
@@ -128,12 +128,12 @@
 
         <div
             id="espacioSeleccionadoCard"
-            class="{{ $espacioInicial ? '' : 'hidden' }} rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4"
+            class="{{ $espacioInicial ? '' : 'hidden' }} rounded-xl border border-sidan-500/20 bg-sidan-500/[0.06] p-4"
         >
             <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-sidan-400">
                             Espacio seleccionado
                         </span>
 
@@ -195,7 +195,7 @@
             <button
                 type="button"
                 id="abrirCrearEspacio"
-                class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/15"
+                class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-sidan-500/20 bg-sidan-500/10 px-4 py-2.5 text-sm font-semibold text-sidan-300 transition hover:bg-sidan-500/15"
             >
                 <svg
                     class="h-4 w-4"
@@ -274,7 +274,7 @@
                         id="nuevoEspacioNombre"
                         maxlength="150"
                         placeholder="Ej. Centro Cultural Universitario"
-                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500"
+                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500"
                     >
                 </div>
 
@@ -291,7 +291,7 @@
                         rows="3"
                         maxlength="1000"
                         placeholder="Describe brevemente el espacio"
-                        class="block w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500"
+                        class="block w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500"
                     ></textarea>
                 </div>
 
@@ -308,7 +308,7 @@
                         id="nuevoEspacioDireccion"
                         maxlength="300"
                         placeholder="Ej. San Miguel, frente a..."
-                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500"
+                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500"
                     >
                 </div>
 
@@ -326,7 +326,7 @@
                         min="1"
                         step="1"
                         placeholder="Ej. 150"
-                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500"
+                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500"
                     >
                 </div>
 
@@ -346,7 +346,7 @@
                             min="-90"
                             max="90"
                             placeholder="13.7000"
-                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500"
+                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500"
                         >
                     </div>
 
@@ -365,7 +365,7 @@
                             min="-180"
                             max="180"
                             placeholder="-88.1000"
-                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500"
+                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500"
                         >
                     </div>
                 </div>
@@ -384,7 +384,7 @@
             <button
                 type="button"
                 id="guardarNuevoEspacio"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sidan-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
                 <svg
                     id="spinnerGuardarEspacio"
@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const icono = document.createElement('div');
 
         icono.className =
-            'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400';
+            'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sidan-500/10 text-sidan-400';
 
         icono.innerHTML = `
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

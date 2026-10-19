@@ -71,7 +71,7 @@
                                 placeholder="••••••••"
                                 required
                                 autocomplete="current-password"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror"
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror"
                             >
 
                             @error('current_password')
@@ -92,7 +92,7 @@
                                 placeholder="••••••••"
                                 required
                                 autocomplete="new-password"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror"
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror"
                             >
 
                             @error('password')
@@ -113,14 +113,14 @@
                                 placeholder="••••••••"
                                 required
                                 autocomplete="new-password"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror"
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror"
                             >
                         </div>
 
-                        <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-500/20 dark:bg-green-500/10">
+                        <div class="rounded-xl border border-sidan-200 bg-sidan-50 px-4 py-3 dark:border-sidan-500/20 dark:bg-sidan-500/10">
                             <div class="flex items-start gap-3">
                                 <svg
-                                    class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
+                                    class="mt-0.5 h-5 w-5 shrink-0 text-sidan-600 dark:text-sidan-400"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -138,7 +138,7 @@
                                     />
                                 </svg>
 
-                                <p class="text-xs leading-5 text-green-800 dark:text-green-300">
+                                <p class="text-xs leading-5 text-sidan-600 dark:text-sidan-300">
                                     Tu nueva contraseña reemplazará la contraseña temporal.
                                     Procura utilizar una contraseña segura que no hayas usado
                                     anteriormente y no la compartas con otras personas.
@@ -148,7 +148,7 @@
 
                         <button
                             type="submit"
-                            class="w-full rounded-xl bg-sidan-500 px-5 py-3 font-bold text-white transition hover:bg-green-600"
+                            class="w-full rounded-xl bg-sidan-500 px-5 py-3 font-bold text-white transition hover:bg-sidan-600"
                         >
                             Guardar nueva contraseña
                         </button>

@@ -7,7 +7,7 @@
 
         <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <p class="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                <p class="text-xs font-black uppercase tracking-widest text-sidan-600 dark:text-sidan-400">
                     Administración · SIDAN
                 </p>
 
@@ -90,7 +90,7 @@
             </div>
 
             <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white">
+                <button type="submit" class="flex-1 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white">
                     Filtrar
                 </button>
 
@@ -111,7 +111,7 @@
                     $estado = $orden->estado;
 
                     $color = match ($estado) {
-                        'pagada' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300',
+                        'pagada' => 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300',
                         'pendiente_pago' => 'bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300',
                         'cancelada', 'vencida' => 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300',
                         default => 'bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-300',
@@ -159,7 +159,7 @@
                                         Total de la orden
                                     </p>
 
-                                    <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                                    <p class="text-2xl font-black text-sidan-600 dark:text-sidan-400">
                                         ${{ number_format((float) $orden->total, 2) }}
                                     </p>
                                 </div>
@@ -281,7 +281,7 @@
                                             </td>
 
                                             <td
-                                                class="px-4 py-4 text-right align-top font-black text-emerald-600 dark:text-emerald-400">
+                                                class="px-4 py-4 text-right align-top font-black text-sidan-600 dark:text-sidan-400">
                                                 ${{ number_format((float) $detalle->subtotal, 2) }}
                                             </td>
                                         </tr>
@@ -306,7 +306,7 @@
                                     ${{ number_format((float) $orden->descuento_total, 2) }}
                                 </p>
 
-                                <p class="mt-2 text-xl font-black text-emerald-600 dark:text-emerald-400">
+                                <p class="mt-2 text-xl font-black text-sidan-600 dark:text-sidan-400">
                                     Total: ${{ number_format((float) $orden->total, 2) }}
                                 </p>
                             </div>

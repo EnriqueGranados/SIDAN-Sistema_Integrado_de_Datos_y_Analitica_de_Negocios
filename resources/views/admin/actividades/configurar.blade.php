@@ -300,7 +300,7 @@
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
                                 <p
-                                    class="activity-step-caption shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-400">
+                                    class="activity-step-caption shrink-0 text-xs font-semibold uppercase tracking-wide text-sidan-400">
                                     Paso {{ $numeroPaso }} de {{ $totalPasos }}
                                 </p>
                                 <span class="text-xs text-gray-700">•</span>
@@ -335,16 +335,16 @@
                                 <div class="activity-step-track h-1.5 w-full overflow-hidden rounded-full bg-gray-800">
                                     <div
                                         class="h-full rounded-full transition-all
-                                    {{ $esActual ? 'w-full bg-emerald-400' : ($estaCompleto ? 'w-full bg-emerald-600' : 'w-0') }}">
+                                    {{ $esActual ? 'w-full bg-sidan-400' : ($estaCompleto ? 'w-full bg-sidan-500' : 'w-0') }}">
                                     </div>
                                 </div>
                                 <div class="hidden items-center gap-1.5 lg:flex activity-step-meta">
                                     <span
                                         class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold
                                     {{ $esActual
-                                        ? 'bg-emerald-500 text-white'
+                                        ? 'bg-sidan-500 text-white'
                                         : ($estaCompleto
-                                            ? 'bg-emerald-500/15 text-emerald-400'
+                                            ? 'bg-sidan-500/15 text-sidan-400'
                                             : 'bg-white/5 text-gray-600') }}">
                                         {{ $estaCompleto && !$esActual ? '✓' : $info['numero'] }}
                                     </span>
@@ -438,7 +438,7 @@
                     </p>
                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <label
-                            class="activity-choice-card cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03] {{ $productosConfigurados && !$ofreceProductos ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : '' }}">
+                            class="activity-choice-card cursor-pointer rounded-xl border border-white/10 p-4 transition hover:bg-white/[0.03] {{ $productosConfigurados && !$ofreceProductos ? 'border-sidan-500/30 bg-sidan-500/[0.04]' : '' }}">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="ofrece_productos" value="0" required
                                     @checked($productosConfigurados && !$ofreceProductos) @disabled($actividad->items->isNotEmpty())>
@@ -477,7 +477,7 @@
                     </div>
                     <div class="mt-5 flex justify-end">
                         <button type="submit"
-                            class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
+                            class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sidan-600">
                             {{ $productosConfigurados ? 'Guardar decisión' : 'Continuar' }}
                         </button>
                     </div>
@@ -496,7 +496,7 @@
                                 </p>
                             </div>
                             <button type="button" id="btnNuevoItem"
-                                class="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-400">
+                                class="rounded-xl bg-sidan-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-sidan-600">
                                 + Agregar elemento
                             </button>
                         </div>
@@ -510,7 +510,7 @@
                                     crear un producto de $0 para una actividad gratuita.
                                 </p>
                                 <button type="button" id="btnNuevoItemVacio"
-                                    class="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-400">
+                                    class="mt-5 rounded-xl border border-sidan-500/20 bg-sidan-500/10 px-4 py-2.5 text-sm font-semibold text-sidan-400">
                                     Agregar primer elemento
                                 </button>
                             </div>
@@ -553,7 +553,7 @@
                                                         <div class="mt-3 flex flex-wrap items-center gap-2">
                                                             @if ($item->alcance_sesiones === 'actividad')
                                                                 <span
-                                                                    class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                                                                    class="rounded-full border border-sidan-500/20 bg-sidan-500/10 px-2.5 py-1 text-[11px] font-semibold text-sidan-300">
                                                                     Toda la actividad
                                                                 </span>
                                                             @elseif ($item->sesiones->isNotEmpty())
@@ -583,7 +583,7 @@
                                                     <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                                                         <div class="rounded-xl border border-white/5 bg-black/10 p-3">
                                                             <p class="text-[11px] text-gray-600">Precio</p>
-                                                            <p class="mt-1 font-semibold text-emerald-400">
+                                                            <p class="mt-1 font-semibold text-sidan-400">
                                                                 ${{ number_format((float) $item->precio, 2) }}
                                                             </p>
                                                         </div>
@@ -654,14 +654,14 @@
                                 'actividad' => $actividad->id_actividad,
                                 'paso' => 'datos',
                             ]) }}"
-                                class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
+                                class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sidan-600">
                                 Continuar con datos solicitados
                             </a>
                         </div>
                     @endif
                 @elseif ($productosConfigurados)
-                    <div class="mt-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4 sm:p-5">
-                        <p class="font-semibold text-emerald-300">
+                    <div class="mt-5 rounded-2xl border border-sidan-500/20 bg-sidan-500/[0.05] p-4 sm:p-5">
+                        <p class="font-semibold text-sidan-300">
                             Sin productos ni servicios
                         </p>
                         <p class="mt-1 text-sm leading-6 text-gray-500">
@@ -673,7 +673,7 @@
                                 'actividad' => $actividad->id_actividad,
                                 'paso' => 'resumen',
                             ]) }}"
-                                class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
+                                class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white">
                                 Ir al resumen
                             </a>
                         </div>
@@ -735,7 +735,7 @@
                                                 </span>
                                             @else
                                                 <span
-                                                    class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                                                    class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
                                                     {{ count($config['fields'] ?? []) }}
                                                     dato{{ count($config['fields'] ?? []) === 1 ? '' : 's' }}
                                                     configurado{{ count($config['fields'] ?? []) === 1 ? '' : 's' }}
@@ -768,7 +768,7 @@
                                 'actividad' => $actividad->id_actividad,
                                 'paso' => 'precios',
                             ]) }}"
-                                class="rounded-xl bg-emerald-500 px-5 py-3 text-center text-sm font-bold text-white">
+                                class="rounded-xl bg-sidan-500 px-5 py-3 text-center text-sm font-bold text-white">
                                 Continuar con precios
                             </a>
                         @endif
@@ -865,7 +865,7 @@
                                 Cancelar
                             </a>
                             <button type="submit"
-                                class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
+                                class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white">
                                 Guardar configuración
                             </button>
                         </div>
@@ -874,8 +874,8 @@
             @endif
             @if ($paso === 'precios')
                 @if (!$itemSeleccionado)
-                    <div class="mb-6 rounded-2xl border border-violet-500/20 bg-violet-500/[0.05] p-4 sm:p-5">
-                        <h2 class="font-semibold text-violet-300">
+                    <div class="mb-6 rounded-2xl border border-sidan-500/20 bg-sidan-500/[0.05] p-4 sm:p-5">
+                        <h2 class="font-semibold text-sidan-300">
                             ¿Alguna opción aumenta el precio o costo?
                         </h2>
                         <p class="mt-1 text-sm leading-6 text-gray-400">
@@ -917,12 +917,12 @@
                                                 </span>
                                             @elseif (!($configPrecio['enabled'] ?? false))
                                                 <span
-                                                    class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                                                    class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
                                                     Sin aumentos
                                                 </span>
                                             @else
                                                 <span
-                                                    class="rounded-full bg-violet-500/10 px-2.5 py-1 text-xs font-semibold text-violet-300">
+                                                    class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-300">
                                                     Aumentos configurados
                                                 </span>
                                             @endif
@@ -934,7 +934,7 @@
                                             'paso' => 'precios',
                                             'item' => $item->id_item_actividad,
                                         ]) }}"
-                                            class="rounded-xl border border-violet-500/20 bg-violet-500/10 px-4 py-2.5 text-center text-sm font-semibold text-violet-300">
+                                            class="rounded-xl border border-sidan-500/20 bg-sidan-500/10 px-4 py-2.5 text-center text-sm font-semibold text-sidan-300">
                                             Configurar
                                         </a>
                                     @endif
@@ -955,7 +955,7 @@
                                 'actividad' => $actividad->id_actividad,
                                 'paso' => 'resumen',
                             ]) }}"
-                                class="rounded-xl bg-emerald-500 px-5 py-3 text-center text-sm font-bold text-white">
+                                class="rounded-xl bg-sidan-500 px-5 py-3 text-center text-sm font-bold text-white">
                                 Ir al resumen
                             </a>
                         @endif
@@ -980,7 +980,7 @@
                         );
                     @endphp
                     <div class="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-violet-400">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-sidan-400">
                             Configurando aumentos
                         </p>
                         <h2 class="mt-1 text-lg font-semibold text-white">
@@ -1016,12 +1016,12 @@
                                     </div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer rounded-xl border border-violet-500/20 bg-violet-500/[0.04] p-4">
+                            <label class="cursor-pointer rounded-xl border border-sidan-500/20 bg-sidan-500/[0.04] p-4">
                                 <div class="flex gap-3">
                                     <input type="radio" name="tiene_cambios" value="1" required
                                         @checked($configPrecio && ($configPrecio['enabled'] ?? false))>
                                     <div>
-                                        <p class="font-semibold text-violet-200">
+                                        <p class="font-semibold text-sidan-200">
                                             Sí
                                         </p>
                                         <p class="mt-1 text-xs text-gray-500">
@@ -1045,7 +1045,7 @@
                                     </p>
                                 </div>
                                 <button type="button" id="btnAgregarAjustePrecio"
-                                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-500/15">
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-sidan-500/30 bg-sidan-500/10 px-4 py-2.5 text-sm font-semibold text-sidan-200 transition hover:bg-sidan-500/15">
                                     <span class="text-base leading-none">+</span>
                                     Agregar variante
                                 </button>
@@ -1092,7 +1092,7 @@
                                 Cancelar
                             </a>
                             <button type="submit"
-                                class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white">
+                                class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white">
                                 Guardar
                             </button>
                         </div>
@@ -1338,7 +1338,7 @@
                                                 Usar ubicación general
                                             </button>
                                             <button type="button" id="btnCrearEspacioSesionUnica"
-                                                class="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300">
+                                                class="rounded-lg border border-sidan-500/20 bg-sidan-500/10 px-3 py-2 text-xs font-semibold text-sidan-300">
                                                 + Registrar espacio
                                             </button>
                                         </div>
@@ -1442,7 +1442,7 @@
                             Volver
                         </a>
                         <button type="submit"
-                            class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">
+                            class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sidan-600">
                             {{ $sesionesConfiguradas ? 'Guardar y continuar' : 'Guardar programación' }}
                         </button>
                     </div>
@@ -1494,37 +1494,37 @@
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-gray-300">Nombre</label>
                                     <input type="text" id="nuevoEspacioSesionNombre" maxlength="150"
-                                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500">
+                                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-sidan-500">
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-gray-300">Dirección o
                                         referencia</label>
                                     <input type="text" id="nuevoEspacioSesionDireccion" maxlength="300"
-                                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500">
+                                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-sidan-500">
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-gray-300">Descripción breve</label>
                                     <textarea id="nuevoEspacioSesionDescripcion" rows="3" maxlength="1000"
-                                        class="block w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500"></textarea>
+                                        class="block w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-sidan-500"></textarea>
                                 </div>
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                     <div>
                                         <label class="mb-2 block text-sm font-medium text-gray-300">Capacidad</label>
                                         <input type="number" id="nuevoEspacioSesionCapacidad" min="1"
                                             step="1"
-                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500">
+                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-sidan-500">
                                     </div>
                                     <div>
                                         <label class="mb-2 block text-sm font-medium text-gray-300">Latitud</label>
                                         <input type="number" id="nuevoEspacioSesionLatitud" min="-90"
                                             max="90" step="any"
-                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500">
+                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-sidan-500">
                                     </div>
                                     <div>
                                         <label class="mb-2 block text-sm font-medium text-gray-300">Longitud</label>
                                         <input type="number" id="nuevoEspacioSesionLongitud" min="-180"
                                             max="180" step="any"
-                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-emerald-500">
+                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-sidan-500">
                                     </div>
                                 </div>
                             </div>
@@ -1534,7 +1534,7 @@
                             <button type="button" id="cancelarModalEspacioSesion"
                                 class="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-gray-300">Cancelar</button>
                             <button type="button" id="guardarEspacioSesion"
-                                class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Guardar
+                                class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Guardar
                                 y usar</button>
                         </div>
                     </div>
@@ -1542,12 +1542,12 @@
 
                 @if ($sesionesConfiguradas)
                     <div
-                        class="mt-5 flex flex-col gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        class="mt-5 flex flex-col gap-3 rounded-xl border border-sidan-500/20 bg-sidan-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p class="text-sm font-semibold text-emerald-300">
+                            <p class="text-sm font-semibold text-sidan-300">
                                 ✓ Programación configurada
                             </p>
-                            <p class="mt-1 text-xs text-emerald-200/60">
+                            <p class="mt-1 text-xs text-sidan-200/60">
                                 Puedes modificarla o continuar directamente al resumen.
                             </p>
                         </div>
@@ -1555,7 +1555,7 @@
                             'actividad' => $actividad->id_actividad,
                             'paso' => 'resumen',
                         ]) }}"
-                            class="shrink-0 rounded-xl bg-emerald-500 px-4 py-2.5 text-center text-sm font-bold text-white transition hover:bg-emerald-400">
+                            class="shrink-0 rounded-xl bg-sidan-500 px-4 py-2.5 text-center text-sm font-bold text-white transition hover:bg-sidan-600">
                             Ir al resumen
                         </a>
                     </div>
@@ -1735,8 +1735,8 @@
                             </div>
                         </div>
 
-                        <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
-                            <label class="flex items-center gap-3 text-sm font-semibold text-emerald-200">
+                        <div class="rounded-xl border border-sidan-500/20 bg-sidan-500/5 p-4 space-y-3">
+                            <label class="flex items-center gap-3 text-sm font-semibold text-sidan-200">
                                 <input id="item_permite_anticipo" type="checkbox" name="item_permite_anticipo" value="1">
                                 Permitir pago con anticipo (solo efectivo y transferencia)
                             </label>
@@ -1825,8 +1825,8 @@
                         @if ($modoSesionesProductos === 'ninguna')
                             <input type="hidden" name="item_alcance" value="actividad">
 
-                            <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4">
-                                <p class="text-sm font-semibold text-emerald-200">
+                            <div class="rounded-xl border border-sidan-500/20 bg-sidan-500/[0.05] p-4">
+                                <p class="text-sm font-semibold text-sidan-200">
                                     Disponible durante la actividad
                                 </p>
                                 <p class="mt-1 text-xs leading-5 text-gray-500">
@@ -1962,7 +1962,7 @@
 
                     <div class="flex border-t border-white/10 p-4 sm:justify-end">
                         <button type="submit" id="guardarItemBtn"
-                            class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60">
+                            class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60">
                             <span id="guardarItemTexto">Agregar elemento</span>
                         </button>
                     </div>
@@ -2942,7 +2942,7 @@
                 function crearSelectDato(valorActual = '', filaActual = null) {
                     const select = document.createElement('select');
                     select.className =
-                        'campoAjustePrecio w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white outline-none transition focus:border-violet-500/50';
+                        'campoAjustePrecio w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white outline-none transition focus:border-sidan-500/50';
 
                     select.appendChild(
                         crearOpcionSelect('', 'Selecciona un dato')
@@ -3083,7 +3083,7 @@
 
                     const prefijo = document.createElement('span');
                     prefijo.className =
-                        'shrink-0 text-xs font-semibold text-violet-300';
+                        'shrink-0 text-xs font-semibold text-sidan-300';
                     prefijo.textContent = '+$';
 
                     const input = document.createElement('input');
@@ -3180,7 +3180,7 @@
                     labelOpcion.textContent = 'Opción';
                     const selectOpcion = document.createElement('select');
                     selectOpcion.className =
-                        'opcionAjustePrecio w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white outline-none transition focus:border-violet-500/50 disabled:cursor-not-allowed disabled:opacity-50';
+                        'opcionAjustePrecio w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white outline-none transition focus:border-sidan-500/50 disabled:cursor-not-allowed disabled:opacity-50';
                     cargarOpciones(
                         selectOpcion,
                         campoActual,
@@ -4499,7 +4499,7 @@
                                         Usar ubicación general
                                     </button>
                                     <button type="button"
-                                        class="btnCrearEspacioSesion rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300">
+                                        class="btnCrearEspacioSesion rounded-lg border border-sidan-500/20 bg-sidan-500/10 px-3 py-2 text-xs font-semibold text-sidan-300">
                                         + Registrar espacio
                                     </button>
                                 </div>
@@ -4574,7 +4574,7 @@
 
                     <div class="mt-5 flex justify-end">
                         <button type="button"
-                            class="btnListoSesion rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300">
+                            class="btnListoSesion rounded-xl border border-sidan-500/20 bg-sidan-500/10 px-4 py-2.5 text-sm font-semibold text-sidan-300">
                             Listo
                         </button>
                     </div>

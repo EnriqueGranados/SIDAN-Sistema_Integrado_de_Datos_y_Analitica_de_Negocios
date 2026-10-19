@@ -116,7 +116,7 @@
                                                 .rol_nombre === 'admin',
                                             'bg-slate-100 text-slate-600 border-slate-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20': user
                                                 .rol_nombre === 'usuario',
-                                            'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20':
+                                            'bg-sidan-50 text-sidan-600 border-sidan-200 dark:bg-sidan-500/10 dark:text-sidan-400 dark:border-sidan-500/20':
                                                 !['superadmin', 'admin', 'usuario'].includes(user.rol_nombre)
                                         }"
                                         x-text="user.rol_nombre.charAt(0).toUpperCase() + user.rol_nombre.slice(1)">
@@ -126,7 +126,7 @@
                                 <td class="px-6 py-4">
 
                                     <button @click="restoreUser(user)"
-                                        class="px-3 py-1.5 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition flex items-center gap-2 dark:text-emerald-400 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:border-emerald-500/20">
+                                        class="px-3 py-1.5 text-sm font-medium text-sidan-600 bg-sidan-50 hover:bg-sidan-100 border border-sidan-200 rounded-lg transition flex items-center gap-2 dark:text-sidan-400 dark:bg-sidan-500/10 dark:hover:bg-sidan-500/20 dark:border-sidan-500/20">
 
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -198,19 +198,19 @@
                 'fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-[150] w-[calc(100%-2rem)] max-w-sm translate-y-6 opacity-0 transition-all duration-300 ease-out';
 
             const iconColor = isSuccess ?
-                'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400' :
                 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400';
 
             const borderColor = isSuccess ?
-                'border-emerald-200 dark:border-emerald-500/20' :
+                'border-sidan-200 dark:border-sidan-500/20' :
                 'border-red-200 dark:border-red-500/20';
 
             const progressColor = isSuccess ?
-                'bg-emerald-500' :
+                'bg-sidan-500' :
                 'bg-red-500';
 
             const progressBackground = isSuccess ?
-                'bg-emerald-100 dark:bg-emerald-950/50' :
+                'bg-sidan-100 dark:bg-sidan-950/50' :
                 'bg-red-100 dark:bg-red-950/50';
 
             const title = isSuccess ?
@@ -377,10 +377,10 @@
                         modal.innerHTML = `
                             <div class="flex items-center gap-3 mb-4">
 
-                                <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                <div class="w-12 h-12 rounded-full bg-sidan-50 dark:bg-sidan-500/20 flex items-center justify-center flex-shrink-0">
 
                                     <svg
-                                        class="w-6 h-6 text-emerald-600 dark:text-emerald-400"
+                                        class="w-6 h-6 text-sidan-600 dark:text-sidan-400"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -409,8 +409,8 @@
                                 ${message}
                             </div>
 
-                            <div class="bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 rounded-lg p-3 mb-6">
-                                <p class="text-sm text-emerald-700 dark:text-emerald-300">
+                            <div class="bg-sidan-50 border border-sidan-200 dark:bg-sidan-500/10 dark:border-sidan-500/20 rounded-lg p-3 mb-6">
+                                <p class="text-sm text-sidan-600 dark:text-sidan-300">
                                     El usuario recuperará el acceso al sistema inmediatamente.
                                 </p>
                             </div>
@@ -426,7 +426,7 @@
 
                                 <button
                                     type="button"
-                                    class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition flex items-center gap-2">
+                                    class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-sidan-500 rounded-lg hover:bg-sidan-600 transition flex items-center gap-2">
 
                                     <svg
                                         class="w-4 h-4"

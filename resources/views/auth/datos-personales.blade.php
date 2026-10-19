@@ -43,10 +43,10 @@
             aria-live="assertive"
             class="fixed right-4 top-20 z-[100] w-[calc(100%-2rem)] max-w-md -translate-y-3 opacity-0 transition-all duration-300 ease-out">
 
-            <div class="relative overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-2xl shadow-emerald-500/10 dark:border-emerald-500/20 dark:bg-sidan-900">
+            <div class="relative overflow-hidden rounded-2xl border border-sidan-200 bg-white shadow-2xl shadow-sidan-500/10 dark:border-sidan-500/20 dark:bg-sidan-900">
 
                 <div class="flex items-start gap-3 p-4 pr-12">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
@@ -72,8 +72,8 @@
                     </svg>
                 </button>
 
-                <div class="h-1 w-full bg-emerald-100 dark:bg-emerald-950/50">
-                    <div id="success-alert-progress" class="h-full w-full origin-left bg-emerald-500"></div>
+                <div class="h-1 w-full bg-sidan-100 dark:bg-sidan-950/50">
+                    <div id="success-alert-progress" class="h-full w-full origin-left bg-sidan-500"></div>
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
 
         {{-- Encabezado --}}
         <div class="mx-auto max-w-2xl text-center">
-            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-green-50 text-sidan-500 dark:bg-green-500/10">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sidan-50 text-sidan-500 dark:bg-sidan-500/10">
                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
@@ -220,7 +220,7 @@
                             <div>
                                 <label for="documento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Documento de identidad (DUI)</label>
                                 <input id="documento" name="documento" type="text" x-model="documento" value="{{ old('documento') }}" maxlength="10" pattern="[0-9]{8}-[0-9]" placeholder="00000000-0" @input="clearError('documento')" @keydown="console.log('KEY:', $event.key, 'LENGTH:', $event.target.value.length); if ($event.target.value.length >= 10 && $event.key.length === 1 && $event.target.selectionStart === $event.target.selectionEnd) {$event.preventDefault(); shakeDocumento();}"
-                                autocomplete="off" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                autocomplete="off" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                 @error('documento')
                                     <p x-show="serverErrors.documento" class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                                 @enderror
@@ -229,7 +229,7 @@
                             {{-- Teléfono --}}
                             <div>
                                 <label for="telefono" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Teléfono</label>
-                                <input id="telefono" name="telefono" type="tel" value="{{ old('telefono') }}" autocomplete="tel" @input="clearError('telefono')" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                <input id="telefono" name="telefono" type="tel" value="{{ old('telefono') }}" autocomplete="tel" @input="clearError('telefono')" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                 @error('telefono')
                                     <p x-show="serverErrors.telefono" class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                                 @enderror
@@ -238,7 +238,7 @@
                             {{-- Fecha --}}
                             <div>
                                 <label for="fecha_nacimiento" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Fecha de nacimiento</label>
-                                <input id="fecha_nacimiento" name="fecha_nacimiento" type="date" x-model="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" max="{{ now()->subYears(10)->format('Y-m-d') }}" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                <input id="fecha_nacimiento" name="fecha_nacimiento" type="date" x-model="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" max="{{ now()->subYears(10)->format('Y-m-d') }}" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                 @error('fecha_nacimiento')
                                     <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                                 @enderror
@@ -247,7 +247,7 @@
                             {{-- Género --}}
                             <div>
                                 <label for="genero" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Género</label>
-                                <select id="genero" name="genero" x-model="genero" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                <select id="genero" name="genero" x-model="genero" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                     <option value="">Selecciona una opción</option>
                                     <option value="M" @selected(old('genero') === 'M')>Masculino</option>
                                     <option value="F" @selected(old('genero') === 'F')>Femenino</option>
@@ -264,21 +264,21 @@
                                 <input type="hidden" name="ubicacion" :value="ubicacionFormateada">
                                 <div>
                                     <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">País</label>
-                                    <select x-model="paisSeleccionado" @change="cargarEstados()" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                    <select x-model="paisSeleccionado" @change="cargarEstados()" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                         <option value="">Selecciona un país...</option>
                                         <template x-for="pais in paises" :key="pais.iso2"><option :value="pais.iso2" x-text="pais.name"></option></template>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Departamento</label>
-                                    <select x-model="estadoSeleccionado" @change="cargarCiudades()" :disabled="!paisSeleccionado" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                    <select x-model="estadoSeleccionado" @change="cargarCiudades()" :disabled="!paisSeleccionado" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                         <option value="">Selecciona un depto...</option>
                                         <template x-for="estado in estados" :key="estado.iso2"><option :value="estado.iso2" x-text="estado.name"></option></template>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Ciudad</label>
-                                    <select x-model="ciudadSeleccionada" :disabled="!estadoSeleccionado" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                    <select x-model="ciudadSeleccionada" :disabled="!estadoSeleccionado" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                         <option value="">Selecciona una ciudad...</option>
                                         <template x-for="ciudad in ciudades" :key="ciudad.name"><option :value="ciudad.name" x-text="ciudad.name"></option></template>
                                     </select>
@@ -287,7 +287,7 @@
                         </div>
 
                         <div class="mt-8 flex items-center justify-end">
-                            <button type="button" @click="next()" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600">
+                            <button type="button" @click="next()" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600">
                                 Continuar →
                             </button>
                         </div>
@@ -307,11 +307,11 @@
                             <div>
                                 <label for="password" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Contraseña</label>
                                 {{-- Se eliminó el "required" --}}
-                                <input id="password" name="password" type="password" x-model="password" @input="validatePasswordMatch()" placeholder="Dejar en blanco para omitir" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                <input id="password" name="password" type="password" x-model="password" @input="validatePasswordMatch()" placeholder="Dejar en blanco para omitir" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                             </div>
                             <div>
                                 <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Confirmar contraseña</label>
-                                <input id="password_confirmation" name="password_confirmation" type="password" x-model="passwordConfirmation" @input="validatePasswordMatch()" placeholder="Repite la contraseña" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                <input id="password_confirmation" name="password_confirmation" type="password" x-model="passwordConfirmation" @input="validatePasswordMatch()" placeholder="Repite la contraseña" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
                             </div>
                         </div>
 
@@ -320,7 +320,7 @@
                                 ← Atrás
                             </button>
                             <div class="flex gap-3">
-                                <button type="button" @click="next()" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600">
+                                <button type="button" @click="next()" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600">
                                     Continuar →
                                 </button>
                             </div>
@@ -341,7 +341,7 @@
                             <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
                                 <div class="flex items-center justify-between">
                                     <h3 class="font-black text-sidan-900 dark:text-white">Datos adicionales</h3>
-                                    <button type="button" @click="step = 1" class="text-sm font-bold text-sidan-500 hover:text-green-600">Editar</button>
+                                    <button type="button" @click="step = 1" class="text-sm font-bold text-sidan-500 hover:text-sidan-600">Editar</button>
                                 </div>
                                 <div class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                                     <div x-show="documento">
@@ -374,7 +374,7 @@
                             <div class="rounded-2xl bg-slate-50 p-5 dark:bg-white/5">
                                 <div class="flex items-center justify-between">
                                     <h3 class="font-black text-sidan-900 dark:text-white">Credenciales</h3>
-                                    <button type="button" @click="step = 2" class="text-sm font-bold text-sidan-500 hover:text-green-600">Editar</button>
+                                    <button type="button" @click="step = 2" class="text-sm font-bold text-sidan-500 hover:text-sidan-600">Editar</button>
                                 </div>
                                 <div class="mt-4 text-sm">
                                     <span class="text-sm text-slate-400">Contraseña alternativa</span>
@@ -399,7 +399,7 @@
                             <button type="button" @click="previous()" class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
                                 ← Atrás
                             </button>
-                            <button type="submit" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600">
+                            <button type="submit" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600">
                                 Guardar y continuar
                             </button>
                         </div>

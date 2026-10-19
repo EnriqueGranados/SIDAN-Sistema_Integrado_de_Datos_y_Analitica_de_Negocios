@@ -6,7 +6,7 @@
         <div class="border-b border-slate-200 px-4 py-4 dark:border-white/10">
             <div class="flex items-center gap-2">
                 <button type="button" id="sidanCalendarPrevMonth"
-                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-emerald-600 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-emerald-300"
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-sidan-600 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-sidan-300"
                     aria-label="Mes anterior">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -16,16 +16,16 @@
 
                 <div class="grid min-w-0 flex-1 grid-cols-[1fr_auto] gap-2">
                     <select id="sidanCalendarMonth"
-                        class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+                        class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
                     </select>
 
                     <select id="sidanCalendarYear"
-                        class="w-[6.25rem] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+                        class="w-[6.25rem] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
                     </select>
                 </div>
 
                 <button type="button" id="sidanCalendarNextMonth"
-                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-emerald-600 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-emerald-300"
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-sidan-600 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-sidan-300"
                     aria-label="Mes siguiente">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -54,22 +54,22 @@
                         Hora
                     </p>
                     <p id="sidanCalendarSelectedDateLabel"
-                        class="text-xs font-medium text-emerald-600 dark:text-emerald-300"></p>
+                        class="text-xs font-medium text-sidan-600 dark:text-sidan-300"></p>
                 </div>
 
                 <div class="grid grid-cols-[1fr_auto_1fr_1fr] items-center gap-2">
                     <select id="sidanCalendarHour"
-                        class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center text-sm font-bold text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+                        class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center text-sm font-bold text-slate-800 outline-none focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
                     </select>
 
                     <span class="text-lg font-bold text-slate-400">:</span>
 
                     <select id="sidanCalendarMinute"
-                        class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center text-sm font-bold text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+                        class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center text-sm font-bold text-slate-800 outline-none focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
                     </select>
 
                     <select id="sidanCalendarAmPm"
-                        class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center text-sm font-bold text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+                        class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center text-sm font-bold text-slate-800 outline-none focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
                         <option value="AM">AM</option>
                         <option value="PM">PM</option>
                     </select>
@@ -95,7 +95,7 @@
                 </button>
 
                 <button type="button" id="sidanCalendarApply"
-                    class="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    class="rounded-xl bg-sidan-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-sidan-600 focus:outline-none focus:ring-2 focus:ring-sidan-500/30">
                     Aplicar
                 </button>
             </div>
@@ -209,7 +209,7 @@
                     return 'group relative z-10 flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-left outline-none transition hover:border-cyan-500/40 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10';
                 }
 
-                return 'group relative z-10 flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-left outline-none transition hover:border-emerald-500/40 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10';
+                return 'group relative z-10 flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-left outline-none transition hover:border-sidan-500/40 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/10';
             }
 
             function crearTrigger(input) {
@@ -224,7 +224,7 @@
 
                 const icono = document.createElement('span');
                 icono.className =
-                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-gray-400 transition group-hover:border-emerald-500/30 group-hover:text-emerald-400';
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-gray-400 transition group-hover:border-sidan-500/30 group-hover:text-sidan-400';
                 icono.innerHTML = `
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
@@ -256,7 +256,7 @@
                     texto.classList.toggle('dark:text-white', Boolean(valorVisible));
                 }
 
-                trigger.classList.toggle('border-emerald-500/40', Boolean(valorVisible));
+                trigger.classList.toggle('border-sidan-500/40', Boolean(valorVisible));
             }
 
             function prepararInput(input) {
@@ -443,12 +443,12 @@
                     boton.textContent = String(dia);
                     boton.disabled = !permitido;
                     boton.className =
-                        'flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold outline-none transition focus:ring-2 focus:ring-emerald-500/20';
+                        'flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold outline-none transition focus:ring-2 focus:ring-sidan-500/20';
 
                     if (!permitido) {
                         boton.classList.add('cursor-not-allowed', 'text-slate-300', 'dark:text-slate-600');
                     } else if (seleccionado) {
-                        boton.classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                        boton.classList.add('bg-sidan-500', 'text-white', 'shadow-sm');
                     } else {
                         boton.classList.add(
                             'text-slate-700',
@@ -460,9 +460,9 @@
                         if (esHoy) {
                             boton.classList.add(
                                 'border',
-                                'border-emerald-400/50',
-                                'text-emerald-600',
-                                'dark:text-emerald-300'
+                                'border-sidan-400/50',
+                                'text-sidan-600',
+                                'dark:text-sidan-300'
                             );
                         }
                     }

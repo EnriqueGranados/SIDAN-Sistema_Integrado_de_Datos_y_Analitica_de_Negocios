@@ -19,7 +19,7 @@
                 </div>
 
                 <a href="{{ route('admin.etiquetas.create') }}"
-                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sidan-600">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -47,10 +47,10 @@
 
                                 <input id="buscar" name="buscar" type="search" value="{{ $buscar }}"
                                     autocomplete="off" placeholder="Ej. Presencial, principiantes, tecnología..."
-                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10">
+                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:bg-white focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10">
 
                                 <div id="spinnerBusqueda" class="absolute inset-y-0 right-0 hidden items-center pr-3">
-                                    <svg class="h-4 w-4 animate-spin text-emerald-500 dark:text-emerald-400"
+                                    <svg class="h-4 w-4 animate-spin text-sidan-500 dark:text-sidan-400"
                                         viewBox="0 0 24 24" fill="none">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4"></circle>
@@ -67,7 +67,7 @@
                             </label>
 
                             <select id="estado" name="estado"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:bg-white/10 dark:[color-scheme:dark]">
+                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:bg-white focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:bg-white/10 dark:[color-scheme:dark]">
                                 <option value="">Todas</option>
                                 <option value="activo" @selected($estado === 'activo')>
                                     Activas
@@ -124,7 +124,7 @@
                                             <td class="px-6 py-4">
                                                 <div class="flex items-center gap-3">
                                                     <div
-                                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                                                         <svg class="h-5 w-5" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -155,8 +155,8 @@
                                             <td class="px-6 py-4 text-center">
                                                 @if ($etiqueta->activo)
                                                     <span
-                                                        class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400">
-                                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                                                        class="inline-flex items-center gap-1.5 rounded-full border border-sidan-200 bg-sidan-50 px-2.5 py-1 text-xs font-medium text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-400">
+                                                        <span class="h-1.5 w-1.5 rounded-full bg-sidan-400"></span>
                                                         Activa
                                                     </span>
                                                 @else
@@ -172,7 +172,7 @@
                                                 <div class="flex items-center justify-end gap-2">
                                                     <a href="{{ route('admin.etiquetas.edit', $etiqueta) }}"
                                                         title="Editar etiqueta"
-                                                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-emerald-500/50 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400">
+                                                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-sidan-300 hover:bg-sidan-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-sidan-500/50 dark:hover:bg-sidan-500/10 dark:hover:text-sidan-400">
                                                         <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -270,7 +270,7 @@
                             </p>
 
                             <a href="{{ route('admin.etiquetas.create') }}"
-                                class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                                class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sidan-600">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4v16m8-8H4" />
@@ -291,10 +291,10 @@
 
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
                 error: {

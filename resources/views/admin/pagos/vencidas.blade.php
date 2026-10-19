@@ -5,7 +5,7 @@
     <h1 class="text-2xl font-bold">Órdenes vencidas con dinero recibido</h1>
     <p class="text-sm text-slate-500">Los abonos acreditados permanecen en el historial. Este cierre NO crea un nuevo cobro, NO confirma la venta incompleta y NO crea reembolsos.</p>
     <a class="text-blue-500 underline" href="{{ route('admin.pagos.index') }}">Volver al control de pagos</a>
-    @if(session('success')) <div class="rounded-lg p-3 bg-emerald-100 text-emerald-900">{{ session('success') }}</div> @endif
+    @if(session('success')) <div class="rounded-lg p-3 bg-sidan-100 text-sidan-600">{{ session('success') }}</div> @endif
     @if($errors->any()) <div class="rounded-lg p-3 bg-red-100 text-red-900">{{ implode(' · ', $errors->all()) }}</div> @endif
     @forelse($ordenes as $orden)
     @php $abonos=$orden->pago?->montoAcreditadoCentavos()??0; @endphp

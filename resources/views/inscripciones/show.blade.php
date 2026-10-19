@@ -1,5 +1,5 @@
 
-@extends('layouts.public')
+@extends('layouts.publico-con-navbar')
 
 @section('title', 'Estado de mi inscripción - SIDAN')
 
@@ -39,7 +39,7 @@
 </style>
 @endpush
 
-@section('content')
+@section('portal-content')
 @php
     // Información de la inscripción y su actividad.
     $actividad = $inscripcion->actividad;
@@ -98,86 +98,17 @@
         ?: ($actividad?->espacio?->nombre ?? 'Por definir');
 @endphp
 
-<div class="sidan-confirmacion flex min-h-screen flex-col bg-zinc-50 text-zinc-950 transition-colors duration-300 dark:bg-zinc-950 dark:text-white">
+<div class="sidan-confirmacion flex min-h-screen flex-col bg-[#f6f8fb] text-slate-900 transition-colors duration-300 dark:bg-sidan-950 dark:text-slate-100">
 
-    {{-- HEADER --}}
-    <header class="sidan-no-print sticky top-0 z-50 border-b border-zinc-200 bg-white/95 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/95">
-        <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
-
-            <a href="{{ route('welcome') }}" class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-xl font-black text-white dark:bg-white dark:text-black">
-                    S
-                </div>
-                <div>
-                    <span class="block text-xl font-black leading-none tracking-tight">
-                        SIDAN
-                    </span>
-                    <span class="mt-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-                        Portal de actividades
-                    </span>
-                </div>
-            </a>
-
-            <nav class="hidden items-center gap-7 text-sm font-semibold text-zinc-600 md:flex dark:text-zinc-300">
-                <a href="{{ route('welcome') }}" class="transition hover:text-black dark:hover:text-white">
-                    Inicio
-                </a>
-                <a href="{{ route('activities.index') }}" class="transition hover:text-black dark:hover:text-white">
-                    Explorar
-                </a>
-                @if($esUsuario)
-                    <a href="{{ route('user.inscripciones.index') }}" class="transition hover:text-black dark:hover:text-white">
-                        Mis inscripciones
-                    </a>
-                    <a href="{{ route('user.ordenes.index') }}" class="transition hover:text-black dark:hover:text-white">
-                        Mis órdenes
-                    </a>
-                @endif
-            </nav>
-
-            <div class="flex items-center gap-2">
-                <button type="button"
-                    onclick="toggleTheme()"
-                    aria-label="Cambiar tema"
-                    title="Cambiar tema"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800">
-
-                    <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/>
-                    </svg>
-
-                    <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                        <circle cx="12" cy="12" r="4"/>
-                        <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.32 11.32 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/>
-                    </svg>
-                </button>
-
-                <a href="{{ route('activities.index') }}"
-                    class="hidden rounded-xl bg-black px-5 py-2.5 text-sm font-bold text-white transition hover:bg-zinc-800 sm:inline-flex dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-                    Explorar actividades
-                </a>
-            </div>
-
-            <nav class="flex w-full items-center gap-5 border-t border-zinc-100 pt-3 text-xs font-semibold text-zinc-600 md:hidden dark:border-zinc-800 dark:text-zinc-300">
-                <a href="{{ route('welcome') }}">Inicio</a>
-                <a href="{{ route('activities.index') }}">Explorar</a>
-                @if($esUsuario)
-                    <a href="{{ route('user.inscripciones.index') }}">Mis inscripciones</a>
-                    <a href="{{ route('user.ordenes.index') }}">Mis órdenes</a>
-                @endif
-            </nav>
-
-        </div>
-    </header>
-
-    {{-- HERO DE CONFIRMACIÓN --}}
-    <section class="sidan-confirmacion-hero relative isolate overflow-hidden bg-zinc-950 text-white">
-        <div class="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/10"></div>
+{{-- HERO DE CONFIRMACIÓN --}}
+    <section class="sidan-confirmacion-hero relative isolate overflow-hidden bg-sidan-900 text-white">
+        <div class="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-sidan-400/15"></div>
+        <div class="pointer-events-none absolute -left-20 bottom-0 h-56 w-56 rounded-full bg-sidan-500/10 blur-3xl"></div>
         <div class="pointer-events-none absolute -right-10 -top-24 h-72 w-72 rounded-full border border-white/10"></div>
 
         <div class="relative mx-auto max-w-7xl px-5 py-12 sm:py-16 lg:px-8">
 
-            <div class="sidan-no-print mb-10 flex flex-wrap items-center gap-2 text-xs font-medium text-zinc-400">
+            <div class="sidan-no-print mb-10 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-400">
                 <a href="{{ route('welcome') }}" class="hover:text-white">Inicio</a>
                 <span>/</span>
                 <a href="{{ route('activities.index') }}" class="hover:text-white">Actividades</a>
@@ -190,7 +121,7 @@
                 <div class="lg:col-span-8">
 
                     {{-- INDICADOR DE ESTADO --}}
-                    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
+                    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-sidan-400/40 bg-sidan-500/15 text-sidan-300">
                         @if($estado === 'confirmada' || $estado === 'confirmada_prueba')
                             <svg class="h-9 w-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <circle cx="12" cy="12" r="9"/>
@@ -209,7 +140,7 @@
                         @endif
                     </div>
 
-                    <span class="inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest">
+                    <span class="inline-flex rounded-full border border-sidan-400/35 bg-sidan-500/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-sidan-200">
                         Estado de participación
                     </span>
 
@@ -217,7 +148,7 @@
                         {{ $tituloEstado }}
                     </h1>
 
-                    <p class="mt-6 max-w-2xl text-sm leading-7 text-zinc-300 sm:text-base">
+                    <p class="mt-6 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
                         {{ $mensajeEstado }}
                     </p>
 
@@ -225,23 +156,23 @@
 
                 {{-- REFERENCIA DESTACADA --}}
                 <div class="lg:col-span-4">
-                    <div class="rounded-3xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
-                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">
+                    <div class="rounded-3xl border border-white/15 bg-white/10 p-6 backdrop-blur-sm">
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
                             Número de inscripción
                         </p>
 
-                        <p class="mt-3 text-4xl font-black tracking-tight">
+                        <p class="mt-3 text-4xl font-black tracking-tight text-sidan-300">
                             #{{ $inscripcion->id_inscripcion }}
                         </p>
 
                         <div class="mt-5 border-t border-white/20 pt-5">
-                            <p class="text-xs text-zinc-400">Referencia de consulta</p>
+                            <p class="text-xs text-slate-400">Referencia de consulta</p>
                             <p class="mt-2 break-all font-mono text-sm font-bold tracking-wide">
                                 {{ $referencia }}
                             </p>
                         </div>
 
-                        <p class="mt-4 text-xs leading-5 text-zinc-400">
+                        <p class="mt-4 text-xs leading-5 text-slate-400">
                             Utilizá esta referencia para identificar tu inscripción.
                         </p>
                     </div>
@@ -260,16 +191,16 @@
             <div class="min-w-0 space-y-7 lg:col-span-7">
 
                 {{-- DATOS DE INSCRIPCIÓN --}}
-                <section class="sidan-panel overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <section class="sidan-panel overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                    <div class="border-b border-zinc-100 px-6 py-6 sm:px-8 dark:border-zinc-800">
-                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+                    <div class="border-b border-slate-100 px-6 py-6 sm:px-8 dark:border-white/10">
+                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                             Información del registro
                         </span>
                         <h2 class="mt-2 text-2xl font-black tracking-tight">
                             Detalles de tu inscripción
                         </h2>
-                        <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                             Resumen de los datos asociados a tu participación.
                         </p>
                     </div>
@@ -279,7 +210,7 @@
                         <div class="grid gap-7 sm:grid-cols-2">
 
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     Participante
                                 </p>
                                 <p class="mt-2 break-words text-base font-bold">
@@ -288,7 +219,7 @@
                             </div>
 
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     Correo electrónico
                                 </p>
                                 <p class="mt-2 break-all text-sm font-bold">
@@ -298,7 +229,7 @@
 
                             @if($inscripcion->telefono_participante)
                                 <div>
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                         Teléfono
                                     </p>
                                     <p class="mt-2 text-sm font-bold">
@@ -308,7 +239,7 @@
                             @endif
 
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     Fecha de registro
                                 </p>
                                 <p class="mt-2 text-sm font-bold">
@@ -317,17 +248,17 @@
                             </div>
 
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     Estado actual
                                 </p>
-                                <span class="mt-2 inline-flex rounded-full border border-zinc-300 bg-zinc-100 px-3 py-1.5 text-xs font-black dark:border-zinc-700 dark:bg-zinc-800">
+                                <span class="mt-2 inline-flex rounded-full border border-sidan-200 bg-sidan-50 px-3 py-1.5 text-xs font-black dark:border-sidan-500/30 dark:bg-sidan-500/10">
                                     {{ $tituloEstado }}
                                 </span>
                             </div>
 
                             @if($inscripcion->fecha_confirmacion)
                                 <div>
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                         Fecha de confirmación
                                     </p>
                                     <p class="mt-2 text-sm font-bold">
@@ -342,10 +273,10 @@
                 </section>
 
                 {{-- INFORMACIÓN IMPORTANTE SEGÚN ESTADO --}}
-                <section class="sidan-panel rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
+                <section class="sidan-panel rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-[#0f172a]">
 
                     <div class="flex items-start gap-4">
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
                             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                                 <circle cx="12" cy="12" r="9"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 11v5m0-8h.01"/>
@@ -354,7 +285,7 @@
 
                         <div>
                             <h2 class="text-xl font-black">¿Qué sucede ahora?</h2>
-                            <p class="mt-2 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+                            <p class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-400">
                                 Los siguientes pasos dependen del estado de tu inscripción.
                             </p>
                         </div>
@@ -365,24 +296,24 @@
                         @if($estado === 'confirmada')
 
                             <div class="flex gap-4">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidan-500 text-white dark:bg-sidan-500">
                                     ✓
                                 </span>
                                 <div>
                                     <h3 class="text-sm font-black">Registro completado</h3>
-                                    <p class="mt-1 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                                    <p class="mt-1 text-xs leading-6 text-slate-500 dark:text-slate-400">
                                         Tus datos fueron registrados correctamente y la inscripción se encuentra confirmada.
                                     </p>
                                 </div>
                             </div>
 
                             <div class="flex gap-4">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 text-sm font-bold dark:border-zinc-700">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-300 text-sm font-bold dark:border-slate-700">
                                     2
                                 </span>
                                 <div>
                                     <h3 class="text-sm font-black">Prepararte para la actividad</h3>
-                                    <p class="mt-1 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                                    <p class="mt-1 text-xs leading-6 text-slate-500 dark:text-slate-400">
                                         Revisá las fechas, horarios, ubicación e indicaciones publicadas por la organización.
                                     </p>
                                 </div>
@@ -391,24 +322,24 @@
                         @elseif($puedeContinuarPago)
 
                             <div class="flex gap-4">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidan-500 text-sidan-950 dark:bg-sidan-500 dark:text-sidan-950">
                                     ✓
                                 </span>
                                 <div>
                                     <h3 class="text-sm font-black">Solicitud registrada</h3>
-                                    <p class="mt-1 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                                    <p class="mt-1 text-xs leading-6 text-slate-500 dark:text-slate-400">
                                         Ya contamos con tus datos de inscripción.
                                     </p>
                                 </div>
                             </div>
 
                             <div class="flex gap-4">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 text-sm font-bold dark:border-zinc-700">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-300 text-sm font-bold dark:border-slate-700">
                                     2
                                 </span>
                                 <div>
                                     <h3 class="text-sm font-black">Completar el pago</h3>
-                                    <p class="mt-1 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                                    <p class="mt-1 text-xs leading-6 text-slate-500 dark:text-slate-400">
                                         Consultá tu orden y completá el pago dentro del plazo establecido.
                                     </p>
 
@@ -422,31 +353,31 @@
 
                         @elseif($estado === 'confirmada_prueba')
 
-                            <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                            <p class="text-sm leading-7 text-slate-600 dark:text-slate-300">
                                 Esta inscripción está confirmada únicamente en el entorno de pruebas. No debe interpretarse como un comprobante de pago real.
                             </p>
 
                         @elseif($estado === 'revision_cupo')
 
-                            <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                            <p class="text-sm leading-7 text-slate-600 dark:text-slate-300">
                                 La solicitud requiere una revisión adicional relacionada con la disponibilidad de cupos. Consultá nuevamente su estado antes de considerar confirmada tu participación.
                             </p>
 
                         @elseif($estado === 'pendiente_pago' && $plazoVencido)
 
-                            <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                            <p class="text-sm leading-7 text-slate-600 dark:text-slate-300">
                                 El plazo de pago registrado ya transcurrió. Podés consultar la orden relacionada para revisar su estado. No se debe asumir que el cupo continúa reservado.
                             </p>
 
                         @elseif(in_array($estado, ['vencida', 'cancelada'], true))
 
-                            <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                            <p class="text-sm leading-7 text-slate-600 dark:text-slate-300">
                                 Esta inscripción ya no está activa. Podés consultar la actividad para conocer si existen nuevas oportunidades de participación.
                             </p>
 
                         @else
 
-                            <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                            <p class="text-sm leading-7 text-slate-600 dark:text-slate-300">
                                 El sistema muestra el último estado registrado de tu inscripción. Consultá nuevamente cuando necesités conocer su situación.
                             </p>
 
@@ -456,9 +387,9 @@
 
                     {{-- ACCESO A ORDEN --}}
                     @if($orden)
-                        <div class="sidan-no-print mt-7 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+                        <div class="sidan-no-print mt-7 border-t border-slate-200 pt-6 dark:border-white/10">
                             <a href="{{ route('sidan.ordenes.show', $orden->id_orden) }}"
-                               class="inline-flex items-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-bold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
+                               class="inline-flex items-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sidan-600 dark:bg-sidan-500 dark:hover:bg-sidan-400">
                                 {{ $puedeContinuarPago ? 'Continuar al pago' : 'Consultar orden relacionada' }}
                                 <span>→</span>
                             </a>
@@ -468,11 +399,11 @@
                 </section>
 
                 {{-- ACCIONES --}}
-                <section class="sidan-no-print rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
+                <section class="sidan-no-print rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-[#0f172a]">
 
                     <h2 class="text-xl font-black">Administrar mi inscripción</h2>
 
-                    <p class="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
                         Consultá tus inscripciones o conservá una copia impresa de esta información.
                     </p>
 
@@ -480,7 +411,7 @@
 
                         @if($esUsuario)
                             <a href="{{ route('user.inscripciones.index') }}"
-                               class="inline-flex items-center justify-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-bold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
+                               class="inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sidan-600 dark:bg-sidan-500 dark:hover:bg-sidan-400">
                                 Mis inscripciones
                                 <span>→</span>
                             </a>
@@ -488,7 +419,7 @@
 
                         <button type="button"
                             onclick="window.print()"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-300 px-5 py-3 text-sm font-bold transition hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">
+                            class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v5a2 2 0 0 1-2 2h-2"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 14h12v7H6z"/>
@@ -498,7 +429,7 @@
 
                     </div>
 
-                    <p class="mt-4 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400">
                         El resumen impreso muestra el estado de la inscripción y no sustituye un comprobante de pago.
                     </p>
                 </section>
@@ -509,10 +440,10 @@
             <aside class="min-w-0 space-y-6 lg:col-span-5">
 
                 {{-- TARJETA DE ACTIVIDAD --}}
-                <section class="sidan-panel overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <section class="sidan-panel overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                    <div class="border-b border-zinc-100 p-6 dark:border-zinc-800">
-                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+                    <div class="border-b border-slate-100 p-6 dark:border-white/10">
+                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                             Actividad seleccionada
                         </span>
 
@@ -521,7 +452,7 @@
                         </h2>
 
                         @if($actividad?->categoria?->nombre)
-                            <span class="mt-3 inline-flex rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold dark:border-zinc-700">
+                            <span class="mt-3 inline-flex rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold dark:border-slate-700">
                                 {{ $actividad->categoria->nombre }}
                             </span>
                         @endif
@@ -531,7 +462,7 @@
 
                         {{-- FECHA --}}
                         <div class="flex gap-4">
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                                     <rect x="3" y="5" width="18" height="16" rx="2"/>
                                     <path d="M7 3v4m10-4v4M3 10h18"/>
@@ -539,7 +470,7 @@
                             </div>
 
                             <div>
-                                <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
                                     Inicio de la actividad
                                 </p>
                                 <p class="mt-1 text-sm font-bold">
@@ -551,7 +482,7 @@
                         {{-- FINALIZACIÓN --}}
                         @if($actividad?->realizacion_hasta)
                             <div class="flex gap-4">
-                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                                         <circle cx="12" cy="12" r="9"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/>
@@ -559,7 +490,7 @@
                                 </div>
 
                                 <div>
-                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
                                         Finalización
                                     </p>
                                     <p class="mt-1 text-sm font-bold">
@@ -571,7 +502,7 @@
 
                         {{-- UBICACIÓN --}}
                         <div class="flex gap-4">
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/>
                                     <circle cx="12" cy="10" r="2.5"/>
@@ -579,7 +510,7 @@
                             </div>
 
                             <div>
-                                <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
                                     Ubicación
                                 </p>
                                 <p class="mt-1 text-sm font-bold">
@@ -590,7 +521,7 @@
 
                         {{-- PARTICIPACIÓN --}}
                         <div class="flex gap-4">
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                                     <circle cx="9" cy="8" r="3"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 20v-2a6 6 0 0 1 12 0v2m2-15a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 5v1"/>
@@ -598,7 +529,7 @@
                             </div>
 
                             <div>
-                                <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
                                     Tipo de inscripción
                                 </p>
                                 <p class="mt-1 text-sm font-bold">
@@ -608,7 +539,7 @@
                         </div>
 
                         {{-- IMPORTE --}}
-                        <div class="flex items-center justify-between gap-4 rounded-2xl bg-zinc-950 p-5 text-white dark:bg-white dark:text-black">
+                        <div class="flex items-center justify-between gap-4 rounded-2xl bg-sidan-900 p-5 text-white dark:bg-sidan-900 dark:text-white">
                             <div>
                                 <p class="text-xs font-semibold opacity-70">
                                     Importe registrado
@@ -625,7 +556,7 @@
 
                         @if($actividad?->slug)
                             <a href="{{ route('activities.show', $actividad->slug) }}"
-                               class="sidan-no-print flex items-center justify-center gap-2 rounded-xl border border-zinc-300 px-5 py-3 text-sm font-bold transition hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">
+                               class="sidan-no-print flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">
                                 Ver detalles de la actividad
                                 <span>↗</span>
                             </a>
@@ -635,34 +566,34 @@
                 </section>
 
                 {{-- IDENTIFICACIÓN --}}
-                <section class="sidan-panel rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <section class="sidan-panel rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
                     <h3 class="text-lg font-black">Referencia del registro</h3>
-                    <p class="mt-2 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-2 text-xs leading-6 text-slate-500 dark:text-slate-400">
                         Esta referencia permite distinguir tu inscripción de otras solicitudes dentro de SIDAN.
                     </p>
 
-                    <div class="mt-5 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-5 text-center dark:border-zinc-700 dark:bg-zinc-950">
+                    <div class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center dark:border-slate-700 dark:bg-sidan-950">
                         <span class="break-all font-mono text-base font-black tracking-wide sm:text-lg">
                             {{ $referencia }}
                         </span>
                     </div>
 
-                    <p class="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-4 text-center text-xs text-slate-500 dark:text-slate-400">
                         Registro generado por SIDAN
                     </p>
                 </section>
 
                 {{-- NOTA DE CONSULTA --}}
-                <section class="sidan-panel rounded-3xl border border-zinc-200 p-6 dark:border-zinc-800">
+                <section class="sidan-panel rounded-3xl border border-slate-200 p-6 dark:border-white/10">
                     <h3 class="text-sm font-black">
                         Información importante
                     </h3>
 
-                    <p class="mt-3 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
                         El estado mostrado corresponde a los datos registrados en el sistema al momento de consultar esta página.
                     </p>
 
-                    <p class="mt-3 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
                         Las fechas, horarios y demás condiciones de la actividad pueden ser actualizados por la organización.
                     </p>
                 </section>
@@ -671,36 +602,36 @@
         </div>
 
         {{-- NAVEGACIÓN INFERIOR --}}
-        <div class="sidan-no-print mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-zinc-200 pt-7 dark:border-zinc-800">
+        <div class="sidan-no-print mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-7 dark:border-white/10">
 
             <a href="{{ route('activities.index') }}"
-               class="inline-flex items-center gap-2 text-sm font-bold transition hover:opacity-60">
+               class="inline-flex items-center gap-2 text-sm font-bold transition hover:text-sidan-600 dark:hover:text-sidan-400">
                 <span>←</span>
                 Regresar a explorar actividades
             </a>
 
             <a href="{{ route('welcome') }}"
-               class="text-sm font-semibold text-zinc-500 underline underline-offset-4 transition hover:text-black dark:hover:text-white">
+               class="text-sm font-semibold text-slate-500 underline underline-offset-4 transition hover:text-sidan-600 dark:hover:text-sidan-400">
                 Volver al inicio
             </a>
         </div>
     </main>
 
     {{-- FOOTER --}}
-    <footer class="sidan-no-print border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <footer class="sidan-no-print border-t border-slate-200 bg-white dark:border-white/10 dark:bg-sidan-950">
         <div class="mx-auto max-w-7xl px-5 py-10 lg:px-8">
 
             <div class="grid gap-9 md:grid-cols-3">
 
                 <div>
                     <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-black font-black text-white dark:bg-white dark:text-black">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-sidan-900 font-black text-white">
                             S
                         </div>
                         <span class="text-xl font-black tracking-tight">SIDAN</span>
                     </div>
 
-                    <p class="mt-4 max-w-sm text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-4 max-w-sm text-xs leading-6 text-slate-500 dark:text-slate-400">
                         Sistema Integrado de Datos y Analítica de Negocios.
                         Plataforma para la administración de actividades, participantes e inscripciones.
                     </p>
@@ -709,7 +640,7 @@
                 <div>
                     <h4 class="text-sm font-black">Navegación</h4>
 
-                    <div class="mt-4 flex flex-col gap-3 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    <div class="mt-4 flex flex-col gap-3 text-xs font-medium text-slate-500 dark:text-slate-400">
                         <a href="{{ route('welcome') }}" class="hover:underline">
                             Inicio
                         </a>
@@ -731,18 +662,18 @@
                 <div>
                     <h4 class="text-sm font-black">Sobre tu inscripción</h4>
 
-                    <p class="mt-4 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-4 text-xs leading-6 text-slate-500 dark:text-slate-400">
                         Consultá periódicamente el estado de tu inscripción y verificá las indicaciones correspondientes a la actividad.
                     </p>
 
-                    <p class="mt-3 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
                         Las inscripciones de visitantes sin cuenta se pueden consultar mientras se conserve la sesión autorizada del navegador.
                     </p>
                 </div>
 
             </div>
 
-            <div class="mt-10 flex flex-col justify-between gap-3 border-t border-zinc-200 pt-6 text-xs text-zinc-500 sm:flex-row dark:border-zinc-800 dark:text-zinc-400">
+            <div class="mt-10 flex flex-col justify-between gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 sm:flex-row dark:border-white/10 dark:text-slate-400">
                 <span>© {{ now()->year }} SIDAN. Todos los derechos reservados.</span>
                 <span>Sistema de gestión de inscripciones</span>
             </div>

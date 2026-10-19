@@ -8,11 +8,11 @@
 
     <main class="min-h-[calc(100vh-4rem)]">
         <section class="relative overflow-hidden border-b border-slate-200 bg-white dark:border-white/10 dark:bg-sidan-950">
-            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(16,185,129,0.10),transparent_35%)]"></div>
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(34,197,94,0.10),transparent_35%)]"></div>
 
             <div class="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20 lg:px-8">
-                <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-sidan-200 bg-sidan-50 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-300">
+                    <span class="h-2 w-2 rounded-full bg-sidan-500"></span>
                     Descubre SIDAN
                 </div>
 
@@ -26,7 +26,7 @@
 
                 <div class="mt-7 flex flex-wrap items-center gap-3">
                     <a href="{{ route('activities.index') }}"
-                        class="inline-flex items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-600">
+                        class="inline-flex items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
                         Explorar todas las actividades →
                     </a>
 
@@ -63,10 +63,10 @@
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($categorias as $categoria)
                         <a href="{{ route('activities.index', ['categoria' => $categoria->nombre]) }}"
-                            class="group relative flex min-h-48 flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-400 hover:shadow-lg dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-emerald-500/50">
+                            class="group relative flex min-h-48 flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-sidan-400 hover:shadow-lg dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-sidan-500/50">
 
                             <div class="mb-5 flex items-start justify-between gap-3">
-                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-xl font-black text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-sidan-50 text-xl font-black text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                                     {{ mb_strtoupper(mb_substr($categoria->nombre, 0, 1)) }}
                                 </span>
 
@@ -75,7 +75,7 @@
                                 </span>
                             </div>
 
-                            <h3 class="text-lg font-black text-sidan-900 transition group-hover:text-emerald-600 dark:text-white dark:group-hover:text-emerald-300">
+                            <h3 class="text-lg font-black text-sidan-900 transition group-hover:text-sidan-600 dark:text-white dark:group-hover:text-sidan-300">
                                 {{ $categoria->nombre }}
                             </h3>
 
@@ -83,7 +83,7 @@
                                 {{ $categoria->descripcion ?: 'Descubre las actividades disponibles dentro de esta categoría.' }}
                             </p>
 
-                            <span class="mt-5 inline-flex items-center gap-2 text-sm font-black text-emerald-600 dark:text-emerald-400">
+                            <span class="mt-5 inline-flex items-center gap-2 text-sm font-black text-sidan-600 dark:text-sidan-400">
                                 Ver actividades <span aria-hidden="true">→</span>
                             </span>
                         </a>
@@ -100,7 +100,7 @@
                     </p>
 
                     <a href="{{ route('activities.index') }}"
-                        class="mt-6 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white hover:bg-emerald-600">
+                        class="mt-6 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white hover:bg-sidan-600">
                         Ir a Explorar
                     </a>
                 </div>
@@ -125,7 +125,7 @@
                     <div class="mt-6 flex flex-wrap gap-2.5">
                         @foreach ($etiquetas as $etiqueta)
                             <a href="{{ route('activities.index', ['etiqueta' => $etiqueta->nombre]) }}"
-                                class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300">
+                                class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-sidan-400 hover:bg-sidan-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-sidan-500/40 dark:hover:bg-sidan-500/10 dark:hover:text-sidan-300">
                                 #{{ $etiqueta->nombre }}
                                 <span class="ml-1 text-xs opacity-60">
                                     {{ $etiqueta->actividades_publicas_count }}

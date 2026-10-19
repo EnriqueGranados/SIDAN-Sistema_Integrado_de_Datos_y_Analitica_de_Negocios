@@ -13,7 +13,7 @@
     @if (auth()->user()?->rol?->nombre === 'usuario')
         <div class="mx-auto max-w-6xl px-4 pt-6">
             <a href="{{ route('user.ordenes.index') }}"
-                class="text-sm font-bold text-emerald-600 transition hover:text-emerald-700 dark:text-emerald-400">
+                class="text-sm font-bold text-sidan-600 transition hover:text-sidan-600 dark:text-sidan-400">
                 ← Mis órdenes
             </a>
         </div>
@@ -39,9 +39,9 @@
             'pagada' => [
                 'texto' => 'Pagada',
 
-                'clases' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300',
+                'clases' => 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300',
 
-                'punto' => 'bg-emerald-500',
+                'punto' => 'bg-sidan-500',
             ],
 
             'pagada_prueba' => [
@@ -89,7 +89,7 @@
             <div class="mb-8">
 
                 <a href="{{ route('activities.show', ['slug' => $orden->actividad->slug]) }}"
-                    class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
+                    class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-sidan-600 dark:text-slate-400 dark:hover:text-sidan-400">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6" />
                     </svg>
@@ -103,7 +103,7 @@
                     <div>
 
                         <p
-                            class="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">
+                            class="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-sidan-600 dark:text-sidan-400">
 
                             Resumen de compra
 
@@ -214,7 +214,7 @@
 
 
                                 <div
-                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
 
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 
@@ -489,7 +489,7 @@
 
 
                                 <div
-                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
 
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 
@@ -577,7 +577,7 @@
 
                                         @if ((float) $detalle->descuento > 0)
                                             <span
-                                                class="mt-1 block text-xs font-normal text-emerald-600 dark:text-emerald-400">
+                                                class="mt-1 block text-xs font-normal text-sidan-600 dark:text-sidan-400">
                                                 {{ $detalle->unidades_descuento }} unidad(es) con descuento
                                             </span>
                                         @endif
@@ -702,7 +702,7 @@
 
                     @if ($orden->id_inscripcion)
                         <a href="{{ route('sidan.inscripciones.show', $orden->id_inscripcion) }}"
-                            class="mt-4 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-300 dark:hover:border-emerald-500/40 dark:hover:text-emerald-400">
+                            class="mt-4 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-sidan-300 hover:text-sidan-600 dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-300 dark:hover:border-sidan-500/40 dark:hover:text-sidan-400">
 
 
 
@@ -752,7 +752,7 @@
 
             <div class="p-7 text-center sm:p-8">
                 <div id="payment-modal-success-icon"
-                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 ring-8 ring-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/5">
+                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sidan-100 text-sidan-600 ring-8 ring-sidan-50 dark:bg-sidan-500/10 dark:text-sidan-400 dark:ring-sidan-500/5">
                     <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="m5 12 4 4L19 6" />
                     </svg>
@@ -767,7 +767,7 @@
                 </div>
 
                 <p id="payment-modal-label"
-                    class="mt-6 inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    class="mt-6 inline-flex items-center rounded-full bg-sidan-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                     Pago confirmado
                 </p>
 
@@ -802,7 +802,7 @@
 
                 <div class="mt-6 space-y-3">
                     <button id="payment-modal-refresh" type="button"
-                        class="group flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                        class="group flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3.5 font-semibold text-white shadow-sm transition hover:bg-sidan-600 focus:outline-none focus:ring-4 focus:ring-sidan-500/20">
                         Ver orden actualizada
                         <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor">
@@ -812,7 +812,7 @@
 
                     <div class="grid gap-3 sm:grid-cols-2">
                         <a href="{{ route('welcome') }}"
-                            class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:hover:border-emerald-500/30 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300">
+                            class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-sidan-300 hover:bg-sidan-50 hover:text-sidan-600 dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:hover:border-sidan-500/30 dark:hover:bg-sidan-500/10 dark:hover:text-sidan-300">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 11.5 12 4l9 7.5M5 10v10h14V10M9 20v-6h6v6" />
@@ -1016,7 +1016,7 @@
 
 
                 modalLabel.className =
-                    'mt-6 inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300';
+                    'mt-6 inline-flex items-center rounded-full bg-sidan-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300';
 
                 modalLabel.textContent = 'Pago confirmado';
 

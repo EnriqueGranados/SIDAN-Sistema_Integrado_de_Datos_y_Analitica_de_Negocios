@@ -1,9 +1,9 @@
 
-@extends('layouts.public')
+@extends('layouts.publico-con-navbar')
 
 @section('title', 'Inscripción | ' . $actividad->nombre . ' - SIDAN')
 
-@section('content')
+@section('portal-content')
 @php
     // Información visual de la actividad.
     $conPago = $actividad->participacionConPago();
@@ -23,76 +23,10 @@
         ->get();
 @endphp
 
-<div class="flex min-h-screen flex-col bg-zinc-50 text-zinc-950 transition-colors duration-300 dark:bg-zinc-950 dark:text-white">
+<div class="flex min-h-screen flex-col bg-[#f6f8fb] text-slate-900 transition-colors duration-300 dark:bg-sidan-950 dark:text-slate-100">
 
-    {{-- HEADER --}}
-    <header class="sticky top-0 z-50 border-b border-zinc-200 bg-white/95 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/95">
-        <div class="mx-auto flex min-h-18 max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-3 lg:px-8">
-
-            <a href="{{ route('welcome') }}" class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-xl font-black text-white dark:bg-white dark:text-black">
-                    S
-                </div>
-
-                <div>
-                    <span class="block text-xl font-black leading-none tracking-tight">SIDAN</span>
-                    <span class="mt-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-                        Portal de actividades
-                    </span>
-                </div>
-            </a>
-
-            <nav class="hidden items-center gap-7 text-sm font-semibold text-zinc-600 md:flex dark:text-zinc-300">
-                <a href="{{ route('welcome') }}" class="transition hover:text-black dark:hover:text-white">
-                    Inicio
-                </a>
-
-                <a href="{{ route('activities.index') }}" class="transition hover:text-black dark:hover:text-white">
-                    Explorar
-                </a>
-
-                @auth
-                    <a href="{{ route('user.inscripciones.index') }}" class="transition hover:text-black dark:hover:text-white">
-                        Mis inscripciones
-                    </a>
-                @endauth
-            </nav>
-
-            <div class="flex items-center gap-2">
-                <button
-                    type="button"
-                    onclick="toggleTheme()"
-                    aria-label="Cambiar entre modo claro y oscuro"
-                    title="Cambiar tema"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
-                >
-                    <svg class="h-5 w-5 dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/>
-                    </svg>
-
-                    <svg class="hidden h-5 w-5 dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
-                        <circle cx="12" cy="12" r="4"/>
-                        <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.32 11.32 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/>
-                    </svg>
-                </button>
-
-                <a href="{{ route('activities.index') }}" class="hidden rounded-xl bg-black px-5 py-2.5 text-sm font-bold text-white transition hover:bg-zinc-800 sm:inline-flex dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-                    Explorar actividades
-                </a>
-            </div>
-
-            <nav class="flex w-full items-center gap-5 border-t border-zinc-100 pt-3 text-xs font-semibold text-zinc-600 md:hidden dark:border-zinc-800 dark:text-zinc-300">
-                <a href="{{ route('welcome') }}">Inicio</a>
-                <a href="{{ route('activities.index') }}">Explorar</a>
-                @auth
-                    <a href="{{ route('user.inscripciones.index') }}">Mis inscripciones</a>
-                @endauth
-            </nav>
-        </div>
-    </header>
-
-    {{-- PRESENTACIÓN DE LA ACTIVIDAD --}}
-    <section class="relative isolate overflow-hidden bg-zinc-950 text-white">
+{{-- PRESENTACIÓN DE LA ACTIVIDAD --}}
+    <section class="relative isolate overflow-hidden bg-sidan-900 text-white">
         <div class="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/10"></div>
         <div class="pointer-events-none absolute -right-10 -top-24 h-72 w-72 rounded-full border border-white/10"></div>
         <div class="pointer-events-none absolute bottom-0 left-1/2 h-px w-96 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
@@ -122,7 +56,7 @@
 
                     <h1 class="max-w-4xl break-words text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                         Inscribite a<br>
-                        <span class="text-zinc-400">{{ $actividad->nombre }}</span>
+                        <span class="text-sidan-400">{{ $actividad->nombre }}</span>
                     </h1>
 
                     @if($resumenActividad !== '')
@@ -191,9 +125,9 @@
 
                 {{-- ERRORES DE VALIDACIÓN --}}
                 @if($errors->any())
-                    <div role="alert" class="mb-6 rounded-2xl border border-zinc-400 bg-zinc-100 p-5 text-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                    <div role="alert" class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                         <div class="mb-2 flex items-center gap-2">
-                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-black text-sm font-bold text-white dark:bg-white dark:text-black">!</span>
+                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-sm font-bold text-white dark:bg-red-500 dark:text-white">!</span>
                             <h3 class="font-bold">Revisá los siguientes datos</h3>
                         </div>
 
@@ -208,13 +142,13 @@
                 <form
                     method="POST"
                     action="{{ route('sidan.inscripciones.store', $actividad->slug) }}"
-                    class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+                    class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.04]"
                 >
                     @csrf
 
-                    <div class="border-b border-zinc-100 px-6 py-6 sm:px-8 dark:border-zinc-800">
+                    <div class="border-b border-zinc-100 px-6 py-6 sm:px-8 dark:border-white/10">
                         <div class="flex items-center gap-4">
-                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-900 dark:bg-white/10 dark:text-white">
                                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                                     <circle cx="12" cy="8" r="4"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 21v-2a8 8 0 0 1 16 0v2"/>
@@ -242,16 +176,24 @@
                                 type="text"
                                 id="nombre"
                                 name="nombre"
-                                value="{{ old('nombre', $nombre) }}"
+                                value="{{ $usuarioAutenticado ? $nombre : old('nombre', $nombre) }}"
                                 placeholder="Ingresá tu nombre completo"
                                 maxlength="200"
                                 autocomplete="name"
                                 required
-                                class="block w-full rounded-xl border border-zinc-300 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
+                                @if($usuarioAutenticado) readonly aria-readonly="true" @endif
+                                class="block w-full rounded-xl border px-4 py-3.5 text-sm outline-none transition {{ $usuarioAutenticado
+                                    ? 'cursor-default border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200'
+                                    : 'border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/15 dark:border-white/10 dark:bg-sidan-950 dark:text-white dark:focus:border-sidan-400 dark:focus:ring-sidan-400/20' }}"
                             >
 
                             <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                Utilizá tu nombre real para identificar correctamente tu inscripción.
+                                @if($usuarioAutenticado)
+                                    Este nombre se obtiene de tu cuenta SIDAN. Podés actualizarlo desde
+                                    <a href="{{ route('profile.edit') }}" class="font-semibold text-sidan-600 underline underline-offset-2 hover:text-sidan-700 dark:text-sidan-400 dark:hover:text-sidan-300">Mi perfil</a>.
+                                @else
+                                    Utilizá tu nombre real para identificar correctamente tu inscripción.
+                                @endif
                             </p>
                         </div>
 
@@ -265,13 +207,22 @@
                                 type="email"
                                 id="correo"
                                 name="correo"
-                                value="{{ old('correo', $correo) }}"
+                                value="{{ $usuarioAutenticado ? $correo : old('correo', $correo) }}"
                                 placeholder="nombre@ejemplo.com"
                                 maxlength="150"
                                 autocomplete="email"
                                 required
-                                class="block w-full rounded-xl border border-zinc-300 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
+                                @if($usuarioAutenticado) readonly aria-readonly="true" @endif
+                                class="block w-full rounded-xl border px-4 py-3.5 text-sm outline-none transition {{ $usuarioAutenticado
+                                    ? 'cursor-default border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200'
+                                    : 'border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/15 dark:border-white/10 dark:bg-sidan-950 dark:text-white dark:focus:border-sidan-400 dark:focus:ring-sidan-400/20' }}"
                             >
+
+                            @if($usuarioAutenticado)
+                                <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                    Utilizaremos el correo vinculado a tu cuenta SIDAN.
+                                </p>
+                            @endif
                         </div>
 
                         {{-- TELÉFONO --}}
@@ -281,8 +232,8 @@
                                     Número de teléfono
                                 </label>
 
-                                <span class="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
-                                    OPCIONAL
+                                <span class="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-semibold text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
+                                    {{ $telefonoBloqueado ? 'REGISTRADO EN TU PERFIL' : 'OPCIONAL' }}
                                 </span>
                             </div>
 
@@ -290,21 +241,32 @@
                                 type="tel"
                                 id="telefono"
                                 name="telefono"
-                                value="{{ old('telefono') }}"
+                                value="{{ $telefonoBloqueado ? $telefonoRegistrado : old('telefono', $telefonoRegistrado) }}"
                                 placeholder="Ej. +503 7000 0000"
                                 maxlength="25"
                                 autocomplete="tel"
-                                class="block w-full rounded-xl border border-zinc-300 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
+                                @if($telefonoBloqueado) readonly aria-readonly="true" @endif
+                                class="block w-full rounded-xl border px-4 py-3.5 text-sm outline-none transition {{ $telefonoBloqueado
+                                    ? 'cursor-default border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200'
+                                    : 'border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/15 dark:border-white/10 dark:bg-sidan-950 dark:text-white dark:focus:border-sidan-400 dark:focus:ring-sidan-400/20' }}"
                             >
 
                             <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                Podés incluir el código de país.
+                                @if($telefonoBloqueado)
+                                    El teléfono se obtiene de tu perfil y no puede cambiarse desde esta inscripción.
+                                @else
+                                    @if($usuarioAutenticado)
+                                        Tu cuenta no tiene teléfono registrado. Podés agregar un número de contacto para esta inscripción.
+                                    @else
+                                        Podés incluir el código de país.
+                                    @endif
+                                @endif
                             </p>
                         </div>
 
                         {{-- PRECIO --}}
                         @if($conPago)
-                            <div class="flex items-center justify-between gap-4 rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800">
+                            <div class="flex items-center justify-between gap-4 rounded-2xl bg-zinc-100 p-5 dark:bg-white/10">
                                 <div>
                                     <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                                         Precio de inscripción
@@ -321,7 +283,7 @@
                         @endif
 
                         {{-- CONFIRMACIÓN --}}
-                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-zinc-950">
+                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-sidan-950">
                             <label for="confirmacion" class="flex cursor-pointer items-start gap-3">
                                 <input
                                     type="checkbox"
@@ -330,11 +292,15 @@
                                     value="1"
                                     required
                                     {{ old('confirmacion') ? 'checked' : '' }}
-                                    class="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-black dark:accent-white"
+                                    class="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-sidan-500 dark:accent-sidan-400"
                                 >
 
                                 <span class="text-sm leading-6 text-zinc-700 dark:text-zinc-200">
-                                    <strong class="font-bold">Confirmo que los datos proporcionados son correctos.</strong>
+                                    <strong class="font-bold">
+                                        {{ $usuarioAutenticado
+                                            ? 'Confirmo que los datos de mi cuenta y el teléfono de contacto son correctos.'
+                                            : 'Confirmo que los datos proporcionados son correctos.' }}
+                                    </strong>
                                     Entiendo que esta información será utilizada para gestionar mi inscripción a la actividad seleccionada.
                                 </span>
                             </label>
@@ -343,7 +309,7 @@
                         {{-- ENVÍO DEL FORMULARIO --}}
                         <button
                             type="submit"
-                            class="flex w-full items-center justify-center gap-3 rounded-xl bg-black px-6 py-4 text-sm font-black text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-4 focus:ring-zinc-300 dark:bg-white dark:text-black dark:hover:bg-zinc-200 dark:focus:ring-zinc-700"
+                            class="flex w-full items-center justify-center gap-3 rounded-xl bg-sidan-500 px-6 py-4 text-sm font-black text-white transition hover:bg-sidan-600 focus:outline-none focus:ring-4 focus:ring-sidan-500/20 dark:bg-sidan-500 dark:hover:bg-sidan-400 dark:focus:ring-sidan-400/20"
                         >
                             <span>
                                 {{ $conPago ? 'Continuar al pago' : 'Confirmar inscripción gratuita' }}
@@ -363,8 +329,8 @@
                 </form>
 
                 {{-- INFORMACIÓN ADICIONAL --}}
-                <div class="mt-6 flex items-start gap-3 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-white">
+                <div class="mt-6 flex items-start gap-3 rounded-2xl border border-zinc-200 p-5 dark:border-white/10">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-200 text-zinc-900 dark:bg-white/10 dark:text-white">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                             <circle cx="12" cy="12" r="9"/>
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 11v5m0-8h.01"/>
@@ -374,7 +340,12 @@
                     <div>
                         <h3 class="text-sm font-bold">Antes de continuar</h3>
                         <p class="mt-1 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
-                            Verificá que tu nombre y correo sean correctos. La inscripción está sujeta a las condiciones, disponibilidad y período de registro establecidos para la actividad.
+                            @if($usuarioAutenticado)
+                                Verificá los datos de tu cuenta y el teléfono de contacto. Para modificar la información registrada en SIDAN, ingresá a tu perfil.
+                            @else
+                                Verificá que tu nombre, correo y teléfono de contacto sean correctos.
+                            @endif
+                            La inscripción está sujeta a las condiciones, disponibilidad y período de registro establecidos para la actividad.
                         </p>
                     </div>
                 </div>
@@ -384,9 +355,9 @@
             <aside class="min-w-0 space-y-6 lg:col-span-5">
 
                 {{-- RESUMEN DE INSCRIPCIÓN --}}
-                <section class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <section class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
 
-                    <div class="border-b border-zinc-100 px-6 py-6 dark:border-zinc-800">
+                    <div class="border-b border-zinc-100 px-6 py-6 dark:border-white/10">
                         <span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
                             Tu actividad
                         </span>
@@ -414,11 +385,11 @@
                             @endif
                         </div>
 
-                        <div class="space-y-5 border-t border-zinc-100 pt-5 dark:border-zinc-800">
+                        <div class="space-y-5 border-t border-zinc-100 pt-5 dark:border-white/10">
 
                             {{-- FECHA --}}
                             <div class="flex items-start gap-4">
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-white/10">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                         <rect x="3" y="5" width="18" height="16" rx="2"/>
                                         <path d="M7 3v4m10-4v4M3 10h18"/>
@@ -444,7 +415,7 @@
 
                             {{-- UBICACIÓN --}}
                             <div class="flex items-start gap-4">
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-white/10">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/>
                                         <circle cx="12" cy="10" r="2.5"/>
@@ -461,7 +432,7 @@
 
                             {{-- DISPONIBILIDAD --}}
                             <div class="flex items-start gap-4">
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-white/10">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                         <circle cx="9" cy="8" r="3"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 20v-2a6 6 0 0 1 12 0v2m2-15a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 5v1"/>
@@ -482,7 +453,7 @@
                             {{-- CIERRE --}}
                             @if($actividad->inscripcion_hasta)
                                 <div class="flex items-start gap-4">
-                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-white/10">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                             <circle cx="12" cy="12" r="9"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/>
@@ -500,7 +471,7 @@
                         </div>
 
                         {{-- TOTAL --}}
-                        <div class="rounded-2xl bg-zinc-950 p-5 text-white dark:bg-white dark:text-black">
+                        <div class="rounded-2xl bg-sidan-900 p-5 text-white dark:bg-sidan-900 dark:text-white">
                             <div class="flex items-center justify-between gap-4">
                                 <div>
                                     <p class="text-xs font-medium opacity-70">Total de inscripción</p>
@@ -520,7 +491,7 @@
 
                 {{-- SESIONES PROGRAMADAS --}}
                 @if($sesionesResumen->isNotEmpty())
-                    <section class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                    <section class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
                         <h3 class="text-lg font-black">Sesiones programadas</h3>
 
                         <p class="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
@@ -530,7 +501,7 @@
                         <div class="mt-5 space-y-4">
                             @foreach($sesionesResumen as $sesion)
                                 <div class="flex items-start gap-4">
-                                    <div class="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white">
+                                    <div class="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-zinc-100 text-zinc-900 dark:bg-white/10 dark:text-white">
                                         <span class="text-lg font-black leading-none">
                                             {{ $sesion->fecha_inicio?->format('d') ?? '--' }}
                                         </span>
@@ -560,7 +531,7 @@
                 @endif
 
                 {{-- PRÓXIMOS PASOS --}}
-                <section class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <section class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
                     <h3 class="text-lg font-black">¿Qué sucede después?</h3>
 
                     <p class="mt-2 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
@@ -570,7 +541,7 @@
                     <div class="mt-6 space-y-5">
 
                         <div class="flex gap-4">
-                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-xs font-black text-white dark:bg-white dark:text-black">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidan-500 text-xs font-black text-white dark:bg-sidan-500">
                                 1
                             </span>
 
@@ -629,14 +600,14 @@
     </main>
 
     {{-- FOOTER --}}
-    <footer class="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <footer class="border-t border-zinc-200 bg-white dark:border-white/10 dark:bg-sidan-950">
         <div class="mx-auto max-w-7xl px-5 py-10 lg:px-8">
 
             <div class="grid gap-9 md:grid-cols-3">
 
                 <div>
                     <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-black font-black text-white dark:bg-white dark:text-black">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-sidan-900 font-black text-white dark:bg-sidan-900 dark:text-white">
                             S
                         </div>
 
@@ -678,7 +649,7 @@
                 </div>
             </div>
 
-            <div class="mt-10 flex flex-col justify-between gap-3 border-t border-zinc-200 pt-6 text-xs text-zinc-500 sm:flex-row dark:border-zinc-800 dark:text-zinc-400">
+            <div class="mt-10 flex flex-col justify-between gap-3 border-t border-zinc-200 pt-6 text-xs text-zinc-500 sm:flex-row dark:border-white/10 dark:text-zinc-400">
                 <span>© {{ now()->year }} SIDAN. Todos los derechos reservados.</span>
                 <span>Portal de inscripción a actividades</span>
             </div>

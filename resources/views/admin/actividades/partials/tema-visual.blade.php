@@ -10,9 +10,9 @@
             --activity-text-soft: #334155;
             --activity-text-muted: #64748b;
             --activity-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 10px 28px rgb(15 23 42 / 0.06);
-            --activity-accent: #10b981;
-            --activity-accent-soft: rgb(16 185 129 / 0.10);
-            --activity-accent-ring: rgb(16 185 129 / 0.18);
+            --activity-accent: #22c55e;
+            --activity-accent-soft: rgb(34 197 94 / 0.10);
+            --activity-accent-ring: rgb(34 197 94 / 0.18);
             --activity-info: #06b6d4;
             --activity-info-soft: rgb(6 182 212 / 0.10);
         }
@@ -27,8 +27,8 @@
             --activity-text-soft: #d1d5db;
             --activity-text-muted: #9ca3af;
             --activity-shadow: none;
-            --activity-accent-soft: rgb(16 185 129 / 0.14);
-            --activity-accent-ring: rgb(16 185 129 / 0.30);
+            --activity-accent-soft: rgb(34 197 94 / 0.14);
+            --activity-accent-ring: rgb(34 197 94 / 0.30);
             --activity-info-soft: rgb(6 182 212 / 0.14);
         }
 
@@ -63,12 +63,12 @@
 
         .dark .activity-ui [class~="text-gray-500"],
         .dark .activity-ui [class~="text-slate-500"] {
-            color: #6b7280 !important;
+            color: #9ca3af !important;
         }
 
         .dark .activity-ui [class~="text-gray-600"],
         .dark .activity-ui [class~="text-slate-600"] {
-            color: #4b5563 !important;
+            color: #94a3b8 !important;
         }
 
         .activity-ui [class~="border-white/10"],
@@ -250,7 +250,7 @@
 
         .dark .activity-ui input::placeholder,
         .dark .activity-ui textarea::placeholder {
-            color: #4b5563 !important;
+            color: #94a3b8 !important;
         }
 
         .activity-ui input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):focus,
@@ -258,7 +258,7 @@
         .activity-ui textarea:focus {
             outline: none;
             border-color: var(--activity-accent) !important;
-            box-shadow: 0 0 0 3px rgb(16 185 129 / 0.12) !important;
+            box-shadow: 0 0 0 3px rgb(34 197 94 / 0.12) !important;
         }
 
         .activity-ui input[type="datetime-local"] {
@@ -308,12 +308,12 @@
             background-color: #1f2937;
         }
 
-        .activity-ui [class~="text-emerald-300"] {
-            color: #047857 !important;
+        .activity-ui [class~="text-sidan-300"] {
+            color: #15803d !important;
         }
 
-        .activity-ui [class~="text-emerald-400"] {
-            color: #059669 !important;
+        .activity-ui [class~="text-sidan-400"] {
+            color: #16a34a !important;
         }
 
         .activity-ui [class~="text-blue-300"] {
@@ -368,20 +368,20 @@
             color: #dc2626 !important;
         }
 
-        .activity-ui [class~="text-violet-300"] {
-            color: #6d28d9 !important;
+        .activity-ui [class~="text-sidan-300"] {
+            color: #15803d !important;
         }
 
-        .activity-ui [class~="text-violet-400"] {
-            color: #7c3aed !important;
+        .activity-ui [class~="text-sidan-400"] {
+            color: #16a34a !important;
         }
 
-        .dark .activity-ui [class~="text-emerald-300"] {
-            color: #6ee7b7 !important;
+        .dark .activity-ui [class~="text-sidan-300"] {
+            color: #86efac !important;
         }
 
-        .dark .activity-ui [class~="text-emerald-400"] {
-            color: #34d399 !important;
+        .dark .activity-ui [class~="text-sidan-400"] {
+            color: #4ade80 !important;
         }
 
         .dark .activity-ui [class~="text-blue-300"] {
@@ -436,20 +436,21 @@
             color: #f87171 !important;
         }
 
-        .dark .activity-ui [class~="text-violet-300"] {
-            color: #c4b5fd !important;
+        .dark .activity-ui [class~="text-sidan-300"] {
+            color: #86efac !important;
         }
 
-        .dark .activity-ui [class~="text-violet-400"] {
-            color: #a78bfa !important;
+        .dark .activity-ui [class~="text-sidan-400"] {
+            color: #4ade80 !important;
         }
 
-        .activity-ui [class*="bg-emerald-"][class~="text-white"],
+        .activity-ui [class*="bg-sidan-500"][class~="text-white"],
+        .activity-ui [class*="bg-sidan-600"][class~="text-white"],
         .activity-ui [class*="bg-blue-"][class~="text-white"],
         .activity-ui [class*="bg-sky-"][class~="text-white"],
         .activity-ui [class*="bg-cyan-"][class~="text-white"],
         .activity-ui [class*="bg-red-"][class~="text-white"],
-        .activity-ui [class*="bg-violet-"][class~="text-white"] {
+        .activity-ui [class*="bg-sidan-"][class~="text-white"] {
             color: #ffffff !important;
         }
 
@@ -503,7 +504,7 @@
         }
 
         .dark .activity-ui .activity-step-caption {
-            color: #34d399 !important;
+            color: #4ade80 !important;
         }
 
         .activity-ui .activity-step-title,
@@ -564,7 +565,7 @@
         .activity-ui label.cursor-pointer:has(.peer:checked)>span,
         .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span,
         .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span {
-            border-color: rgb(16 185 129 / 0.55) !important;
+            border-color: rgb(34 197 94 / 0.55) !important;
             background-color: var(--activity-accent-soft) !important;
             box-shadow: 0 0 0 1px var(--activity-accent-ring) inset;
         }
@@ -574,7 +575,7 @@
         .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-white"],
         .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span [class~="text-white"],
         .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span [class~="text-white"] {
-            color: #065f46 !important;
+            color: #166534 !important;
         }
 
         .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-gray-500"],
@@ -585,7 +586,7 @@
         .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-gray-600"],
         .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span [class~="text-gray-500"],
         .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span [class~="text-gray-500"] {
-            color: #047857 !important;
+            color: #15803d !important;
         }
 
         .dark .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-white"],
@@ -631,8 +632,8 @@
         }
 
         .activity-ui .activity-soft-success {
-            border-color: rgb(16 185 129 / .22) !important;
-            background-color: rgb(16 185 129 / .08) !important;
+            border-color: rgb(34 197 94 / .22) !important;
+            background-color: rgb(34 197 94 / .08) !important;
         }
 
 
@@ -755,13 +756,13 @@
         }
 
         .activity-ui input[type="radio"]:hover {
-            border-color: #10b981 !important;
+            border-color: #22c55e !important;
         }
 
         .activity-ui input[type="radio"]:checked {
-            border-color: #10b981 !important;
+            border-color: #22c55e !important;
             background:
-                radial-gradient(circle at center, #10b981 0 34%, transparent 36% 100%),
+                radial-gradient(circle at center, #22c55e 0 34%, transparent 36% 100%),
                 #ffffff !important;
             box-shadow: none !important;
         }
@@ -769,7 +770,7 @@
         .activity-ui input[type="radio"]:focus,
         .activity-ui input[type="radio"]:focus-visible {
             outline: none !important;
-            box-shadow: 0 0 0 3px rgb(16 185 129 / .14) !important;
+            box-shadow: 0 0 0 3px rgb(34 197 94 / .14) !important;
         }
 
         .activity-ui input[type="radio"]:disabled {
@@ -783,15 +784,15 @@
         }
 
         .dark .activity-ui input[type="radio"]:checked {
-            border-color: #34d399 !important;
+            border-color: #4ade80 !important;
             background:
-                radial-gradient(circle at center, #34d399 0 34%, transparent 36% 100%),
+                radial-gradient(circle at center, #4ade80 0 34%, transparent 36% 100%),
                 #0f172a !important;
         }
 
         .dark .activity-ui input[type="radio"]:focus,
         .dark .activity-ui input[type="radio"]:focus-visible {
-            box-shadow: 0 0 0 3px rgb(52 211 153 / .16) !important;
+            box-shadow: 0 0 0 3px rgb(74 222 128 / .16) !important;
         }
 
         @media (prefers-reduced-motion: reduce) {

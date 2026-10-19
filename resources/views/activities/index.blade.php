@@ -108,7 +108,7 @@
                     </a>
 
                     <div
-                        class="mt-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-sm font-bold text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-300">
+                        class="mt-6 inline-flex items-center gap-2 rounded-full border border-sidan-200 bg-sidan-50 px-3 py-1.5 text-sm font-bold text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-300">
                         <span class="h-2 w-2 rounded-full bg-sidan-500"></span>
                         Explora SIDAN
                     </div>
@@ -230,7 +230,7 @@
                         </label>
 
                         <button type="submit"
-                            class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white transition hover:bg-green-600">
+                            class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
                             Buscar
                         </button>
                     </div>
@@ -349,7 +349,7 @@
 
                         @if (request('categoria'))
                             <span
-                                class="rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700 dark:bg-green-500/10 dark:text-green-300">
+                                class="rounded-full bg-sidan-50 px-3 py-1.5 text-xs font-bold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                                 {{ request('categoria') }}
                             </span>
                         @endif
@@ -472,7 +472,7 @@
                         @endphp
 
                         <article
-                            class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-green-300 hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-green-500/30 dark:hover:shadow-none">
+                            class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-sidan-300 hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-sidan-500/30 dark:hover:shadow-none">
 
                             {{-- IMAGEN --}}
                             <button type="button" @click="abrirActividad(@js($actividadModalVista))"
@@ -500,7 +500,7 @@
 
                                     @if ($actividadModalVista['inscripcion_activa'])
                                         <span
-                                            class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-800 shadow-sm dark:border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-200">
+                                            class="rounded-full border border-sidan-200 bg-sidan-50 px-2.5 py-1 text-[11px] font-black text-sidan-600 shadow-sm dark:border-sidan-500/30 dark:bg-sidan-500/20 dark:text-sidan-200">
                                             ✓ {{ $actividadModalVista['inscripcion_etiqueta'] }}
                                         </span>
                                     @endif
@@ -510,7 +510,7 @@
 
                                 <div class="absolute inset-x-0 bottom-0 p-5">
 
-                                    <p class="text-xs font-black uppercase tracking-wider text-green-300">
+                                    <p class="text-xs font-black uppercase tracking-wider text-sidan-300">
                                         {{ $actividad['fecha'] }} · {{ $actividad['hora'] }}
                                     </p>
 
@@ -652,7 +652,7 @@
                     </p>
 
                     <a href="{{ route('activities.index') }}"
-                        class="mt-6 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
+                        class="mt-6 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
                         Ver todas las actividades
                     </a>
 
@@ -678,7 +678,7 @@
 
                 <div class="relative mx-auto max-w-2xl">
 
-                    <p class="text-sm font-black uppercase tracking-[0.18em] text-green-300">
+                    <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-300">
                         Sigue explorando
                     </p>
 
@@ -694,7 +694,7 @@
                     <div class="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
 
                         <a href="{{ route('welcome') }}"
-                            class="rounded-xl bg-white px-5 py-3 text-sm font-black text-sidan-900 transition hover:bg-green-50">
+                            class="rounded-xl bg-white px-5 py-3 text-sm font-black text-sidan-900 transition hover:bg-sidan-50">
                             Volver al inicio
                         </a>
 
@@ -775,7 +775,7 @@
 
                                 <div class="absolute inset-x-0 bottom-0 p-6 lg:hidden">
 
-                                    <p class="text-xs font-black uppercase tracking-wider text-green-300"
+                                    <p class="text-xs font-black uppercase tracking-wider text-sidan-300"
                                         x-text="actividadModal.categoria"></p>
 
                                     <h2 class="mt-2 text-2xl font-black text-white" x-text="actividadModal.titulo"></h2>
@@ -793,7 +793,7 @@
                                     <div class="flex flex-wrap gap-2">
 
                                         <span
-                                            class="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 dark:bg-green-500/10 dark:text-green-300"
+                                            class="rounded-full bg-sidan-50 px-3 py-1 text-xs font-black text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300"
                                             x-text="actividadModal.categoria"></span>
 
                                         <span
@@ -908,13 +908,13 @@
                                 {{-- ESTADO DE INSCRIPCIÓN ACTUAL --}}
                                 <template x-if="actividadModal.inscripcion_activa">
                                     <div role="status"
-                                        class="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+                                        class="mt-6 flex items-start gap-3 rounded-2xl border border-sidan-200 bg-sidan-50 p-4 dark:border-sidan-500/25 dark:bg-sidan-500/10">
                                         <span
-                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 font-black text-white">✓</span>
+                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidan-500 font-black text-white">✓</span>
                                         <div>
-                                            <p class="text-sm font-black text-emerald-900 dark:text-emerald-200"
+                                            <p class="text-sm font-black text-sidan-600 dark:text-sidan-200"
                                                 x-text="actividadModal.inscripcion_etiqueta"></p>
-                                            <p class="mt-1 text-xs leading-6 text-emerald-800 dark:text-emerald-100"
+                                            <p class="mt-1 text-xs leading-6 text-sidan-600 dark:text-sidan-100"
                                                 x-text="actividadModal.inscripcion_mensaje"></p>
                                         </div>
                                     </div>
@@ -931,8 +931,8 @@
                                     <a :href="actividadModal.accion_url"
                                         class="flex items-center justify-center rounded-xl px-5 py-3.5 text-sm font-black text-white transition"
                                         :class="actividadModal.inscripcion_activa ?
-                                            'bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700' :
-                                            'bg-sidan-500 hover:bg-green-600'"
+                                            'bg-sidan-500 hover:bg-sidan-600 dark:bg-sidan-500 dark:hover:bg-sidan-600' :
+                                            'bg-sidan-500 hover:bg-sidan-600'"
                                         x-text="actividadModal.accion_texto"></a>
 
                                 </div>

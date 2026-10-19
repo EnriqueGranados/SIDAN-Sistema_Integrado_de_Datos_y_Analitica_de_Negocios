@@ -2,7 +2,7 @@
     $actividad = $espacio->actividad;
     $estado = $actividad?->estado_welcome;
     $badge = match ($estado['estado'] ?? null) {
-        'visible' => 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-300',
+        'visible' => 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300',
         'programada' => 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
         default => 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300',
     };
@@ -112,7 +112,7 @@
                         type="button"
                         data-assign-url="{{ route('admin.welcome.espacios.asignar', $espacio) }}"
                         data-slot-name="{{ $espacio->nombre }}"
-                        class="js-cambiar-actividad rounded-xl bg-sidan-500 px-4 py-2.5 text-xs font-black text-white transition hover:bg-green-600"
+                        class="js-cambiar-actividad rounded-xl bg-sidan-500 px-4 py-2.5 text-xs font-black text-white transition hover:bg-sidan-600"
                     >
                         Cambiar actividad
                     </button>
@@ -135,7 +135,7 @@
                     type="button"
                     data-assign-url="{{ route('admin.welcome.espacios.asignar', $espacio) }}"
                     data-slot-name="{{ $espacio->nombre }}"
-                    class="js-cambiar-actividad rounded-xl bg-sidan-500 px-4 py-2.5 text-xs font-black text-white transition hover:bg-green-600"
+                    class="js-cambiar-actividad rounded-xl bg-sidan-500 px-4 py-2.5 text-xs font-black text-white transition hover:bg-sidan-600"
                 >
                     Seleccionar actividad
                 </button>

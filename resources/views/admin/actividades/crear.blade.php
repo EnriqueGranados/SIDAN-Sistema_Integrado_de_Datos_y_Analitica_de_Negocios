@@ -91,7 +91,7 @@
             <div class="mb-6 sm:hidden">
                 <div class="mb-3 flex items-center justify-between gap-4">
                     <div class="min-w-0">
-                        <p id="mobileStepNumber" class="text-xs font-semibold uppercase tracking-wide text-emerald-400">
+                        <p id="mobileStepNumber" class="text-xs font-semibold uppercase tracking-wide text-sidan-400">
                             Paso 1 de 4
                         </p>
 
@@ -139,7 +139,7 @@
                                     </label>
 
                                     <button type="button"
-                                        class="help-button flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/15 text-[11px] font-bold text-gray-400 transition hover:border-emerald-500/50 hover:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                                        class="help-button flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/15 text-[11px] font-bold text-gray-400 transition hover:border-sidan-500/50 hover:text-sidan-400 focus:outline-none focus:ring-2 focus:ring-sidan-500/30"
                                         data-help="Escribe el nombre con el que las personas reconocerán la actividad. Por ejemplo: Congreso de Innovación y Tecnología 2026."
                                         aria-label="Información sobre el nombre">
                                         i
@@ -148,7 +148,7 @@
 
                                 <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}"
                                     maxlength="180" required placeholder="Ej. Congreso de Innovación y Tecnología 2026"
-                                    class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none transition placeholder:text-gray-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 sm:text-sm">
+                                    class="block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none transition placeholder:text-gray-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/10 sm:text-sm">
 
                                 @error('nombre')
                                     <p class="mt-2 break-words text-xs text-red-400">{{ $message }}</p>
@@ -171,7 +171,7 @@
                                     </div>
 
                                     <select id="id_categoria" name="id_categoria"
-                                        class="block w-full min-w-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 sm:text-sm">
+                                        class="block w-full min-w-0 rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-sidan-500 sm:text-sm">
 
                                         <option value="">Seleccionar categoría</option>
 
@@ -200,7 +200,7 @@
 
                                 <textarea id="resumen" name="resumen" rows="3" maxlength="300"
                                     placeholder="Ej. Una jornada dedicada a innovación, tecnología y nuevas tendencias..."
-                                    class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">{{ old('resumen') }}</textarea>
+                                    class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500 sm:text-sm">{{ old('resumen') }}</textarea>
 
                                 <div class="mt-2 flex justify-end">
                                     <span class="text-xs text-gray-600">
@@ -225,7 +225,7 @@
 
                                 <textarea id="descripcion" name="descripcion" rows="7"
                                     placeholder="Describe la actividad, sus objetivos y lo que podrán encontrar los participantes..."
-                                    class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">{{ old('descripcion') }}</textarea>
+                                    class="block w-full min-w-0 resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base leading-6 text-white outline-none placeholder:text-gray-600 focus:border-sidan-500 sm:text-sm">{{ old('descripcion') }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -338,7 +338,7 @@
                                 </div>
 
                                 <select id="visibilidad" name="visibilidad" required
-                                    class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 sm:text-sm">
+                                    class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-sidan-500 sm:text-sm">
 
                                     <option value="publica" @selected(old('visibilidad', 'publica') === 'publica')>
                                         Pública
@@ -376,7 +376,7 @@
 
                                         <input type="datetime-local" id="visible_desde" name="visible_desde"
                                             value="{{ old('visible_desde') }}"
-                                            class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-sidan-500 sm:text-sm">
 
                                         @error('visible_desde')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -390,7 +390,7 @@
 
                                         <input type="datetime-local" id="visible_hasta" name="visible_hasta"
                                             value="{{ old('visible_hasta') }}"
-                                            class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm">
+                                            class="activity-date-input future-date block w-full min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-sidan-500 sm:text-sm">
 
                                         @error('visible_hasta')
                                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -470,7 +470,7 @@
                                     </button>
 
                                     <label for="portada"
-                                        class="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-gray-300 transition hover:border-emerald-500/30 hover:bg-emerald-500/5 hover:text-emerald-400">
+                                        class="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-gray-300 transition hover:border-sidan-500/30 hover:bg-sidan-500/5 hover:text-sidan-400">
 
                                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -517,7 +517,7 @@
                                             name="texto_alternativo_portada"
                                             value="{{ old('texto_alternativo_portada') }}" maxlength="180"
                                             placeholder="Ej. Estudiantes participando en el evento"
-                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">
+                                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-sidan-500 sm:text-sm">
                                     </div>
 
                                     <div class="rounded-xl border border-white/10 bg-black/10 p-4">
@@ -526,7 +526,7 @@
                                         <label class="flex cursor-pointer items-start gap-3">
                                             <input type="checkbox" id="destacada" name="destacada" value="1"
                                                 @checked(old('destacada') == '1')
-                                                class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
+                                                class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-sidan-500 focus:ring-sidan-500">
 
                                             <span class="min-w-0">
                                                 <span
@@ -563,7 +563,7 @@
                                         </div>
 
                                         <select id="prioridad" name="prioridad"
-                                            class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 sm:text-sm">
+                                            class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-sidan-500 sm:text-sm">
 
                                             <option value="100" @selected(old('prioridad') == 100)>
                                                 Alta
@@ -615,7 +615,7 @@
                                                 value="{{ $etiqueta->id_etiqueta }}"
                                                 data-nombre-etiqueta="{{ $etiqueta->nombre }}"
                                                 @checked(in_array($etiqueta->id_etiqueta, old('etiquetas', [])))
-                                                class="h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500">
+                                                class="h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-sidan-500 focus:ring-sidan-500">
 
                                             <span class="min-w-0 break-words text-sm text-gray-400">
                                                 {{ $etiqueta->nombre }}
@@ -866,7 +866,7 @@
 
                     <div class="ml-auto flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                         <button type="button" id="btnSiguiente"
-                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-400 sm:w-auto">
+                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-sidan-600 sm:w-auto">
 
                             Continuar
 
@@ -876,7 +876,7 @@
                         </button>
 
                         <button type="submit" id="btnGuardar"
-                            class="hidden w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/10 transition hover:bg-emerald-400 sm:w-auto">
+                            class="hidden w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-sidan-500/10 transition hover:bg-sidan-600 sm:w-auto">
 
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -950,8 +950,8 @@
                     const activo = numeroIndicador === numero;
                     const completado = numeroIndicador < numero;
 
-                    circle.classList.toggle('border-emerald-500', activo || completado);
-                    circle.classList.toggle('bg-emerald-500', activo || completado);
+                    circle.classList.toggle('border-sidan-500', activo || completado);
+                    circle.classList.toggle('bg-sidan-500', activo || completado);
                     circle.classList.toggle('text-white', activo || completado);
 
                     circle.classList.toggle('border-gray-700', !activo && !completado);
@@ -959,7 +959,7 @@
                     circle.classList.toggle('text-gray-400', !activo && !completado);
 
                     if (label) {
-                        label.classList.toggle('text-emerald-400', activo);
+                        label.classList.toggle('text-sidan-400', activo);
                         label.classList.toggle('text-gray-300', completado);
                         label.classList.toggle('text-gray-500', !activo && !completado);
                     }
@@ -968,7 +968,7 @@
                 mobileBars.forEach(bar => {
                     const numeroBarra = Number(bar.dataset.mobileStep);
 
-                    bar.classList.toggle('bg-emerald-500', numeroBarra <= numero);
+                    bar.classList.toggle('bg-sidan-500', numeroBarra <= numero);
                     bar.classList.toggle('bg-gray-800', numeroBarra > numero);
                 });
 
@@ -1580,7 +1580,7 @@
                             const badge = document.createElement('span');
 
                             badge.className =
-                                'rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400';
+                                'rounded-full border border-sidan-500/20 bg-sidan-500/10 px-2.5 py-1 text-xs font-medium text-sidan-400';
 
                             badge.textContent = tag.dataset.nombreEtiqueta;
 

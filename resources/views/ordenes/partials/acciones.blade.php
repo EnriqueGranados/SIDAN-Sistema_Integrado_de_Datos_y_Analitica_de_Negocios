@@ -39,7 +39,7 @@
 <div class="space-y-4 border-t border-slate-200 p-6 dark:border-white/10">
     @if (session('success'))
         <div role="status"
-            class="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+            class="rounded-xl bg-sidan-50 p-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
             {{ session('success') }}
         </div>
     @endif
@@ -50,7 +50,7 @@
             <span>${{ number_format((float) $orden->subtotal, 2) }}</span>
         </div>
 
-        <div class="flex justify-between gap-3 text-emerald-600 dark:text-emerald-400">
+        <div class="flex justify-between gap-3 text-sidan-600 dark:text-sidan-400">
             <span>Descuento</span>
             <span>−${{ number_format((float) $orden->descuento_total, 2) }}</span>
         </div>
@@ -163,7 +163,7 @@
             @elseif ($saldoCentavos > 0)
                 <button type="button" data-abrir-pago="modal-continuar-{{ $orden->id_orden }}"
                     aria-haspopup="dialog"
-                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30">
+                    class="w-full rounded-xl bg-sidan-500 px-4 py-3 font-bold text-white transition hover:bg-sidan-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-sidan-500/30">
                     Continuar pago →
                 </button>
                 <p class="text-xs leading-5 opacity-85">
@@ -204,7 +204,7 @@
             <p class="mt-2">La reserva fue liberada. Podés crear una nueva orden con el método de pago que prefirás.
             </p>
             <a href="{{ route('activities.index') }}"
-                class="mt-3 inline-flex rounded-xl bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700">
+                class="mt-3 inline-flex rounded-xl bg-sidan-500 px-4 py-2 font-semibold text-white hover:bg-sidan-600">
                 Explorar actividades
             </a>
         </div>
@@ -213,7 +213,7 @@
             <form method="POST" action="{{ route('sidan.ordenes.gratuita', $orden) }}">
                 @csrf
                 <button type="submit"
-                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
+                    class="w-full rounded-xl bg-sidan-500 px-4 py-3 font-bold text-white hover:bg-sidan-600">
                     Confirmar orden sin cobro
                 </button>
             </form>
@@ -225,13 +225,13 @@
 
                     <button id="wompi-payment-button" type="button"
                         data-abrir-pago="modal-confirmar-wompi" aria-haspopup="dialog"
-                        class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
+                        class="w-full rounded-xl bg-sidan-500 px-4 py-3 font-bold text-white hover:bg-sidan-600">
                         {{ $sinPago ? 'Pagar con Wompi' : 'Continuar con Wompi' }}
                     </button>
                 </form>
 
                 <div id="payment-waiting"
-                    class="hidden rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    class="hidden rounded-xl bg-sidan-50 p-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                     Esperando confirmación de Wompi. Completá el pago en la otra pestaña.
                 </div>
             @endif
@@ -262,7 +262,7 @@
         <div class="p-6 sm:p-7">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Confirmación de pago</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-sidan-600 dark:text-sidan-400">Confirmación de pago</p>
                     <h2 id="modal-confirmar-wompi-titulo" class="mt-2 text-xl font-bold">¿Querés pagar con tarjeta?</h2>
                 </div>
                 <button type="button" data-cerrar-pago aria-label="Cerrar confirmación de Wompi"
@@ -278,7 +278,7 @@
             </p>
             <div class="mt-5 flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-4 dark:bg-white/5">
                 <span class="text-sm text-slate-500 dark:text-slate-300">Total a pagar · Orden #{{ $orden->id_orden }}</span>
-                <strong class="text-2xl text-emerald-600 dark:text-emerald-400">${{ number_format((float) $orden->total, 2) }}</strong>
+                <strong class="text-2xl text-sidan-600 dark:text-sidan-400">${{ number_format((float) $orden->total, 2) }}</strong>
             </div>
             <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
                 Cancelar este cuadro no crea un pago ni cambia tu orden.
@@ -289,7 +289,7 @@
                     {{ $sinPago ? 'Elegir otro método' : 'Volver a la orden' }}
                 </button>
                 <button type="submit" form="wompi-payment-form"
-                    class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700">
+                    class="rounded-xl bg-sidan-500 px-4 py-3 text-sm font-bold text-white hover:bg-sidan-600">
                     Sí, continuar con tarjeta
                 </button>
             </div>
@@ -304,7 +304,7 @@
         <div class="p-6 sm:p-7">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Orden #{{ $orden->id_orden }}</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-sidan-600 dark:text-sidan-400">Orden #{{ $orden->id_orden }}</p>
                     <h2 id="modal-continuar-titulo-{{ $orden->id_orden }}" class="mt-2 text-xl font-bold">Continuar pago</h2>
                 </div>
                 <button type="button" data-cerrar-pago aria-label="Cerrar detalles para continuar el pago"
@@ -318,7 +318,7 @@
                 </div>
                 <div>
                     <p class="text-slate-500 dark:text-slate-400">Saldo pendiente</p>
-                    <p class="mt-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">${{ number_format($saldoCentavos / 100, 2) }}</p>
+                    <p class="mt-1 text-lg font-bold text-sidan-600 dark:text-sidan-400">${{ number_format($saldoCentavos / 100, 2) }}</p>
                 </div>
             </div>
 
@@ -338,7 +338,7 @@
                     únicamente el dinero realmente recibido; no necesitás crear otra orden.
                 </p>
                 <a href="{{ route('activities.show', $orden->actividad->slug) }}" target="_blank" rel="noopener"
-                    class="mt-4 inline-flex text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                    class="mt-4 inline-flex text-sm font-semibold text-sidan-600 hover:underline dark:text-sidan-400">
                     Consultar lugar y horario de la actividad →
                 </a>
             @elseif ($abonoEnRevision)
@@ -368,7 +368,7 @@
                     @error('comprobante')
                         <p role="alert" class="text-sm font-medium text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
-                    <button type="submit" class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
+                    <button type="submit" class="w-full rounded-xl bg-sidan-500 px-4 py-3 font-bold text-white hover:bg-sidan-600">
                         Enviar comprobante del saldo faltante
                     </button>
                 </form>
@@ -417,7 +417,7 @@
                     </div>
                     <div class="border-t border-slate-200 pt-3 dark:border-white/10">
                         <dt>Monto recomendado a transferir</dt>
-                        <dd id="transferencia-monto-recomendado" data-total="{{ number_format((float)$orden->total,2,'.','') }}" data-minimo="{{ number_format($minimoCalculado/100,2,'.','') }}" class="text-2xl font-bold text-emerald-600">
+                        <dd id="transferencia-monto-recomendado" data-total="{{ number_format((float)$orden->total,2,'.','') }}" data-minimo="{{ number_format($minimoCalculado/100,2,'.','') }}" class="text-2xl font-bold text-sidan-600">
                             ${{ number_format((float) $orden->total, 2) }}
                         </dd>
                     </div>
@@ -432,7 +432,7 @@
                     class="mt-5 space-y-4">
                     @csrf
                     <input type="hidden" name="metodo" value="transferencia">
-                    <fieldset class="my-4 rounded-xl border border-emerald-500/20 p-3 text-sm">
+                    <fieldset class="my-4 rounded-xl border border-sidan-500/20 p-3 text-sm">
                         <legend class="font-bold">Modalidad de pago</legend>
                         <label class="block mt-2"><input type="radio" name="modalidad" value="completo" checked data-modalidad-manual="transferencia"> Pago completo: ${{ number_format((float)$orden->total,2) }}</label>
                         @if($puedeAnticipo)
@@ -462,7 +462,7 @@
                     </p>
 
                     <button type="submit"
-                        class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
+                        class="w-full rounded-xl bg-sidan-500 px-4 py-3 font-bold text-white hover:bg-sidan-600">
                         Enviar comprobante
                     </button>
                 </form>
@@ -490,7 +490,7 @@
             </p>
 
             <a href="{{ route('activities.show', $orden->actividad->slug) }}" target="_blank" rel="noopener"
-                class="mt-3 inline-block text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                class="mt-3 inline-block text-sm font-semibold text-sidan-600 dark:text-sidan-400">
                 Consultar lugar y horario de la actividad →
             </a>
 
@@ -504,7 +504,7 @@
             <form method="POST" action="{{ route('sidan.ordenes.manual', $orden) }}">
                 @csrf
                 <input type="hidden" name="metodo" value="efectivo">
-                <fieldset class="my-4 rounded-xl border border-emerald-500/20 p-3 text-sm">
+                <fieldset class="my-4 rounded-xl border border-sidan-500/20 p-3 text-sm">
                     <legend class="font-bold">Modalidad de pago</legend>
                     <label class="block mt-2"><input type="radio" name="modalidad" value="completo" checked> Pago completo: ${{ number_format((float)$orden->total,2) }}</label>
                     @if($puedeAnticipo)
@@ -514,7 +514,7 @@
                 </fieldset>
 
                 <button type="submit"
-                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700">
+                    class="w-full rounded-xl bg-sidan-500 px-4 py-3 font-bold text-white hover:bg-sidan-600">
                     Confirmar pago presencial pendiente
                 </button>
             </form>

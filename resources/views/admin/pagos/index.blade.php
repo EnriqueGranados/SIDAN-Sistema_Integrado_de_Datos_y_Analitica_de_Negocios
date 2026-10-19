@@ -39,7 +39,7 @@
         #gestion-pagos button:focus-visible,
         #gestion-pagos a:focus-visible,
         #gestion-pagos summary:focus-visible {
-            outline: 2px solid #10b981;
+            outline: 2px solid #22c55e;
             outline-offset: 3px;
         }
 
@@ -85,7 +85,7 @@
 
         @if (session('success'))
             <div role="status"
-                class="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+                class="rounded-xl bg-sidan-50 p-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                 {{ session('success') }}
             </div>
         @endif
@@ -110,7 +110,7 @@
         @endphp
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
             <div
-                class="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-100">
+                class="rounded-2xl border border-sidan-200 bg-sidan-50/60 p-5 text-sidan-600 dark:border-sidan-500/30 dark:bg-sidan-500/5 dark:text-sidan-100">
                 <p>Ingresos por anticipos no ejercidos autorizados</p>
                 <p class="text-xl font-bold">${{ number_format((float) $sumaIngresosNoEjercidos, 2) }}</p>
                 <p class="text-xs">No son entradas adicionales de efectivo.</p>
@@ -123,7 +123,7 @@
             </div>
         </div>
         <a href="{{ route('admin.ordenes.vencidas') }}"
-            class="inline-block rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white">Órdenes vencidas con dinero
+            class="inline-block rounded-xl bg-amber-500 px-4 py-2 font-semibold text-white">Órdenes vencidas con dinero
             recibido</a>
         <section aria-labelledby="titulo-filtros"
             class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900">
@@ -134,7 +134,7 @@
                         en todas las páginas.</p>
                 </div>
                 <span
-                    class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    class="rounded-full bg-sidan-50 px-3 py-1 text-xs font-semibold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                     {{ $pagos->total() }} {{ $pagos->total() === 1 ? 'resultado' : 'resultados' }}
                 </span>
             </div>
@@ -153,7 +153,7 @@
                     </select>
                 </div>
                 <button type="submit"
-                    class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">Aplicar
+                    class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white hover:bg-sidan-600">Aplicar
                     filtro</button>
                 @if ($estadoSeleccionado !== '')
                     <a href="{{ route('admin.pagos.index') }}"
@@ -211,7 +211,7 @@
                                 <span
                                     class="rounded-full px-3 py-1 text-xs font-semibold
                                     {{ $pago->estado === 'pendiente'
-                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300'
+                                        ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
                                         : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300' }}">
                                     {{ str_replace('_', ' ', ucfirst($pago->estado)) }}
                                 </span>
@@ -230,9 +230,9 @@
                             </p>
                         </div>
 
-                        <div class="rounded-xl bg-emerald-50 px-4 py-3 text-right dark:bg-emerald-500/10">
-                            <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Total de la orden</p>
-                            <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                        <div class="rounded-xl bg-sidan-50 px-4 py-3 text-right dark:bg-sidan-500/10">
+                            <p class="text-xs font-semibold text-sidan-600 dark:text-sidan-300">Total de la orden</p>
+                            <p class="text-2xl font-bold text-sidan-600 dark:text-sidan-400">
                                 ${{ number_format((float) $pago->monto, 2) }}
                             </p>
                         </div>
@@ -251,7 +251,7 @@
                                         × {{ $detalle->cantidad }}
 
                                         @if ((float) $detalle->descuento > 0)
-                                            <small class="block text-emerald-600 dark:text-emerald-400">
+                                            <small class="block text-sidan-600 dark:text-sidan-400">
                                                 Descuento:
                                                 ${{ number_format((float) $detalle->descuento, 2) }}
                                                 sobre {{ $detalle->unidades_descuento }} unidad(es)
@@ -317,10 +317,10 @@
                                 </div>
                             @endif
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <div class="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-500/10">
-                                    <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Dinero
+                                <div class="rounded-xl bg-sidan-50 p-4 dark:bg-sidan-500/10">
+                                    <p class="text-xs font-semibold text-sidan-600 dark:text-sidan-300">Dinero
                                         acreditado</p>
-                                    <p class="mt-1 text-xl font-bold text-emerald-700 dark:text-emerald-300">
+                                    <p class="mt-1 text-xl font-bold text-sidan-600 dark:text-sidan-300">
                                         ${{ number_format($acreditado / 100, 2) }}</p>
                                 </div>
                                 <div class="rounded-xl bg-slate-50 p-4 dark:bg-white/5">
@@ -339,7 +339,7 @@
                                             <span class="ml-2 text-xs">{{ ucfirst($abono->estado) }}</span>
                                             @if ($abono->estado === 'confirmado')
                                                 <span
-                                                    class="ml-2 text-emerald-600">${{ number_format((float) $abono->monto_recibido, 2) }}
+                                                    class="ml-2 text-sidan-600">${{ number_format((float) $abono->monto_recibido, 2) }}
                                                     recibidos</span>
                                             @endif
                                             @if ($abono->observacion_revision)
@@ -390,11 +390,11 @@
                                                     placeholder="Agregá un detalle de la entrega">
                                             </label>
                                             <button
-                                                class="rounded-lg bg-emerald-700 px-3 py-2 font-semibold text-white">Registrar
+                                                class="rounded-lg bg-sidan-500 px-3 py-2 font-semibold text-white">Registrar
                                                 entrega completa</button>
                                         </form>
                                     @elseif(!$autorizado)
-                                        <p class="text-amber-600">Entrega bloqueada: producto no pagado al 100%.</p>
+                                        <p class="text-amber-600 dark:text-amber-300">Entrega bloqueada: producto no pagado al 100%.</p>
                                     @endif
                                 </div>
                             @endforeach
@@ -447,7 +447,7 @@
                                 </div>
                                 <div class="pago-form-footer border-t border-slate-200 pt-4 dark:border-white/10">
                                     <button type="submit"
-                                        class="w-full sm:w-auto rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">
+                                        class="w-full sm:w-auto rounded-xl bg-sidan-500 px-4 py-2 text-sm font-bold text-white hover:bg-sidan-600">
                                         {{ $pago->proveedor === 'efectivo' ? 'Registrar efectivo realmente recibido' : 'Registrar dinero recibido' }}
                                     </button>
                                 </div>

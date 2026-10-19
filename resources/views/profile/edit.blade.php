@@ -240,7 +240,7 @@
                                                     <button
                                                         type="button"
                                                         @click="aplicarRecorteImagen()"
-                                                        class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                                        class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600"
                                                     >
                                                         Aplicar cambios
                                                     </button>
@@ -302,7 +302,7 @@
                                         value="{{ old('nombres', $user->informacion_personal->nombres ?? '') }}"
                                         required
                                         autocomplete="given-name"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('nombres')
@@ -326,7 +326,7 @@
                                         value="{{ old('apellidos', $user->informacion_personal->apellidos ?? '') }}"
                                         required
                                         autocomplete="family-name"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('apellidos')
@@ -368,7 +368,7 @@
                                                 shakeDocumento();
                                             }
                                         "
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('documento')
@@ -393,7 +393,7 @@
                                         value="{{ old('telefono', $user->informacion_personal->telefono ?? '') }}"
                                         autocomplete="tel"
                                         @input="clearError('telefono')"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('telefono')
@@ -415,7 +415,7 @@
                                         type="date"
                                         value="{{ old('fecha_nacimiento', $user->informacion_personal->fecha_nacimiento ?? '') }}"
                                         max="{{ now()->subYears(18)->format('Y-m-d') }}"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('fecha_nacimiento')
@@ -434,7 +434,7 @@
                                     <select
                                         id="genero"
                                         name="genero"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
                                         <option value="">
                                             Selecciona una opción
@@ -473,7 +473,7 @@
                                         <select
                                             x-model="paisSeleccionado"
                                             @change="cargarEstados()"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
                                             <option value="">
                                                 Selecciona un país...
@@ -495,7 +495,7 @@
                                             x-model="estadoSeleccionado"
                                             @change="cargarCiudades()"
                                             :disabled="!paisSeleccionado"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
                                             <option value="">
                                                 Selecciona un depto...
@@ -516,7 +516,7 @@
                                             Ciudad
                                         </label>
 
-                                        <select x-model="ciudadSeleccionada" :disabled="!estadoSeleccionado" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                        <select x-model="ciudadSeleccionada" :disabled="!estadoSeleccionado" class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white">
                                             <option value="">
                                                 Selecciona una ciudad...
                                             </option>
@@ -613,7 +613,7 @@
                                             value="{{ old('email', $user->correo ?? '') }}"
                                             required
                                             autocomplete="email"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
 
                                         @error('email')
@@ -637,7 +637,7 @@
                                                 Cuenta de Google
                                             </h3>
 
-                                            <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold text-green-700 dark:bg-green-500/10 dark:text-green-400">
+                                            <span class="rounded-full bg-sidan-100 px-2.5 py-1 text-xs font-bold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                                                 Vinculada
                                             </span>
                                         </div>
@@ -687,7 +687,7 @@
 
                                     <a
                                         href="{{ route('profile.google.link') }}"
-                                        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-sidan-500 hover:bg-green-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-sidan-500 dark:hover:bg-green-500/10 dark:hover:text-green-400"
+                                        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-sidan-500 hover:bg-sidan-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-sidan-500 dark:hover:bg-sidan-500/10 dark:hover:text-sidan-400"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -758,7 +758,7 @@
                                 <button
                                     type="button"
                                     @click="solicitarCambioPassword()"
-                                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600"
                                 >
                                     @if (is_null($user->password_hash))
                                         Establecer contraseña
@@ -776,7 +776,7 @@
                             Cancelar
                         </a>
 
-                        <button type="submit" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600">
+                        <button type="submit" class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600">
                             Guardar cambios
                         </button>
                     </div>
@@ -1146,7 +1146,7 @@
                                 >
                                     <div class="p-6">
                                         <div class="flex items-start gap-4">
-                                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-sidan-500 dark:bg-green-500/10">
+                                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sidan-100 text-sidan-500 dark:bg-sidan-500/10">
                                                 <svg
                                                     class="h-6 w-6"
                                                     viewBox="0 0 24 24"
@@ -1185,7 +1185,7 @@
                                             <button
                                                 type="button"
                                                 data-confirm
-                                                class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:bg-green-600"
+                                                class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sidan-500/20 transition hover:bg-sidan-600"
                                             >
                                                 ${confirmText}
                                             </button>

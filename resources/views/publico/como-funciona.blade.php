@@ -8,7 +8,7 @@
 
     <main class="min-h-[calc(100vh-4rem)]">
         <section class="relative overflow-hidden border-b border-slate-200 bg-white dark:border-white/10 dark:bg-sidan-950">
-            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.12),transparent_35%)]"></div>
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,197,94,0.12),transparent_35%)]"></div>
 
             <div class="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20 lg:px-8">
                 <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
@@ -25,7 +25,7 @@
 
                 <div class="mt-7 flex flex-wrap gap-3">
                     <a href="{{ route('activities.index') }}"
-                        class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-600">
+                        class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
                         Comenzar a explorar →
                     </a>
 
@@ -88,7 +88,7 @@
 
                 <div class="mt-8 grid gap-4 md:grid-cols-3">
                     <article class="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-sidan-950/70">
-                        <div class="inline-flex rounded-xl bg-emerald-100 px-3 py-2 text-sm font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                        <div class="inline-flex rounded-xl bg-sidan-100 px-3 py-2 text-sm font-black text-sidan-600 dark:bg-sidan-500/15 dark:text-sidan-300">
                             Wompi
                         </div>
 
@@ -102,7 +102,7 @@
                     </article>
 
                     <article class="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-sidan-950/70">
-                        <div class="inline-flex rounded-xl bg-emerald-100 px-3 py-2 text-sm font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                        <div class="inline-flex rounded-xl bg-sidan-100 px-3 py-2 text-sm font-black text-sidan-600 dark:bg-sidan-500/15 dark:text-sidan-300">
                             Transferencia
                         </div>
 
@@ -116,7 +116,7 @@
                     </article>
 
                     <article class="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-sidan-950/70">
-                        <div class="inline-flex rounded-xl bg-emerald-100 px-3 py-2 text-sm font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                        <div class="inline-flex rounded-xl bg-sidan-100 px-3 py-2 text-sm font-black text-sidan-600 dark:bg-sidan-500/15 dark:text-sidan-300">
                             Efectivo
                         </div>
 
@@ -171,7 +171,7 @@
                 </p>
 
                 <a href="{{ route('activities.index') }}"
-                    class="mt-6 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-600">
+                    class="mt-6 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
                     Explorar actividades →
                 </a>
             </div>

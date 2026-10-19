@@ -14,7 +14,7 @@
         {{-- Encabezado --}}
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-                <p class="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                <p class="text-xs font-black uppercase tracking-widest text-sidan-600 dark:text-sidan-400">
                     Mi cuenta · SIDAN
                 </p>
 
@@ -50,10 +50,10 @@
         {{-- Notificaciones --}}
         @if (session('success'))
             <div role="status"
-                class="flex items-start gap-3 rounded-xl border border-emerald-200
-                       bg-emerald-50 p-4 text-sm text-emerald-800
-                       dark:border-emerald-500/20 dark:bg-emerald-500/10
-                       dark:text-emerald-300">
+                class="flex items-start gap-3 rounded-xl border border-sidan-200
+                       bg-sidan-50 p-4 text-sm text-sidan-600
+                       dark:border-sidan-500/20 dark:bg-sidan-500/10
+                       dark:text-sidan-300">
 
                 <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -125,11 +125,11 @@
                         @click="filtro = '{{ $key }}'"
                         :aria-pressed="filtro === '{{ $key }}'"
                         :class="filtro === '{{ $key }}'
-                            ? 'bg-emerald-600 text-white shadow-sm'
+                            ? 'bg-sidan-500 text-white shadow-sm'
                             : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'"
                         class="rounded-xl border border-transparent px-4 py-2.5
                                text-sm font-bold transition
-                               focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                               focus:outline-none focus:ring-2 focus:ring-sidan-500/30">
 
                         {{ $etiqueta }}
                     </button>
@@ -153,7 +153,7 @@
                     ];
 
                     $clases = [
-                        'activa' => 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+                        'activa' => 'bg-sidan-500/10 text-sidan-600 dark:text-sidan-300',
                         'pendiente' => 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
                         'finalizada' => 'bg-slate-500/10 text-slate-700 dark:text-slate-300',
                         'cancelada' => 'bg-red-500/10 text-red-700 dark:text-red-300',
@@ -371,11 +371,11 @@
                         @if ($estado === 'pendiente' && $inscripcion->orden)
                             <a href="{{ route('sidan.ordenes.show', $inscripcion->orden->id_orden) }}"
                                 class="inline-flex items-center justify-center gap-2
-                                       rounded-xl bg-emerald-600 px-4 py-2.5
+                                       rounded-xl bg-sidan-500 px-4 py-2.5
                                        text-sm font-black text-white
-                                       transition hover:bg-emerald-700
+                                       transition hover:bg-sidan-600
                                        focus:outline-none focus:ring-2
-                                       focus:ring-emerald-500/40">
+                                       focus:ring-sidan-500/40">
 
                                 Continuar al pago
 
@@ -421,8 +421,8 @@
 
                     <div
                         class="mx-auto flex h-14 w-14 items-center justify-center
-                               rounded-2xl bg-emerald-50 text-emerald-600
-                               dark:bg-emerald-500/10 dark:text-emerald-400">
+                               rounded-2xl bg-sidan-50 text-sidan-600
+                               dark:bg-sidan-500/10 dark:text-sidan-400">
 
                         <svg class="h-7 w-7" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24"
@@ -445,9 +445,9 @@
 
                     <a href="{{ route('activities.index') }}"
                         class="mt-5 inline-flex items-center justify-center
-                               rounded-xl bg-emerald-600 px-5 py-3
+                               rounded-xl bg-sidan-500 px-5 py-3
                                text-sm font-bold text-white
-                               transition hover:bg-emerald-700">
+                               transition hover:bg-sidan-600">
 
                         Explorar actividades
                     </a>

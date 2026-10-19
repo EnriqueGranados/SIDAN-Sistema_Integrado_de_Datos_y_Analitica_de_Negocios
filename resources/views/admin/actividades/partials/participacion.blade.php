@@ -84,7 +84,7 @@
                             class="peer sr-only tipo-participacion-radio"
                             @checked($tipoParticipacionActual === $valorTipo)
                         >
-                        <span class="flex h-full gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 transition hover:border-white/20 peer-checked:border-emerald-500/70 peer-checked:bg-emerald-500/10 peer-checked:ring-1 peer-checked:ring-emerald-500/30">
+                        <span class="flex h-full gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 transition hover:border-white/20 peer-checked:border-sidan-500/70 peer-checked:bg-sidan-500/10 peer-checked:ring-1 peer-checked:ring-sidan-500/30">
                             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-lg">{{ $opcionTipo['icono'] }}</span>
                             <span class="min-w-0">
                                 <span class="block text-sm font-semibold text-white">{{ $opcionTipo['titulo'] }}</span>
@@ -113,7 +113,7 @@
         >
 
         <div id="configuracionInscripcion" class="space-y-6 {{ $requiereInscripcionActual ? '' : 'hidden' }}">
-            <div class="rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.04] p-4 sm:p-5">
+            <div class="rounded-2xl border border-sidan-500/15 bg-sidan-500/[0.04] p-4 sm:p-5">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                         <p class="text-sm font-semibold text-white">Configuración de la inscripción general</p>
@@ -121,7 +121,7 @@
                             Esto controla el registro a la actividad completa. Las reservas de sesiones específicas pueden configurarse aparte.
                         </p>
                     </div>
-                    <span id="etiquetaTipoInscripcion" class="w-fit rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300"></span>
+                    <span id="etiquetaTipoInscripcion" class="w-fit rounded-full bg-sidan-500/10 px-3 py-1.5 text-xs font-semibold text-sidan-300"></span>
                 </div>
 
                 <div id="bloquePrecioInscripcion" class="mt-5 {{ $tipoParticipacionActual === 'registro_pago' ? '' : 'hidden' }}">
@@ -136,7 +136,7 @@
                             step="0.01"
                             value="{{ $precioInscripcionActual }}"
                             placeholder="0.00"
-                            class="block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-8 pr-4 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm"
+                            class="block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-8 pr-4 text-base text-white outline-none placeholder:text-gray-600 focus:border-sidan-500 sm:text-sm"
                         >
                     </div>
                     <p class="mt-2 text-xs leading-5 text-gray-500">Este monto corresponde a participar en la actividad. No incluye productos opcionales.</p>
@@ -156,7 +156,7 @@
                         value="{{ $cupoActual }}"
                         min="0"
                         placeholder="Ej. 100"
-                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm"
+                        class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-gray-600 focus:border-sidan-500 sm:text-sm"
                     >
                     <p class="mt-2 text-xs text-gray-500">Déjalo vacío si no existe límite general.</p>
                 </div>
@@ -170,7 +170,7 @@
                             name="permite_lista_espera"
                             value="1"
                             @checked($permiteEsperaActual)
-                            class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500"
+                            class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-sidan-500 focus:ring-sidan-500"
                         >
                         <span>
                             <span class="block text-sm font-medium text-gray-300">Permitir lista de espera</span>
@@ -190,7 +190,7 @@
                             id="inscripcion_desde"
                             name="inscripcion_desde"
                             value="{{ $formatearFechaParticipacion(old('inscripcion_desde', $actividadParticipacion?->inscripcion_desde)) }}"
-                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm"
+                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-sidan-500 sm:text-sm"
                         >
                         @error('inscripcion_desde')
                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -204,7 +204,7 @@
                             id="inscripcion_hasta"
                             name="inscripcion_hasta"
                             value="{{ $formatearFechaParticipacion(old('inscripcion_hasta', $actividadParticipacion?->inscripcion_hasta)) }}"
-                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-emerald-500 sm:text-sm"
+                            class="block w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-gray-200 outline-none focus:border-sidan-500 sm:text-sm"
                         >
                         @error('inscripcion_hasta')
                             <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -224,7 +224,7 @@
                         name="requiere_cuenta"
                         value="1"
                         @checked($requiereCuentaActual)
-                        class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500"
+                        class="mt-1 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-sidan-500 focus:ring-sidan-500"
                     >
                     <span>
                         <span class="block text-sm font-medium text-gray-300">Requerir una cuenta para continuar</span>

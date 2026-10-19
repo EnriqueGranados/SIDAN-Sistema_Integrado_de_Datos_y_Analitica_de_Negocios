@@ -419,7 +419,7 @@
                                                     <button
                                                         type="button"
                                                         @click="aplicarRecorteImagen()"
-                                                        class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                                        class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600"
                                                     >
                                                         Aplicar cambios
                                                     </button>
@@ -453,7 +453,7 @@
                                         placeholder="Juan Carlos"
                                         required
                                         autocomplete="given-name"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('nombres')
@@ -479,7 +479,7 @@
                                         placeholder="Pérez García"
                                         required
                                         autocomplete="family-name"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('apellidos')
@@ -524,7 +524,7 @@
                                             }
                                         "
                                         autocomplete="off"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('documento')
@@ -554,7 +554,7 @@
                                         autocomplete="tel"
                                         value="{{ old('telefono', $user->informacion_personal->telefono ?? '') }}"
                                         @input="telefono = $event.target.value; clearError('telefono')"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('telefono')
@@ -583,7 +583,7 @@
                                         x-model="fechaNacimiento"
                                         value="{{ old('fecha_nacimiento') }}"
                                         max="{{ now()->subYears(10)->format('Y-m-d') }}"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
 
                                     @error('fecha_nacimiento')
@@ -604,7 +604,7 @@
                                         id="genero"
                                         name="genero"
                                         x-model="genero"
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                     >
                                         <option value="">Selecciona una opción</option>
                                         <option value="M" @selected(old('genero') === 'M')>Masculino</option>
@@ -633,7 +633,7 @@
                                         <select 
                                             x-model="paisSeleccionado" 
                                             @change="cargarEstados()"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
                                             <option value="">Selecciona un país...</option>
                                             <template x-for="pais in paises" :key="pais.iso2">
@@ -650,7 +650,7 @@
                                             x-model="estadoSeleccionado" 
                                             @change="cargarCiudades()"
                                             :disabled="!paisSeleccionado"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
                                             <option value="">Selecciona un depto...</option>
                                             <template x-for="estado in estados" :key="estado.iso2">
@@ -666,7 +666,7 @@
                                         <select 
                                             x-model="ciudadSeleccionada"
                                             :disabled="!estadoSeleccionado"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
                                             <option value="">Selecciona una ciudad...</option>
                                             <template x-for="ciudad in ciudades" :key="ciudad.name">
@@ -684,7 +684,7 @@
                                 <button
                                     type="button"
                                     @click="next()"
-                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600"
                                 >
                                     Continuar →
                                 </button>
@@ -733,7 +733,7 @@
                                             required
                                             @input="clearError('email')"
                                             autocomplete="email"
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
 
                                         @error('email')
@@ -770,7 +770,7 @@
                                             <button
                                                 type="button"
                                                 @click="confirmarRegeneracionPassword()"
-                                                class="shrink-0 rounded-xl border border-sidan-500 px-5 py-3 text-sm font-black text-sidan-600 transition hover:bg-sidan-500 hover:text-white dark:text-green-400"
+                                                class="shrink-0 rounded-xl border border-sidan-500 px-5 py-3 text-sm font-black text-sidan-600 transition hover:bg-sidan-500 hover:text-white dark:text-sidan-400"
                                             >
                                                 Generar nueva contraseña
                                             </button>
@@ -791,7 +791,7 @@
                                             name="rol"
                                             x-model="rol"
                                             required
-                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                            class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                         >
                                             <option value="">Selecciona un rol...</option>
                                             @foreach($roles as $r)
@@ -821,7 +821,7 @@
                                 <button
                                     type="button"
                                     @click="next()"
-                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600"
                                 >
                                     Continuar →
                                 </button>
@@ -863,7 +863,7 @@
                                         <button
                                             type="button"
                                             @click="step = 1"
-                                            class="text-sm font-bold text-sidan-500 hover:text-green-600"
+                                            class="text-sm font-bold text-sidan-500 hover:text-sidan-600"
                                         >
                                             Editar
                                         </button>
@@ -950,7 +950,7 @@
                                         <button
                                             type="button"
                                             @click="step = 2"
-                                            class="text-sm font-bold text-sidan-500 hover:text-green-600"
+                                            class="text-sm font-bold text-sidan-500 hover:text-sidan-600"
                                         >
                                             Editar
                                         </button>
@@ -1000,7 +1000,7 @@
 
                                 <button
                                     type="submit"
-                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600"
+                                    class="rounded-xl bg-sidan-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600"
                                 >
                                     Actualizar usuario
                                 </button>
@@ -1396,7 +1396,7 @@
                                 >
                                     <div class="p-6">
                                         <div class="flex items-start gap-4">
-                                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-sidan-500 dark:bg-green-500/10">
+                                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sidan-100 text-sidan-500 dark:bg-sidan-500/10">
                                                 <svg
                                                     class="h-6 w-6"
                                                     viewBox="0 0 24 24"
@@ -1435,7 +1435,7 @@
                                             <button
                                                 type="button"
                                                 data-confirm
-                                                class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:bg-green-600"
+                                                class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sidan-500/20 transition hover:bg-sidan-600"
                                             >
                                                 ${confirmText}
                                             </button>

@@ -4,7 +4,7 @@
 
 @section(auth()->user()?->rol?->nombre === 'usuario' ? 'user-content' : 'content')
 <div class="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:px-6">
-    <a href="{{ route('user.inscripciones.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400">← Volver a mis inscripciones</a>
+    <a href="{{ route('user.inscripciones.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-sidan-600 hover:underline dark:text-sidan-400">← Volver a mis inscripciones</a>
 
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
         @if($actividad->portada?->url)
@@ -13,12 +13,12 @@
         <div class="space-y-4 p-5 sm:p-7">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">{{ $actividad->categoria?->nombre ?? 'Actividad' }}</p>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-sidan-600 dark:text-sidan-400">{{ $actividad->categoria?->nombre ?? 'Actividad' }}</p>
                     <h1 class="mt-1 text-3xl font-bold">{{ $actividad->nombre }}</h1>
                     <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Inscripción #{{ $inscripcion->id_inscripcion }} · Estado: <strong class="capitalize">{{ $estadoVista }}</strong></p>
                 </div>
                 @if($inscripcion->estado === 'pendiente_pago' && $inscripcion->orden && ! $inscripcion->expira_en?->isPast())
-                    <a href="{{ route('sidan.ordenes.show', $inscripcion->orden->id_orden) }}" class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white">Completar pago de inscripción</a>
+                    <a href="{{ route('sidan.ordenes.show', $inscripcion->orden->id_orden) }}" class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-semibold text-white">Completar pago de inscripción</a>
                 @endif
             </div>
             @if($actividad->resumen)<p class="text-base text-slate-600 dark:text-slate-300">{{ $actividad->resumen }}</p>@endif
@@ -58,7 +58,7 @@
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Consulta los artículos que ofrece esta actividad. La compra de artículos adicionales se habilitará en el siguiente paso.</p>
         </div>
         @if(! $puedeComprar && $actividad->items->isNotEmpty())
-            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Para adquirir productos o servicios, la inscripción debe estar confirmada y la actividad no debe haber finalizado.</div>
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30">Para adquirir productos o servicios, la inscripción debe estar confirmada y la actividad no debe haber finalizado.</div>
         @endif
         @forelse($actividad->items as $item)
             @php
@@ -72,7 +72,7 @@
                 <div class="min-w-0 flex-1 space-y-3">
                     <div class="flex flex-wrap items-start justify-between gap-2">
                         <div>
-                            <span class="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">{{ ucfirst($item->tipo) }}</span>
+                            <span class="text-xs font-semibold uppercase tracking-wide text-sidan-600 dark:text-sidan-400">{{ ucfirst($item->tipo) }}</span>
                             <h3 class="text-xl font-bold">{{ $item->nombre }}</h3>
                         </div>
                         <span class="text-xl font-bold">${{ number_format((float) $item->precio, 2) }}</span>

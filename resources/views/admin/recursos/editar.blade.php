@@ -43,8 +43,8 @@
 
                     @if ($recurso->espacios_count > 0)
                         <span
-                            class="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                            class="inline-flex w-fit items-center gap-2 rounded-full border border-sidan-200 bg-sidan-50 px-3 py-1.5 text-xs font-medium text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-400">
+                            <span class="h-1.5 w-1.5 rounded-full bg-sidan-400"></span>
                             En uso
                         </span>
                     @else
@@ -84,7 +84,7 @@
                                 class="w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10
                                 {{ $errors->has('nombre')
                                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 dark:border-white/10' }}">
+                                    : 'border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10' }}">
 
                             @error('nombre')
                                 <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -102,7 +102,7 @@
                                 class="w-full resize-y rounded-xl border bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10
                                 {{ $errors->has('descripcion')
                                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 dark:border-white/10' }}">{{ old('descripcion', $recurso->descripcion) }}</textarea>
+                                    : 'border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10' }}">{{ old('descripcion', $recurso->descripcion) }}</textarea>
 
                             @error('descripcion')
                                 <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -123,7 +123,7 @@
                                         class="w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10
                                         {{ $errors->has('categoria')
                                             ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                            : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 dark:border-white/10' }}">
+                                            : 'border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10' }}">
 
                                     <div id="sugerenciasCategoria"
                                         class="absolute z-20 mt-2 hidden max-h-52 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
@@ -148,7 +148,7 @@
                                 </label>
 
                                 <select id="unidad_medida" name="unidad_medida" required
-                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:bg-white/10 dark:[color-scheme:dark]">
+                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:bg-white focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:bg-white/10 dark:[color-scheme:dark]">
                                     <option value="unidad" @selected(old('unidad_medida', $recurso->unidad_medida) === 'unidad')>
                                         Unidades
                                     </option>
@@ -189,7 +189,7 @@
                             <label
                                 class="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20">
                                 <input type="checkbox" name="es_movil" value="1" @checked(old('es_movil', $recurso->es_movil ? '1' : '0') == '1')
-                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-emerald-500 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-900">
+                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-sidan-500 focus:ring-sidan-500 dark:border-slate-600 dark:bg-slate-900">
 
                                 <div>
                                     <span class="block text-sm font-medium text-slate-900 dark:text-white">
@@ -206,7 +206,7 @@
                         <div class="border-t border-slate-200 pt-6 dark:border-white/5">
                             <label class="flex cursor-pointer items-start gap-3">
                                 <input type="checkbox" name="activo" value="1" @checked(old('activo', $recurso->activo ? '1' : '0') == '1')
-                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-emerald-500 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-900">
+                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-sidan-500 focus:ring-sidan-500 dark:border-slate-600 dark:bg-slate-900">
 
                                 <div>
                                     <span class="block text-sm font-medium text-slate-900 dark:text-white">
@@ -230,7 +230,7 @@
                         </a>
 
                         <button type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sidan-600">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7" />
@@ -291,10 +291,10 @@
 
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
                 error: {

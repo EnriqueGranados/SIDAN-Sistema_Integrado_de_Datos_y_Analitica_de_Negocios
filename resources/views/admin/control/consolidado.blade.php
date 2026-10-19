@@ -21,7 +21,7 @@
         {{-- Encabezado y acciones: imprimir siempre conserva filtros y pestaña. --}}
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-                <p class="text-xs font-black uppercase tracking-widest text-emerald-500">
+                <p class="text-xs font-black uppercase tracking-widest text-sidan-500">
                     Administración · Control de compras
                 </p>
                 <h1 class="mt-2 text-3xl font-black text-sidan-900 dark:text-white">
@@ -35,7 +35,7 @@
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('admin.control.consolidado.imprimir', array_merge($filtrosActuales, ['vista' => $vista])) }}"
                     target="_blank" rel="noopener"
-                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-700">
+                    class="inline-flex items-center gap-2 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-sidan-600">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                         aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -87,7 +87,7 @@
                         Limpiar
                     </a>
                     <button type="submit"
-                        class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">
+                        class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-sidan-600">
                         Aplicar filtros
                     </button>
                 </div>
@@ -109,7 +109,7 @@
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0f172a]">
                 <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Importe neto de artículos</p>
-                <p class="mt-2 text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                <p class="mt-2 text-3xl font-black text-sidan-600 dark:text-sidan-400">
                     ${{ number_format((float) $totalImporte, 2) }}
                 </p>
                 <p class="mt-1 text-xs text-slate-400">Después de descuentos de artículos</p>
@@ -123,7 +123,7 @@
                     @if ($vista === $clave) aria-current="page" @endif
                     class="rounded-xl border px-4 py-3 transition
                     {{ $vista === $clave
-                        ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300'
+                        ? 'border-sidan-500 bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300'
                         : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-300 dark:hover:bg-white/5' }}">
                     <span class="block text-sm font-black">{{ $pestana['titulo'] }}</span>
                     <span class="mt-1 block text-xs opacity-75">{{ $pestana['descripcion'] }}</span>
@@ -157,7 +157,7 @@
                                         {{ $producto->nombre_concepto }}</td>
                                     <td class="px-3 py-4 text-center font-black text-sidan-900 dark:text-white">
                                         {{ $producto->unidades }}</td>
-                                    <td class="px-3 py-4 text-right font-black text-emerald-600 dark:text-emerald-400">
+                                    <td class="px-3 py-4 text-right font-black text-sidan-600 dark:text-sidan-400">
                                         ${{ number_format((float) $producto->importe, 2) }}
                                     </td>
                                 </tr>
@@ -195,7 +195,7 @@
                                     </p>
                                 </div>
                                 <span
-                                    class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                                    class="rounded-full bg-sidan-100 px-3 py-1 text-xs font-black text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                                     {{ $variacion->unidades }} uds.
                                 </span>
                             </div>
@@ -210,7 +210,7 @@
                                     <span class="text-xs text-slate-500">Sin personalización</span>
                                 @endforelse
                             </div>
-                            <p class="mt-4 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                            <p class="mt-4 text-sm font-bold text-sidan-600 dark:text-sidan-400">
                                 Importe neto: ${{ number_format((float) $variacion->importe, 2) }}
                             </p>
                         </article>
@@ -249,7 +249,7 @@
                                     <h3 class="font-black text-sidan-900 dark:text-white">Orden #{{ $orden->id_orden }}
                                     </h3>
                                     <span
-                                        class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">Pagada</span>
+                                        class="rounded-full bg-sidan-100 px-2.5 py-1 text-xs font-bold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">Pagada</span>
                                 </div>
                                 <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                                     {{ $orden->nombre_participante ?: $orden->correo_contacto }}
@@ -264,7 +264,7 @@
                             </div>
                             <div class="text-right">
                                 <p class="text-xs text-slate-500 dark:text-slate-400">Importe de artículos listados</p>
-                                <p class="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                                <p class="text-xl font-black text-sidan-600 dark:text-sidan-400">
                                     ${{ number_format($importeOrden, 2) }}</p>
                             </div>
                         </div>

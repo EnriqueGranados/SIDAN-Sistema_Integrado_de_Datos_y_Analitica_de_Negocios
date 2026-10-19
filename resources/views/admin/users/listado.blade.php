@@ -60,7 +60,7 @@
                     @endif
 
                     <a href="{{ route('admin.users.create') }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sidan-600">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
@@ -111,10 +111,10 @@
 
                     <input id="buscarUsuario" type="search" x-model="search" @input.debounce.300ms="performSearch()"
                         autocomplete="off" placeholder="Buscar por nombre, apellido, documento o correo..."
-                        class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10">
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:bg-white focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10">
 
                     <div x-show="loading" class="absolute inset-y-0 right-0 flex items-center pr-3">
-                        <svg class="h-4 w-4 animate-spin text-emerald-500 dark:text-emerald-400" viewBox="0 0 24 24"
+                        <svg class="h-4 w-4 animate-spin text-sidan-500 dark:text-sidan-400" viewBox="0 0 24 24"
                             fill="none">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                 stroke-width="4"></circle>
@@ -184,7 +184,7 @@
                                                 <span
                                                     class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-[#0f172a]"
                                                     :class="user.estado_activo ?
-                                                        'bg-emerald-500' :
+                                                        'bg-sidan-500' :
                                                         'bg-slate-400'"></span>
 
                                             </div>
@@ -228,8 +228,8 @@
                                     <td class="px-6 py-4 text-center">
 
                                         <span x-show="user.estado_activo"
-                                            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                            class="inline-flex items-center gap-1.5 rounded-full border border-sidan-200 bg-sidan-50 px-2.5 py-1 text-xs font-medium text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-400">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-sidan-500"></span>
 
                                             Activo
                                         </span>
@@ -248,7 +248,7 @@
                                         <div class="flex items-center justify-end gap-2">
 
                                             <a :href="user.edit_url" title="Editar usuario"
-                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-emerald-500/50 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400">
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-sidan-300 hover:bg-sidan-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-sidan-500/50 dark:hover:bg-sidan-500/10 dark:hover:text-sidan-400">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -263,7 +263,7 @@
                                                 class="inline-flex h-9 w-9 items-center justify-center rounded-lg border transition"
                                                 :class="user.estado_activo ?
                                                     'border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-amber-500/50 dark:hover:bg-amber-500/10 dark:hover:text-amber-400' :
-                                                    'border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-emerald-500/50 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400'">
+                                                    'border-slate-200 bg-white text-slate-600 hover:border-sidan-300 hover:bg-sidan-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-sidan-500/50 dark:hover:bg-sidan-500/10 dark:hover:text-sidan-400'">
 
                                                 <svg x-show="user.estado_activo" class="h-4 w-4" fill="none"
                                                     stroke="currentColor" viewBox="0 0 24 24">
@@ -353,19 +353,19 @@
                 'fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-[150] w-[calc(100%-2rem)] max-w-sm translate-y-6 opacity-0 transition-all duration-300 ease-out';
 
             const iconColor = isSuccess ?
-                'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400' :
                 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400';
 
             const borderColor = isSuccess ?
-                'border-emerald-200 dark:border-emerald-500/20' :
+                'border-sidan-200 dark:border-sidan-500/20' :
                 'border-red-200 dark:border-red-500/20';
 
             const progressColor = isSuccess ?
-                'bg-emerald-500' :
+                'bg-sidan-500' :
                 'bg-red-500';
 
             const progressBackground = isSuccess ?
-                'bg-emerald-100 dark:bg-emerald-950/50' :
+                'bg-sidan-100 dark:bg-sidan-950/50' :
                 'bg-red-100 dark:bg-red-950/50';
 
             const title = isSuccess ?
@@ -573,8 +573,8 @@
 
                         const variants = {
                             emerald: {
-                                icon: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                                button: 'bg-emerald-600 hover:bg-emerald-500',
+                                icon: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                                button: 'bg-sidan-500 hover:bg-sidan-500',
                                 path: 'M5 13l4 4L19 7'
                             },
 

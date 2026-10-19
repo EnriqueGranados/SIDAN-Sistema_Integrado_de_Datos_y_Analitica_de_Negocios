@@ -16,7 +16,7 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios']) }}"
-                            class="transition hover:text-emerald-500">
+                            class="transition hover:text-sidan-500">
                             Configuración
                         </a>
                         <span>›</span>
@@ -38,7 +38,7 @@
                         Volver a precios
                     </a>
                     <button type="button" id="btnNuevaPromocion"
-                        class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-black text-white transition hover:bg-emerald-500">
+                        class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 text-sm font-black text-white transition hover:bg-sidan-500">
                         <span class="text-lg leading-none">+</span>
                         Nueva promoción
                     </button>
@@ -59,7 +59,7 @@
                 <div
                     class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Vigentes ahora</p>
-                    <p class="mt-2 text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ $vigentes }}</p>
+                    <p class="mt-2 text-2xl font-black text-sidan-600 dark:text-sidan-400">{{ $vigentes }}</p>
                 </div>
             </div>
 
@@ -67,7 +67,7 @@
                 <div
                     class="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center dark:border-white/10 dark:bg-[#0f172a]">
                     <div
-                        class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-2xl text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+                        class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sidan-50 text-2xl text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                         %
                     </div>
                     <h2 class="mt-4 text-lg font-black text-sidan-900 dark:text-white">Todavía no hay promociones</h2>
@@ -75,7 +75,7 @@
                         Puedes crear descuentos para todos los productos o únicamente para productos seleccionados.
                     </p>
                     <button type="button" data-crear-promocion
-                        class="mt-5 inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-500">
+                        class="mt-5 inline-flex rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-500">
                         Crear primera promoción
                     </button>
                 </div>
@@ -93,7 +93,7 @@
 
                             $claseEstado = match ($estadoPromo) {
                                 'Vigente'
-                                    => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
+                                    => 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300',
                                 'Programada' => 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300',
                                 'Finalizada' => 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400',
                                 default => 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
@@ -132,7 +132,7 @@
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span
-                                            class="rounded-lg bg-emerald-50 px-2.5 py-1 text-sm font-black text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                            class="rounded-lg bg-sidan-50 px-2.5 py-1 text-sm font-black text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                                             {{ $promocion->textoDescuento() }} OFF
                                         </span>
                                         <h2 class="truncate font-black text-sidan-900 dark:text-white">
@@ -149,7 +149,7 @@
 
                                 <div class="flex shrink-0 items-center gap-2">
                                     <button type="button"
-                                        class="btnEditarPromocion rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 transition hover:border-emerald-400 hover:text-emerald-600 dark:border-white/10 dark:text-slate-300"
+                                        class="btnEditarPromocion rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 transition hover:border-sidan-400 hover:text-sidan-600 dark:border-white/10 dark:text-slate-300"
                                         data-promocion="{{ $payloadPromocion }}"
                                         data-update-url="{{ route('admin.actividades.promociones.update', [$actividad, $promocion]) }}">
                                         Editar
@@ -198,7 +198,7 @@
                                     <div class="mt-2 flex flex-wrap gap-2">
                                         @if ($promocion->items->isEmpty())
                                             <span
-                                                class="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Todos
+                                                class="rounded-full bg-sidan-50 px-3 py-1.5 text-xs font-bold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">Todos
                                                 los productos</span>
                                         @else
                                             @foreach ($promocion->items as $item)
@@ -248,7 +248,7 @@
             <div
                 class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur dark:border-white/10 dark:bg-[#0b1220]/95 sm:px-6">
                 <div>
-                    <p class="text-xs font-black uppercase tracking-[0.16em] text-emerald-600">Promoción</p>
+                    <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-600">Promoción</p>
                     <h2 id="tituloModalPromocion" class="mt-1 text-xl font-black text-sidan-900 dark:text-white">Nueva
                         promoción</h2>
                 </div>
@@ -270,7 +270,7 @@
                         <label class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Nombre</label>
                         <input type="text" name="nombre" maxlength="140" required
                             placeholder="Ej. Preventa estudiantes"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/15 dark:border-white/10 dark:bg-white/5 dark:text-white">
                         <p class="mt-1 hidden text-xs text-red-500" data-error="nombre"></p>
                     </div>
 
@@ -278,7 +278,7 @@
                         <label class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Código
                             opcional</label>
                         <input type="text" name="codigo" maxlength="60" placeholder="SIDAN20"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm uppercase outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm uppercase outline-none focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/15 dark:border-white/10 dark:bg-white/5 dark:text-white">
                         <p class="mt-1 text-xs text-slate-400">Si lo dejas vacío se considera una promoción automática.</p>
                         <p class="mt-1 hidden text-xs text-red-500" data-error="codigo"></p>
                     </div>
@@ -286,7 +286,7 @@
                     <div>
                         <label class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Estado</label>
                         <select name="activo"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
                             <option value="1">Activa</option>
                             <option value="0">Inactiva</option>
                         </select>
@@ -296,7 +296,7 @@
                         <label class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Tipo de
                             descuento</label>
                         <select name="tipo_descuento" id="tipoDescuentoPromocion" required
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
                             <option value="porcentaje">Porcentaje</option>
                             <option value="monto">Monto fijo</option>
                         </select>
@@ -308,7 +308,7 @@
                             <span id="prefijoValorPromocion"
                                 class="absolute inset-y-0 left-0 flex items-center pl-4 text-sm font-black text-slate-400">%</span>
                             <input type="number" name="valor" min="0.01" step="0.01" required
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
                         </div>
                         <p class="mt-1 hidden text-xs text-red-500" data-error="valor"></p>
                     </div>
@@ -319,14 +319,14 @@
                         <label class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Vigente
                             desde</label>
                         <input type="datetime-local" name="vigente_desde"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:[color-scheme:dark]">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:[color-scheme:dark]">
                     </div>
 
                     <div>
                         <label class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Vigente
                             hasta</label>
                         <input type="datetime-local" name="vigente_hasta"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:[color-scheme:dark]">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:[color-scheme:dark]">
                         <p class="mt-1 hidden text-xs text-red-500" data-error="vigente_hasta"></p>
                     </div>
 
@@ -337,14 +337,14 @@
                             mínimo</label>
                         <input type="number" name="monto_minimo" min="0" step="0.01"
                             placeholder="Sin mínimo"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
                     </div>
 
                     <div>
                         <label class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Límite total de
                             usos</label>
                         <input type="number" name="limite_usos" min="1" step="1" placeholder="Sin límite"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
                     </div>
 
                     <div>
@@ -352,7 +352,7 @@
                             persona</label>
                         <input type="number" name="limite_por_persona" min="1" step="1"
                             placeholder="Sin límite"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
                     </div>
                 </div>
 
@@ -360,7 +360,7 @@
                     <label class="flex cursor-pointer items-start gap-3">
                         <input type="hidden" name="aplica_todos" value="0">
                         <input type="checkbox" id="aplicaTodosPromocion" name="aplica_todos" value="1" checked
-                            class="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                            class="mt-1 h-4 w-4 rounded border-slate-300 text-sidan-600 focus:ring-sidan-500">
                         <div>
                             <p class="font-black text-sidan-900 dark:text-white">Aplica a todos los productos y servicios
                             </p>
@@ -371,15 +371,15 @@
 
                     <div id="selectorItemsPromocion" class="mt-4 hidden">
                         <input type="search" id="buscarItemPromocion" placeholder="Buscar producto..."
-                            class="mb-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="mb-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                         <div class="max-h-64 space-y-2 overflow-y-auto pr-1" id="listaItemsPromocion">
                             @forelse ($actividad->items as $item)
                                 <label
-                                    class="item-promocion flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 transition hover:border-emerald-300 dark:border-white/10"
+                                    class="item-promocion flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 transition hover:border-sidan-300 dark:border-white/10"
                                     data-search="{{ strtolower($item->nombre) }}">
                                     <input type="checkbox" name="items[]" value="{{ $item->id_item_actividad }}"
-                                        class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                        class="h-4 w-4 rounded border-slate-300 text-sidan-600 focus:ring-sidan-500">
                                     <span class="min-w-0 flex-1">
                                         <span
                                             class="block truncate text-sm font-bold text-sidan-900 dark:text-white">{{ $item->nombre }}</span>
@@ -399,7 +399,7 @@
 
                 <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                     <button type="submit" id="guardarPromocion"
-                        class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">Guardar
+                        class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-500 disabled:cursor-not-allowed disabled:opacity-50">Guardar
                         promoción</button>
                 </div>
             </form>

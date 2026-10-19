@@ -1,5 +1,5 @@
 <details class="sesionPresencialPanel mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.02]">
-    <summary class="cursor-pointer select-none p-4 text-emerald-600 transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-400 dark:hover:bg-white/5">
+    <summary class="cursor-pointer select-none p-4 text-sidan-600 transition hover:bg-sidan-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sidan-500 dark:text-sidan-400 dark:hover:bg-white/5">
         <span class="ml-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
             Recursos que utilizará
         </span>

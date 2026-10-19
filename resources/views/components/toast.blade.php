@@ -75,8 +75,8 @@
 
             const estilos = {
                 success: {
-                    icon: 'bg-emerald-500/15 text-emerald-400',
-                    progress: 'bg-emerald-400',
+                    icon: 'bg-sidan-500/15 text-sidan-400',
+                    progress: 'bg-sidan-400',
                     title: 'Listo',
                     svg: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M5 13l4 4L19 7" /></svg>',
                 },

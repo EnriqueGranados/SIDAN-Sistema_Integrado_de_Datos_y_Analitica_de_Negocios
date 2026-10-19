@@ -69,7 +69,7 @@
                    type="file"
                    accept="image/jpeg,image/png,image/webp"
                    onchange="previsualizarPortada(event)"
-                   class="block w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-400 hover:file:bg-emerald-500/20">
+                   class="block w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-sidan-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-sidan-400 hover:file:bg-sidan-500/20">
 
             @error('portada')
                 <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
@@ -79,7 +79,7 @@
         <div id="previewPortadaContenedor" class="hidden">
             <div class="mb-2 flex items-center justify-between gap-3">
                 <div>
-                    <p class="text-sm font-medium text-emerald-400">Vista previa de la nueva portada</p>
+                    <p class="text-sm font-medium text-sidan-400">Vista previa de la nueva portada</p>
                     <p id="previewPortadaNombre" class="mt-1 text-xs text-slate-500"></p>
                 </div>
 
@@ -92,7 +92,7 @@
 
             <button type="button"
                     onclick="abrirPreviewPortada()"
-                    class="group block w-full overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-900 text-left">
+                    class="group block w-full overflow-hidden rounded-2xl border border-sidan-500/30 bg-slate-900 text-left">
                 <img id="previewPortada"
                      src=""
                      alt="Vista previa de nueva portada"
@@ -100,7 +100,7 @@
 
                 <div class="flex items-center justify-between px-4 py-3">
                     <span class="text-sm text-slate-400">Haz clic para ampliar</span>
-                    <span class="text-xs font-medium text-emerald-400">Nueva portada</span>
+                    <span class="text-xs font-medium text-sidan-400">Nueva portada</span>
                 </div>
             </button>
 
@@ -120,7 +120,7 @@
                    maxlength="255"
                    value="{{ old('texto_alternativo', $portada?->texto_alternativo) }}"
                    placeholder="Describe brevemente la imagen"
-                   class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500">
+                   class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-sidan-500">
 
             @error('texto_alternativo')
                 <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
@@ -145,7 +145,7 @@
                    multiple
                    accept="image/jpeg,image/png,image/webp"
                    onchange="previsualizarGaleria(event)"
-                   class="block w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-400 hover:file:bg-emerald-500/20">
+                   class="block w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-sidan-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-sidan-400 hover:file:bg-sidan-500/20">
 
             @error('galeria')
                 <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
@@ -159,7 +159,7 @@
         <div id="previewGaleriaContenedor" class="hidden">
             <div class="mb-3 flex items-center justify-between gap-3">
                 <div>
-                    <p class="text-sm font-medium text-emerald-400">Imágenes seleccionadas</p>
+                    <p class="text-sm font-medium text-sidan-400">Imágenes seleccionadas</p>
                     <p id="previewGaleriaCantidad" class="mt-1 text-xs text-slate-500"></p>
                 </div>
 
@@ -188,7 +188,7 @@
 
                 <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
                     @foreach ($galeria as $medio)
-                        <div class="group block w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-900 text-left">
+                        <div class="group block w-full max-w-2xl overflow-hidden rounded-2xl border border-sidan-500/30 bg-slate-900 text-left">
                            <button type="button"
                                 class="js-ampliar-imagen group block w-full overflow-hidden"
                                 data-imagen-url="{{ $urlMedio($medio->url) }}">
@@ -205,7 +205,7 @@
                                 <div class="flex gap-2">
                                     <button type="button"
                                             onclick="document.getElementById('form-portada-{{ $medio->id_medio }}').submit()"
-                                            class="flex-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-500/20">
+                                            class="flex-1 rounded-lg border border-sidan-500/20 bg-sidan-500/10 px-3 py-2 text-xs font-semibold text-sidan-400 transition hover:bg-sidan-500/20">
                                         Usar como portada
                                     </button>
 
@@ -224,7 +224,7 @@
 
         <div class="flex justify-end border-t border-slate-800 pt-6">
             <button type="submit"
-                    class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400">
+                    class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sidan-600">
                 Guardar presentación y continuar
             </button>
         </div>
@@ -360,7 +360,7 @@ function previsualizarGaleria(event) {
 
         const tarjeta = document.createElement('button');
         tarjeta.type = 'button';
-        tarjeta.className = 'group overflow-hidden rounded-xl border border-emerald-500/30 bg-slate-900 text-left';
+        tarjeta.className = 'group overflow-hidden rounded-xl border border-sidan-500/30 bg-slate-900 text-left';
         tarjeta.addEventListener('click', () => abrirImagen(url));
 
         const imagen = document.createElement('img');
@@ -376,7 +376,7 @@ function previsualizarGaleria(event) {
         nombre.textContent = archivo.name;
 
         const estado = document.createElement('p');
-        estado.className = 'mt-1 text-xs text-emerald-400';
+        estado.className = 'mt-1 text-xs text-sidan-400';
         estado.textContent = 'Pendiente de guardar';
 
         pie.appendChild(nombre);

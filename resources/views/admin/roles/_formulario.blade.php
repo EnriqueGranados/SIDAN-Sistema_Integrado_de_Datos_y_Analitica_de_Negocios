@@ -10,7 +10,7 @@
 
     $seleccionados = is_array($seleccionados) ? $seleccionados : [];
 
-    $claseCampo = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:ring-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white';
+    $claseCampo = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sidan-500 focus:ring-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white';
 @endphp
 
 @if ($errors->any())
@@ -72,7 +72,7 @@
     </p>
 
     @if ($esSuperadmin)
-        <div class="mb-5 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+        <div class="mb-5 rounded-xl bg-sidan-50 p-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
             El superadministrador tiene acceso completo, incluyendo Roles del Sistema.
         </div>
     @elseif ($esUsuario)
@@ -83,7 +83,7 @@
     @else
         <div class="mb-4 flex flex-wrap gap-3">
             <button type="button" data-seleccionar-modulos="todos"
-                class="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                class="rounded-lg bg-sidan-50 px-3 py-2 text-sm font-semibold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                 Seleccionar todos
             </button>
             <button type="button" data-seleccionar-modulos="ninguno"
@@ -95,12 +95,12 @@
 
     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
         @foreach ($modulosDisponibles as $clave => $modulo)
-            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-emerald-400 dark:border-white/10 dark:bg-white/5">
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-sidan-400 dark:border-white/10 dark:bg-white/5">
                 <input
                     type="checkbox"
                     name="modulos[]"
                     value="{{ $clave }}"
-                    class="mt-1 h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    class="mt-1 h-5 w-5 rounded border-slate-300 text-sidan-600 focus:ring-sidan-500"
                     @checked($esSuperadmin || (!$esUsuario && in_array($clave, $seleccionados, true)))
                     @disabled($permisosBloqueados)
                 >
@@ -126,7 +126,7 @@
         Cancelar
     </a>
     <button type="submit"
-        class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">
+        class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white hover:bg-sidan-600">
         {{ $rolActual ? 'Guardar cambios' : 'Crear rol' }}
     </button>
 </div>

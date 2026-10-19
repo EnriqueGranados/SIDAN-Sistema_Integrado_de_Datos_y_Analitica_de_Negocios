@@ -82,7 +82,7 @@
 
                             <input id="password" name="password" type="password" required autofocus
                                 placeholder="••••••••"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror">
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 @error('password') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror">
 
                             <div class="mt-1.5">
                                 @error('password')
@@ -96,7 +96,7 @@
                         {{-- Botones de Acción --}}
                         <div class="flex flex-col gap-3">
                             <button type="submit"
-                                class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-500/20">
+                                class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600 focus:outline-none focus:ring-4 focus:ring-sidan-500/20">
                                 Confirmar y Vincular
                             </button>
                             

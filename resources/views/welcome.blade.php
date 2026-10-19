@@ -163,7 +163,7 @@
 
                 <div>
                     <div
-                        class="mb-5 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-sm font-bold text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-300">
+                        class="mb-5 inline-flex items-center gap-2 rounded-full border border-sidan-200 bg-sidan-50 px-3 py-1.5 text-sm font-bold text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-300">
                         <span class="h-2 w-2 rounded-full bg-sidan-500"></span>
                         Explora. Descubre. Participa.
                     </div>
@@ -248,7 +248,7 @@
                             </label>
 
                             <button type="submit"
-                                class="rounded-xl bg-sidan-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-green-600">
+                                class="rounded-xl bg-sidan-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-sidan-600">
                                 Buscar
                             </button>
                         </div>
@@ -288,12 +288,12 @@
                                     {{ $actividad['categoria'] }}
                                 </div>
                                 <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                                    <p class="text-xs font-bold uppercase tracking-wider text-green-300">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-sidan-300">
                                         {{ $actividad['fecha'] }} · {{ $actividad['hora'] }}</p>
                                     <h3 class="mt-1 text-lg font-black leading-tight text-white sm:text-xl">
                                         {{ $actividad['titulo'] }}</h3>
                                     <p class="mt-2 hidden text-sm text-white/70 sm:block">{{ $actividad['lugar'] }}</p>
-                                    <span class="mt-3 inline-flex text-xs font-black text-green-300">Vista rápida →</span>
+                                    <span class="mt-3 inline-flex text-xs font-black text-sidan-300">Vista rápida →</span>
                                 </div>
                             </a>
                         @endforeach
@@ -315,11 +315,11 @@
                                     {{ $actividad['categoria'] }}
                                 </div>
                                 <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                                    <p class="text-xs font-bold uppercase tracking-wider text-green-300">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-sidan-300">
                                         {{ $actividad['fecha'] }} · {{ $actividad['hora'] }}</p>
                                     <h3 class="mt-1 line-clamp-2 text-lg font-black leading-tight text-white sm:text-xl">
                                         {{ $actividad['titulo'] }}</h3>
-                                    <span class="mt-3 inline-flex text-xs font-black text-green-300">Vista rápida →</span>
+                                    <span class="mt-3 inline-flex text-xs font-black text-sidan-300">Vista rápida →</span>
                                 </div>
                             </a>
                         @endforeach
@@ -406,7 +406,7 @@
                             </button>
 
                             <a href="{{ $destacada['detalle_url'] }}"
-                                class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-black text-sidan-900 transition hover:-translate-y-0.5 hover:bg-green-50">
+                                class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-black text-sidan-900 transition hover:-translate-y-0.5 hover:bg-sidan-50">
                                 Ver detalles →
                             </a>
                         </div>
@@ -505,7 +505,7 @@
 
                 @foreach ($actividades as $actividad)
                     <article
-                        class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-green-300 hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-green-500/30 dark:hover:shadow-none">
+                        class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-sidan-300 hover:shadow-soft dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-sidan-500/30 dark:hover:shadow-none">
 
                         <button type="button" @click="abrirActividad({{ Illuminate\Support\Js::from($actividad) }})"
                             class="relative block h-52 w-full overflow-hidden text-left">
@@ -652,7 +652,7 @@
                             class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
 
                             <div
-                                class="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-50 text-sm font-black text-green-700 dark:bg-green-500/10 dark:text-green-300">
+                                class="flex h-11 w-11 items-center justify-center rounded-2xl bg-sidan-50 text-sm font-black text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
                                 {{ $paso[0] }}
                             </div>
 
@@ -688,7 +688,7 @@
 
                 <div class="relative mx-auto max-w-2xl">
 
-                    <p class="text-sm font-black uppercase tracking-[0.18em] text-green-300">
+                    <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-300">
                         Tu próxima experiencia
                     </p>
 
@@ -703,7 +703,7 @@
                     <div class="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
 
                         <a href="{{ url('/actividades') }}"
-                            class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
+                            class="rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
                             Explorar todas
                         </a>
 
@@ -776,7 +776,7 @@
                                 </div>
 
                                 <div class="absolute inset-x-0 bottom-0 p-6 lg:hidden">
-                                    <p class="text-xs font-black uppercase tracking-wider text-green-300"
+                                    <p class="text-xs font-black uppercase tracking-wider text-sidan-300"
                                         x-text="actividadModal.categoria"></p>
 
                                     <h2 class="mt-2 text-2xl font-black text-white" x-text="actividadModal.titulo"></h2>
@@ -792,7 +792,7 @@
 
                                     <div class="flex flex-wrap gap-2">
                                         <span
-                                            class="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 dark:bg-green-500/10 dark:text-green-300"
+                                            class="rounded-full bg-sidan-50 px-3 py-1 text-xs font-black text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300"
                                             x-text="actividadModal.categoria"></span>
 
                                         <span
@@ -902,7 +902,7 @@
                                     <template x-if="actividadModal.usuario_inscrito">
 
                                         <button type="button" disabled
-                                            class="flex cursor-default items-center justify-center gap-2 rounded-xl border border-green-300 bg-green-50 px-5 py-3.5 text-sm font-black text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300">
+                                            class="flex cursor-default items-center justify-center gap-2 rounded-xl border border-sidan-300 bg-sidan-50 px-5 py-3.5 text-sm font-black text-sidan-600 dark:border-sidan-500/30 dark:bg-sidan-500/10 dark:text-sidan-300">
                                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -917,7 +917,7 @@
                                     <template x-if="!actividadModal.usuario_inscrito">
 
                                         <a :href="actividadModal.accion_url"
-                                            class="flex items-center justify-center rounded-xl bg-sidan-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-green-600"
+                                            class="flex items-center justify-center rounded-xl bg-sidan-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-sidan-600"
                                             x-text="actividadModal.accion_texto"></a>
 
                                     </template>

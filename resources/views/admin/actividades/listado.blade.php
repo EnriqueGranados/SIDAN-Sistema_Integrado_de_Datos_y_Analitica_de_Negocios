@@ -16,7 +16,7 @@
                     </p>
                 </div>
                 <a href="{{ route('admin.actividades.create') }}"
-                    class="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-400 sm:w-auto">
+                    class="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-sidan-600 sm:w-auto">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -51,7 +51,7 @@
                             </svg>
                             <input type="text" id="buscar" name="buscar" value="{{ request('buscar') }}"
                                 placeholder="Buscar por nombre..."
-                                class="block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-11 pr-4 text-base text-white outline-none placeholder:text-gray-600 focus:border-emerald-500 sm:text-sm">
+                                class="block w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-11 pr-4 text-base text-white outline-none placeholder:text-gray-600 focus:border-sidan-500 sm:text-sm">
                         </div>
                     </div>
                     {{-- ESTADO --}}
@@ -61,7 +61,7 @@
                             Estado
                         </label>
                         <select id="estado_publicacion" name="estado_publicacion"
-                            class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 sm:text-sm">
+                            class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-sidan-500 sm:text-sm">
                             <option value="">Todos</option>
                             <option value="borrador" @selected(request('estado_publicacion') === 'borrador')>Configuración pendiente</option>
                             <option value="pendiente_revision" @selected(request('estado_publicacion') === 'pendiente_revision')>En revisión</option>
@@ -79,7 +79,7 @@
                             Categoría
                         </label>
                         <select id="id_categoria" name="id_categoria"
-                            class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 sm:text-sm">
+                            class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-base text-white outline-none focus:border-sidan-500 sm:text-sm">
                             <option value="">Todas</option>
                             @foreach ($categorias ?? collect() as $categoria)
                                 <option value="{{ $categoria->id_categoria }}" @selected((string) request('id_categoria') === (string) $categoria->id_categoria)>
@@ -122,7 +122,7 @@
                         Puedes crear una nueva actividad o cambiar los filtros utilizados.
                     </p>
                     <a href="{{ route('admin.actividades.create') }}"
-                        class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-400">
+                        class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-sidan-600">
                         Crear actividad
                     </a>
                 </div>
@@ -150,7 +150,7 @@
                                 </div>
                                 @if ($actividad->destacada)
                                     <span
-                                        class="shrink-0 rounded-full bg-yellow-500/10 px-2 py-1 text-[10px] font-semibold text-yellow-400">
+                                        class="shrink-0 rounded-full bg-yellow-500/10 px-2 py-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                                         Destacada
                                     </span>
                                 @endif
@@ -167,8 +167,8 @@
                             </div>
                             @if ($actividad->estado_publicacion === 'borrador')
                                 @if ($actividad->configuracion_completa)
-                                    <div class="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3">
-                                        <p class="text-xs font-medium leading-5 text-emerald-400">
+                                    <div class="mt-3 rounded-xl border border-sidan-500/20 bg-sidan-500/[0.05] p-3">
+                                        <p class="text-xs font-medium leading-5 text-sidan-400">
                                             Actividad configurada. Lista para enviar a revisión.
                                         </p>
                                     </div>
@@ -215,9 +215,9 @@
                                             aria-checked="{{ $actividadPublicada ? 'true' : 'false' }}"
                                             aria-label="{{ $actividadPublicada ? 'Retirar publicación' : 'Publicar actividad' }}"
                                             title="{{ $actividadPublicada ? 'Retirar publicación' : 'Publicar actividad' }}"
-                                            class="inline-flex h-10 items-center rounded-xl border px-2 transition {{ $actividadPublicada ? 'border-emerald-500/25 bg-emerald-500/10 hover:bg-emerald-500/15' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]' }}">
+                                            class="inline-flex h-10 items-center rounded-xl border px-2 transition {{ $actividadPublicada ? 'border-sidan-500/25 bg-sidan-500/10 hover:bg-sidan-500/15' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]' }}">
                                             <span
-                                                class="relative inline-flex h-5 w-10 shrink-0 rounded-full transition {{ $actividadPublicada ? 'bg-emerald-500' : 'bg-slate-700' }}">
+                                                class="relative inline-flex h-5 w-10 shrink-0 rounded-full transition {{ $actividadPublicada ? 'bg-sidan-500' : 'bg-slate-700' }}">
                                                 <span
                                                     class="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform {{ $actividadPublicada ? 'translate-x-5' : 'translate-x-0' }}"></span>
                                             </span>
@@ -302,7 +302,7 @@
                                         data-confirm-message="{{ $mensajeEnvioRevision }}">
                                         @csrf
                                         <button type="submit"
-                                            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-500/20"
+                                            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-sidan-500/20 bg-sidan-500/10 px-3 text-xs font-semibold text-sidan-400 transition hover:bg-sidan-500/20"
                                             title="Enviar a revisión">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -381,7 +381,7 @@
                                                     </p>
                                                     @if ($actividad->destacada)
                                                         <span
-                                                            class="rounded-full bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-yellow-400">
+                                                            class="rounded-full bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                                                             Destacada
                                                         </span>
                                                     @endif
@@ -416,11 +416,11 @@
                                             @if ($actividad->estado_publicacion === 'borrador')
                                                 @if ($actividad->configuracion_completa)
                                                     <p
-                                                        class="mt-2 max-w-[230px] text-xs font-medium leading-5 text-emerald-400">
+                                                        class="mt-2 max-w-[230px] text-xs font-medium leading-5 text-sidan-400">
                                                         Lista para enviar a revisión.
                                                     </p>
                                                 @else
-                                                    <p class="mt-2 max-w-[230px] text-xs leading-5 text-amber-400/70">
+                                                    <p class="mt-2 max-w-[230px] text-xs leading-5 text-amber-600 dark:text-amber-400">
                                                         Falta terminar la configuración antes de enviarla a revisión.
                                                     </p>
                                                 @endif
@@ -463,9 +463,9 @@
                                                             aria-checked="{{ $actividadPublicada ? 'true' : 'false' }}"
                                                             aria-label="{{ $actividadPublicada ? 'Retirar publicación' : 'Publicar actividad' }}"
                                                             title="{{ $actividadPublicada ? 'Retirar publicación' : 'Publicar actividad' }}"
-                                                            class="inline-flex h-9 items-center rounded-xl border px-2 transition {{ $actividadPublicada ? 'border-emerald-500/25 bg-emerald-500/10 hover:bg-emerald-500/15' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]' }}">
+                                                            class="inline-flex h-9 items-center rounded-xl border px-2 transition {{ $actividadPublicada ? 'border-sidan-500/25 bg-sidan-500/10 hover:bg-sidan-500/15' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]' }}">
                                                             <span
-                                                                class="relative inline-flex h-5 w-10 shrink-0 rounded-full transition {{ $actividadPublicada ? 'bg-emerald-500' : 'bg-slate-700' }}">
+                                                                class="relative inline-flex h-5 w-10 shrink-0 rounded-full transition {{ $actividadPublicada ? 'bg-sidan-500' : 'bg-slate-700' }}">
                                                                 <span
                                                                     class="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform {{ $actividadPublicada ? 'translate-x-5' : 'translate-x-0' }}"></span>
                                                             </span>
@@ -560,7 +560,7 @@
                                                         data-confirm-message="{{ $mensajeEnvioRevision }}">
                                                         @csrf
                                                         <button type="submit"
-                                                            class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-500/20"
+                                                            class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-sidan-500/20 bg-sidan-500/10 px-3 text-xs font-semibold text-sidan-400 transition hover:bg-sidan-500/20"
                                                             title="Enviar a revisión">
                                                             <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                                 viewBox="0 0 24 24">
@@ -621,10 +621,10 @@
 
             const estilos = {
                 success: {
-                    icono: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borde: 'border-emerald-200 dark:border-emerald-500/20',
-                    progreso: 'bg-emerald-500',
-                    fondoProgreso: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    icono: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borde: 'border-sidan-200 dark:border-sidan-500/20',
+                    progreso: 'bg-sidan-500',
+                    fondoProgreso: 'bg-sidan-100 dark:bg-sidan-950/50',
                     path: 'M5 13l4 4L19 7'
                 },
                 error: {

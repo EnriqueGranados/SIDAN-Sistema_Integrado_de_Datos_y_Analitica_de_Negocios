@@ -15,7 +15,7 @@
             <button class="px-4 py-2 text-sm font-medium text-gray-300 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition">
                 Exportar
             </button>
-            <button class="px-4 py-2 text-sm font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition">
+            <button class="px-4 py-2 text-sm font-medium text-white bg-sidan-500 rounded-lg hover:bg-sidan-600 shadow-lg shadow-sidan-500/20 transition">
                 + Nueva actividad
             </button>
         </div>
@@ -29,10 +29,10 @@
             aria-live="assertive"
             class="fixed right-4 top-20 z-[100] w-[calc(100%-2rem)] max-w-md -translate-y-3 opacity-0 transition-all duration-300 ease-out">
 
-            <div class="relative overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-2xl shadow-emerald-500/10 dark:border-emerald-500/20 dark:bg-sidan-900">
+            <div class="relative overflow-hidden rounded-2xl border border-sidan-200 bg-white shadow-2xl shadow-sidan-500/10 dark:border-sidan-500/20 dark:bg-sidan-900">
 
                 <div class="flex items-start gap-3 p-4 pr-12">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
@@ -58,8 +58,8 @@
                     </svg>
                 </button>
 
-                <div class="h-1 w-full bg-emerald-100 dark:bg-emerald-950/50">
-                    <div id="success-alert-progress" class="h-full w-full origin-left bg-emerald-500"></div>
+                <div class="h-1 w-full bg-sidan-100 dark:bg-sidan-950/50">
+                    <div id="success-alert-progress" class="h-full w-full origin-left bg-sidan-500"></div>
                 </div>
             </div>
         </div>
@@ -114,12 +114,12 @@
 
     {{-- Stats Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-[#0f172a] border border-white/5 rounded-2xl p-6 hover:border-emerald-500/30 transition group">
+        <div class="bg-[#0f172a] border border-white/5 rounded-2xl p-6 hover:border-sidan-500/30 transition group">
             <div class="flex items-center justify-between mb-4">
-                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <div class="w-10 h-10 rounded-lg bg-sidan-500/10 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-sidan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </div>
-                <span class="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">+12%</span>
+                <span class="text-xs font-medium text-sidan-400 bg-sidan-500/10 px-2 py-1 rounded-full">+12%</span>
             </div>
             <p class="text-sm text-gray-400">Actividades activas</p>
             <p class="text-3xl font-bold text-white mt-1">24</p>
@@ -169,7 +169,7 @@
                     <h2 class="text-lg font-semibold text-white">Actividad reciente</h2>
                     <p class="text-sm text-gray-400">Últimos 7 días</p>
                 </div>
-                <select class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-emerald-500/50">
+                <select class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-sidan-500/50">
                     <option>Esta semana</option>
                     <option>Este mes</option>
                     <option>Este año</option>
@@ -179,7 +179,7 @@
                 @php $bars = [40, 65, 45, 80, 55, 90, 70]; @endphp
                 @foreach($bars as $i => $h)
                     <div class="flex-1 flex flex-col items-center gap-2">
-                        <div class="w-full bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-lg transition-all hover:from-emerald-400 hover:to-emerald-300" 
+                        <div class="w-full bg-gradient-to-t from-sidan-500 to-sidan-400 rounded-t-lg transition-all hover:from-sidan-400 hover:to-sidan-300" 
                              style="height: {{ $h }}%"></div>
                         <span class="text-xs text-gray-500">{{ ['L','M','M','J','V','S','D'][$i] }}</span>
                     </div>
@@ -192,8 +192,8 @@
             <h2 class="text-lg font-semibold text-white mb-6">Actividad reciente</h2>
             <div class="space-y-4">
                 <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <div class="w-8 h-8 rounded-full bg-sidan-500/10 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-sidan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm text-white">Nuevo pago registrado</p>
@@ -239,7 +239,7 @@
     <div class="bg-[#0f172a] border border-white/5 rounded-2xl overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <h2 class="text-lg font-semibold text-white">Próximas actividades</h2>
-            <a href="#" class="text-sm text-emerald-400 hover:text-emerald-300 transition">Ver todas →</a>
+            <a href="#" class="text-sm text-sidan-400 hover:text-sidan-300 transition">Ver todas →</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -255,7 +255,7 @@
                     <tr class="hover:bg-white/[0.02] transition">
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">CI</div>
+                                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-sidan-400 to-sidan-600 flex items-center justify-center text-white font-bold text-sm">CI</div>
                                 <div>
                                     <p class="text-sm font-medium text-white">Congreso de Innovación</p>
                                     <p class="text-xs text-gray-500">San Miguel, El Salvador</p>
@@ -264,7 +264,7 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-300">18 Oct · 8:00 AM</td>
                         <td class="px-6 py-4 text-sm text-gray-300">45/100</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Activa</span></td>
+                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-xs font-medium rounded-full bg-sidan-500/10 text-sidan-400 border border-sidan-500/20">Activa</span></td>
                     </tr>
                     <tr class="hover:bg-white/[0.02] transition">
                         <td class="px-6 py-4">
@@ -292,7 +292,7 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-300">25 Oct · 5:30 AM</td>
                         <td class="px-6 py-4 text-sm text-gray-300">30/50</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Activa</span></td>
+                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-xs font-medium rounded-full bg-sidan-500/10 text-sidan-400 border border-sidan-500/20">Activa</span></td>
                     </tr>
                 </tbody>
             </table>

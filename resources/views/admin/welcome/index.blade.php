@@ -30,7 +30,7 @@
                 <a
                     href="{{ route('welcome', ['preview' => 1]) }}"
                     target="_blank"
-                    class="rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600"
+                    class="rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-sidan-600"
                 >
                     Vista previa real
                 </a>
@@ -54,7 +54,7 @@
                 <div class="max-w-2xl">
                     <div class="flex flex-wrap items-center gap-2">
                         <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-500">Actividad destacada</p>
-                        <span class="rounded-full px-2.5 py-1 text-[11px] font-black {{ $destacadaEsManual ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-300' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300' }}">
+                        <span class="rounded-full px-2.5 py-1 text-[11px] font-black {{ $destacadaEsManual ? 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300' }}">
                             {{ $destacadaEsManual ? 'Selección manual' : 'Selección automática' }}
                         </span>
                     </div>
@@ -68,7 +68,7 @@
                     type="button"
                     data-assign-url="{{ route('admin.welcome.destacada.actualizar') }}"
                     data-slot-name="Actividad destacada"
-                    class="js-cambiar-actividad shrink-0 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600"
+                    class="js-cambiar-actividad shrink-0 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-sidan-600"
                 >
                     {{ $destacadaEsManual ? 'Cambiar destacada' : 'Elegir destacada' }}
                 </button>
@@ -109,7 +109,7 @@
                             type="button"
                             data-url="{{ route('admin.welcome.destacada.prioridad', $destacada) }}"
                             data-select-id="welcomeFeaturedPriority"
-                            class="js-guardar-prioridad rounded-xl border border-sidan-500 px-4 py-2.5 text-sm font-black text-sidan-600 transition hover:bg-sidan-500 hover:text-white dark:text-green-300"
+                            class="js-guardar-prioridad rounded-xl border border-sidan-500 px-4 py-2.5 text-sm font-black text-sidan-600 transition hover:bg-sidan-500 hover:text-white dark:text-sidan-300"
                         >
                             Guardar prioridad
                         </button>
@@ -146,7 +146,7 @@
                     type="button"
                     data-create-section="hero"
                     @disabled($espaciosHero->count() >= $maxHero)
-                    class="js-crear-espacio rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    class="js-crear-espacio rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-sidan-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     + Agregar espacio Hero
                 </button>
@@ -177,7 +177,7 @@
                     type="button"
                     data-create-section="explorar"
                     @disabled($espaciosExplorar->count() >= $maxExplorar)
-                    class="js-crear-espacio rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    class="js-crear-espacio rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white transition hover:bg-sidan-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     + Agregar espacio
                 </button>
@@ -211,7 +211,7 @@
                         <circle cx="11" cy="11" r="7"></circle>
                         <path d="m20 20-3.5-3.5" stroke-linecap="round"></path>
                     </svg>
-                    <input id="welcomeActivitySearch" type="search" autocomplete="off" placeholder="Busca por nombre o categoría..." class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-4 focus:ring-green-500/10 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                    <input id="welcomeActivitySearch" type="search" autocomplete="off" placeholder="Busca por nombre o categoría..." class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 outline-none transition focus:border-sidan-500 focus:ring-4 focus:ring-sidan-500/10 dark:border-white/10 dark:bg-white/5 dark:text-white">
                 </div>
                 <p class="mt-2 text-xs text-slate-400">Se consultan solo resultados coincidentes; no cargamos todas las actividades del sistema en el navegador.</p>
             </div>
@@ -289,7 +289,7 @@
         };
 
         const badgeClasses = (estado) => {
-            if (estado === 'visible') return 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-300';
+            if (estado === 'visible') return 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300';
             if (estado === 'programada') return 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300';
             return 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300';
         };
@@ -316,7 +316,7 @@
             items.forEach((item) => {
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.className = 'flex w-full items-center gap-4 rounded-2xl border border-slate-200 p-3 text-left transition hover:border-sidan-500 hover:bg-green-50/40 dark:border-white/10 dark:hover:bg-white/5';
+                button.className = 'flex w-full items-center gap-4 rounded-2xl border border-slate-200 p-3 text-left transition hover:border-sidan-500 hover:bg-sidan-50/40 dark:border-white/10 dark:hover:bg-white/5';
 
                 const image = document.createElement('img');
                 image.src = item.imagen;

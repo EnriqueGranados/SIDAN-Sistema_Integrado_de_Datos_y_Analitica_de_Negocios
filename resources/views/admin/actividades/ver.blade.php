@@ -18,7 +18,7 @@
         'borrador' => 'border-slate-500/20 bg-slate-500/10 text-slate-300',
         'pendiente_revision' => 'border-sky-500/20 bg-sky-500/10 text-sky-300',
         'cambios_solicitados' => 'border-amber-500/20 bg-amber-500/10 text-amber-300',
-        'aprobada' => 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300',
+        'aprobada' => 'border-sidan-500/20 bg-sidan-500/10 text-sidan-300',
         'rechazada' => 'border-red-500/20 bg-red-500/10 text-red-300',
         'publicada' => 'border-violet-500/20 bg-violet-500/10 text-violet-300',
     ];
@@ -135,7 +135,7 @@
     $accionRevisionClases = [
         'enviada_revision' => 'border-sky-500/20 bg-sky-500/10 text-sky-300',
         'cambios_solicitados' => 'border-amber-500/20 bg-amber-500/10 text-amber-300',
-        'aprobada' => 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300',
+        'aprobada' => 'border-sidan-500/20 bg-sidan-500/10 text-sidan-300',
         'rechazada' => 'border-red-500/20 bg-red-500/10 text-red-300',
         'retirada' => 'border-slate-500/20 bg-slate-500/10 text-slate-300',
         'reabierta' => 'border-violet-500/20 bg-violet-500/10 text-violet-300',
@@ -149,7 +149,7 @@
         $actividad->visibilidad !== 'publica' => ['label' => 'No visible', 'clase' => 'border-amber-500/20 bg-amber-500/10 text-amber-300', 'mensaje' => 'La actividad no aparecerá en el portal porque su visibilidad no está configurada como pública.'],
         $actividad->visible_desde && $actividad->visible_desde->gt($ahora) => ['label' => 'Programada', 'clase' => 'border-sky-500/20 bg-sky-500/10 text-sky-300', 'mensaje' => 'La actividad aparecerá en el portal a partir del '.$formatoFecha($actividad->visible_desde).'.'],
         $actividad->visible_hasta && $actividad->visible_hasta->lt($ahora) => ['label' => 'Período vencido', 'clase' => 'border-amber-500/20 bg-amber-500/10 text-amber-300', 'mensaje' => 'El período de visibilidad finalizó el '.$formatoFecha($actividad->visible_hasta).'.'],
-        default => ['label' => 'Visible ahora', 'clase' => 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300', 'mensaje' => 'La actividad está dentro de su período de visibilidad y puede mostrarse en el portal.'],
+        default => ['label' => 'Visible ahora', 'clase' => 'border-sidan-500/20 bg-sidan-500/10 text-sidan-300', 'mensaje' => 'La actividad está dentro de su período de visibilidad y puede mostrarse en el portal.'],
     };
 
     $historialPorRevision = $actividad->revisiones
@@ -192,7 +192,7 @@
         </div>
 
         @if (session('success'))
-            <div class="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200">{{ session('success') }}</div>
+            <div class="mb-5 rounded-2xl border border-sidan-500/20 bg-sidan-500/10 px-4 py-3 text-sm font-medium text-sidan-200">{{ session('success') }}</div>
         @endif
 
         @if ($errors->has('publicacion'))
@@ -218,7 +218,7 @@
                 @if ($actividad->estado_publicacion === 'aprobada')
                     <form action="{{ route('admin.actividades.publicar', $actividad) }}" method="POST" class="shrink-0" onsubmit="return confirm('¿Publicar esta actividad en el portal?')">
                         @csrf
-                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-600 sm:w-auto">Publicar actividad</button>
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-sidan-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sidan-600 sm:w-auto">Publicar actividad</button>
                     </form>
                 @else
                     <form action="{{ route('admin.actividades.retirar-publicacion', $actividad) }}" method="POST" class="shrink-0" onsubmit="return confirm('¿Retirar esta actividad del portal público?')">
@@ -236,7 +236,7 @@
             <select
                 id="paso-visualizacion"
                 @change="paso = Number($event.target.value)"
-                class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-sm font-semibold text-white outline-none focus:border-emerald-500"
+                class="block w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-sm font-semibold text-white outline-none focus:border-sidan-500"
             >
                 @foreach ($pasos as $numero => $titulo)
                     <option value="{{ $numero }}">{{ $numero }}. {{ $titulo }}</option>
@@ -249,7 +249,7 @@
                 <button
                     type="button"
                     @click="paso = {{ $numero }}"
-                    :class="paso === {{ $numero }} ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-white/10 bg-white/[0.02] text-gray-400 hover:bg-white/5 hover:text-white'"
+                    :class="paso === {{ $numero }} ? 'border-sidan-500/30 bg-sidan-500/10 text-sidan-300' : 'border-white/10 bg-white/[0.02] text-gray-400 hover:bg-white/5 hover:text-white'"
                     class="flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold transition"
                 >
                     <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current/20 text-[10px] font-black">
@@ -263,7 +263,7 @@
         <section x-show="paso === 1" x-cloak class="space-y-5">
             <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-7">
                 <div class="mb-5">
-                    <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Información general</p>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-400">Información general</p>
                     <h2 class="mt-2 text-xl font-bold text-white">Datos principales</h2>
                 </div>
 
@@ -339,7 +339,7 @@
                 <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
                     <div class="flex items-center justify-between gap-3">
                         <div>
-                            <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Presentación</p>
+                            <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-400">Presentación</p>
                             <h2 class="mt-2 text-xl font-bold text-white">Portada</h2>
                         </div>
                         @if ($portada)
@@ -356,7 +356,7 @@
                             data-image="{{ $portadaUrl }}"
                             data-title="{{ $portada->texto_alternativo ?: $actividad->nombre }}"
                             @click="imagen = $el.dataset.image; imagenTitulo = $el.dataset.title; imagenAbierta = true"
-                            class="mt-5 block w-full overflow-hidden rounded-2xl border border-white/10 bg-black/20 text-left transition hover:border-emerald-500/30"
+                            class="mt-5 block w-full overflow-hidden rounded-2xl border border-white/10 bg-black/20 text-left transition hover:border-sidan-500/30"
                         >
                             <img src="{{ $portadaUrl }}" alt="{{ $portada->texto_alternativo ?: $actividad->nombre }}" class="aspect-[16/9] w-full object-cover">
                         </button>
@@ -416,7 +416,7 @@
                                 data-image="{{ $medioUrl }}"
                                 data-title="{{ $medio->texto_alternativo ?: 'Imagen de galería' }}"
                                 @click="imagen = $el.dataset.image; imagenTitulo = $el.dataset.title; imagenAbierta = true"
-                                class="group overflow-hidden rounded-2xl border border-white/10 bg-black/20 transition hover:border-emerald-500/30"
+                                class="group overflow-hidden rounded-2xl border border-white/10 bg-black/20 transition hover:border-sidan-500/30"
                             >
                                 <img src="{{ $medioUrl }}" alt="{{ $medio->texto_alternativo ?: $actividad->nombre }}" class="aspect-square w-full object-cover transition duration-200 group-hover:scale-[1.03]">
                             </button>
@@ -432,7 +432,7 @@
             <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Productos / Servicios</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-400">Productos / Servicios</p>
                         <h2 class="mt-2 text-xl font-bold text-white">Resumen comercial</h2>
                     </div>
                     <div class="flex flex-wrap gap-2 text-xs">
@@ -473,8 +473,8 @@
                                         </p>
                                     </div>
 
-                                    <span class="shrink-0 text-xs font-semibold text-emerald-400 group-open:hidden">Ver detalle</span>
-                                    <span class="hidden shrink-0 text-xs font-semibold text-emerald-400 group-open:inline">Ocultar</span>
+                                    <span class="shrink-0 text-xs font-semibold text-sidan-400 group-open:hidden">Ver detalle</span>
+                                    <span class="hidden shrink-0 text-xs font-semibold text-sidan-400 group-open:inline">Ocultar</span>
                                 </summary>
 
                                 <div class="border-t border-white/10 p-4 sm:p-5">
@@ -524,7 +524,7 @@
                                                 </p>
 
                                                 <details class="mt-3 rounded-xl border border-white/10 bg-black/10">
-                                                    <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-emerald-400">
+                                                    <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-sidan-400">
                                                         Ver {{ $item->variantes->count() }} combinaciones
                                                     </summary>
                                                     <div class="max-h-72 overflow-auto border-t border-white/10">
@@ -558,7 +558,7 @@
                                                                         <td class="px-3 py-2 text-gray-200">{{ $variante->nombre_variante ?: 'Variante' }}</td>
                                                                         <td class="px-3 py-2 text-gray-400">{{ $variante->sku ?: '—' }}</td>
                                                                         <td class="px-3 py-2 text-gray-300">${{ number_format($precioFinalVariante, 2) }}</td>
-                                                                        <td class="px-3 py-2 font-semibold {{ $aumentoPrecioVariante > 0 ? 'text-emerald-300' : 'text-gray-500' }}">
+                                                                        <td class="px-3 py-2 font-semibold {{ $aumentoPrecioVariante > 0 ? 'text-sidan-300' : 'text-gray-500' }}">
                                                                             {{ $aumentoPrecioVariante > 0 ? '+$'.number_format($aumentoPrecioVariante, 2) : '$0.00' }}
                                                                         </td>
                                                                         <td class="px-3 py-2 text-gray-300">${{ number_format($costoFinalVariante, 2) }}</td>
@@ -587,7 +587,7 @@
 
         <section x-show="paso === 4" x-cloak class="space-y-5">
             <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-                <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Datos solicitados</p>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-400">Datos solicitados</p>
                 <h2 class="mt-2 text-xl font-bold text-white">Información que se solicita</h2>
 
                 <div class="mt-5 grid gap-4 xl:grid-cols-2">
@@ -665,7 +665,7 @@
 
         <section x-show="paso === 5" x-cloak class="space-y-5">
             <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-                <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Precios / Costos</p>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-400">Precios / Costos</p>
                 <h2 class="mt-2 text-xl font-bold text-white">Resumen financiero</h2>
 
                 <div class="mt-5 overflow-x-auto rounded-2xl border border-white/10">
@@ -747,7 +747,7 @@
                                                             <p class="mt-1 break-words text-sm font-semibold text-gray-200">{{ $opcionRegla }}</p>
                                                         </div>
                                                         <div class="flex flex-wrap gap-2 text-xs">
-                                                            <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-300">
+                                                            <span class="rounded-full border border-sidan-500/20 bg-sidan-500/10 px-2.5 py-1 font-semibold text-sidan-300">
                                                                 Precio {{ $aumentoPrecioRegla > 0 ? '+$'.number_format($aumentoPrecioRegla, 2) : '+$0.00' }}
                                                             </span>
                                                             <span class="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 font-semibold text-amber-300">
@@ -799,7 +799,7 @@
             <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Programación</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-400">Programación</p>
                         <h2 class="mt-2 text-xl font-bold text-white">Sesiones y recursos</h2>
                     </div>
                     <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-300">
@@ -815,7 +815,7 @@
                                     <p class="truncate text-sm font-semibold text-gray-200">{{ $sesion->nombre }}</p>
                                     <p class="mt-1 text-xs text-gray-500">{{ $formatoFecha($sesion->fecha_inicio) }} → {{ $formatoFecha($sesion->fecha_fin) }}</p>
                                 </div>
-                                <span class="shrink-0 text-xs text-emerald-400">Ver detalle</span>
+                                <span class="shrink-0 text-xs text-sidan-400">Ver detalle</span>
                             </summary>
                             <div class="border-t border-white/10 p-4 sm:p-5">
                                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -888,7 +888,7 @@
 
         <section x-show="paso === 7" x-cloak class="space-y-5">
             <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-                <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-400">Resumen</p>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-400">Resumen</p>
                 <h2 class="mt-2 text-xl font-bold text-white">Estado de la actividad</h2>
 
                 <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -988,8 +988,8 @@
                                                 {{ $nombreUsuario($ultimoMovimiento?->usuario) }}
                                             </p>
                                         </div>
-                                        <span class="shrink-0 text-xs font-semibold text-emerald-400 group-open:hidden">Ver detalles</span>
-                                        <span class="hidden shrink-0 text-xs font-semibold text-emerald-400 group-open:inline">Ocultar</span>
+                                        <span class="shrink-0 text-xs font-semibold text-sidan-400 group-open:hidden">Ver detalles</span>
+                                        <span class="hidden shrink-0 text-xs font-semibold text-sidan-400 group-open:inline">Ocultar</span>
                                     </div>
                                 </summary>
 

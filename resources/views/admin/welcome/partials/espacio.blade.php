@@ -42,7 +42,7 @@
         @csrf
         @method('PUT')
 
-        <select name="id_actividad" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
+        <select name="id_actividad" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white">
             <option value="">Selecciona una actividad...</option>
 
             @foreach ($actividadesDisponibles as $actividad)
@@ -52,7 +52,7 @@
             @endforeach
         </select>
 
-        <button type="submit" class="mt-3 w-full rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-green-600">
+        <button type="submit" class="mt-3 w-full rounded-xl bg-sidan-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sidan-600">
             {{ $espacio->actividad ? 'Reemplazar' : 'Agregar' }}
         </button>
     </form>

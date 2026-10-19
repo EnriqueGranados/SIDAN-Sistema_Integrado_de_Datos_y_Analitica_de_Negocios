@@ -2441,10 +2441,10 @@
         --review-surface-raised: #ffffff;
         --review-border: #e2e8f0;
         --review-border-strong: #cbd5e1;
-        --review-primary: #10b981;
-        --review-primary-hover: #059669;
-        --review-primary-soft: rgba(16, 185, 129, .10);
-        --review-primary-border: rgba(16, 185, 129, .28);
+        --review-primary: #22c55e;
+        --review-primary-hover: #16a34a;
+        --review-primary-soft: rgba(34, 197, 94, .10);
+        --review-primary-border: rgba(34, 197, 94, .28);
         --review-info: #2563eb;
         --review-info-soft: rgba(37, 99, 235, .08);
         --review-warning: #d97706;
@@ -2467,10 +2467,10 @@
         --review-surface-raised: #101c2d;
         --review-border: rgba(255, 255, 255, .10);
         --review-border-strong: rgba(255, 255, 255, .17);
-        --review-primary: #10b981;
-        --review-primary-hover: #34d399;
-        --review-primary-soft: rgba(16, 185, 129, .11);
-        --review-primary-border: rgba(16, 185, 129, .30);
+        --review-primary: #22c55e;
+        --review-primary-hover: #4ade80;
+        --review-primary-soft: rgba(34, 197, 94, .11);
+        --review-primary-border: rgba(34, 197, 94, .30);
         --review-info: #60a5fa;
         --review-info-soft: rgba(59, 130, 246, .09);
         --review-warning: #f59e0b;
@@ -3426,7 +3426,7 @@
     }
 
     .delete-observation.resolve-observation {
-        border-color: rgba(16, 185, 129, .24);
+        border-color: rgba(34, 197, 94, .24);
         background: var(--review-success-soft);
         color: var(--review-success);
         font-weight: 900;
