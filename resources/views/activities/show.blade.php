@@ -10,6 +10,14 @@
 
         $sesiones = $actividadModelo->sesiones->sortBy('fecha_inicio')->values();
         $items = $actividadModelo->items->sortBy('orden')->values();
+        $itemsTodaActividad = $items->filter(fn ($item) => ($item->alcance_sesiones ?? 'actividad') === 'actividad')->values();
+        $itemsPorSesion = [];
+        foreach ($sesiones as $sesionCatalogo) {
+            $itemsPorSesion[(int) $sesionCatalogo->id_sesion] = $items->filter(
+                fn ($item) => ($item->alcance_sesiones ?? 'actividad') !== 'actividad'
+                    && $item->sesiones->contains(fn ($sesionItem) => (int) $sesionItem->id_sesion === (int) $sesionCatalogo->id_sesion)
+            )->values();
+        }
         $promociones = $actividadModelo->promociones->values();
         $mediosActividad = $actividadModelo->medios
             ->whereNull('id_item_actividad')
@@ -42,7 +50,7 @@
         };
 
         $panelInicial = match ($accionActiva) {
-            'comprar' => 'productos',
+            'comprar' => $itemsTodaActividad->isNotEmpty() ? 'productos' : ($sesiones->isNotEmpty() ? 'cronograma' : 'productos'),
             'participar' => $sesiones->isNotEmpty() ? 'cronograma' : 'resumen',
             default => 'resumen',
         };
@@ -319,7 +327,7 @@
                     @if ($items->isNotEmpty())
                         <button type="button" class="sidan-tab rounded-xl px-4 py-2.5 text-sm font-black"
                             data-panel-target="productos">Productos <span
-                                class="ml-1 opacity-60">{{ $items->count() }}</span></button>
+                                class="ml-1 opacity-60">{{ $itemsTodaActividad->count() }}</span></button>
                     @endif
                     @if ($promociones->isNotEmpty())
                         <button type="button" class="sidan-tab rounded-xl px-4 py-2.5 text-sm font-black"
@@ -359,7 +367,7 @@
                                         @if ($items->isNotEmpty())
                                             <button type="button" data-panel-target="productos"
                                                 class="rounded-full border border-zinc-300 px-3 py-2 text-xs font-bold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-white/10">
-                                                {{ $items->count() }} productos y servicios →
+                                                {{ $itemsTodaActividad->count() }} productos generales →
                                             </button>
                                         @endif
                                     </div>
@@ -434,274 +442,7 @@
                         @endif
                     </section>
 
-                    @if ($sesiones->isNotEmpty())
-                        <section class="sidan-panel hidden" data-panel="cronograma">
-                            <div
-                                class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
-                                <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                                    <div>
-                                        <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Cronograma
-                                        </p>
-                                        <h2 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white sm:text-3xl">Tu
-                                            itinerario, organizado por día</h2>
-                                    </div>
-                                    <span
-                                        class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600 dark:bg-white/10 dark:text-slate-300">{{ $sesiones->count() }}
-                                        sesión{{ $sesiones->count() === 1 ? '' : 'es' }} · {{ $sesionesPorDia->count() }}
-                                        día{{ $sesionesPorDia->count() === 1 ? '' : 's' }}</span>
-                                </div>
-
-                                @php
-                                    $itemsTodaActividad = $items->filter(
-                                        fn($item) => ($item->alcance_sesiones ?? 'actividad') === 'actividad',
-                                    );
-                                @endphp
-                                @if ($itemsTodaActividad->isNotEmpty())
-                                    <div
-                                        class="mt-7 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-sidan-900">
-                                        <div class="flex flex-wrap items-start justify-between gap-3">
-                                            <div>
-                                                <p
-                                                    class="text-[11px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                                                    Durante toda la actividad</p>
-                                                <h3 class="mt-1 text-lg font-black text-sidan-950 dark:text-white">
-                                                    Productos y servicios de alcance general</h3>
-                                                <p class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">No están
-                                                    vinculados a una sesión particular. La compra depende de las condiciones
-                                                    del producto.</p>
-                                            </div>
-                                            <button type="button" data-panel-target="productos"
-                                                class="rounded-xl bg-sidan-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-sidan-800 dark:bg-white dark:text-sidan-950 dark:hover:bg-zinc-200">Ver
-                                                catálogo →</button>
-                                        </div>
-                                        <div class="mt-4 grid gap-2 sm:grid-cols-2">
-                                            @foreach ($itemsTodaActividad as $itemGeneral)
-                                                <div
-                                                    class="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-sidan-950">
-                                                    <div class="min-w-0">
-                                                        <p
-                                                            class="truncate text-sm font-bold text-sidan-950 dark:text-white">
-                                                            {{ $itemGeneral->nombre }}</p>
-                                                        <p class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
-                                                            {{ ucfirst($itemGeneral->tipo) }} · Toda la actividad</p>
-                                                    </div>
-                                                    <span
-                                                        class="shrink-0 text-sm font-black text-sidan-900 dark:text-white">${{ number_format((float) $itemGeneral->precio, 2) }}</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-
-                                <div class="mt-8">
-                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                                        <div>
-                                            <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-500">
-                                                Detalle por día</p>
-                                            <h3 class="mt-1 text-xl font-black text-sidan-900 dark:text-white">Explora
-                                                todas las sesiones</h3>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-4 flex gap-2 overflow-x-auto pb-2">
-                                        @foreach ($sesionesPorDia as $claveDia => $sesionesDia)
-                                            @php
-                                                $primeraSesionDia = $sesionesDia->first();
-                                            @endphp
-                                            <button type="button" data-dia-target="{{ $claveDia }}"
-                                                class="sidan-dia-tab shrink-0 rounded-xl border border-slate-200 px-4 py-3 text-left text-sm transition dark:border-white/10">
-                                                <span
-                                                    class="block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-300">{{ ucfirst($primeraSesionDia['dia_semana']) }}</span>
-                                                <span
-                                                    class="mt-0.5 block font-black text-sidan-900 dark:text-white">{{ $primeraSesionDia['fecha_corta'] }}</span>
-                                            </button>
-                                        @endforeach
-                                    </div>
-
-                                    <div class="mt-4">
-                                        @foreach ($sesionesPorDia as $claveDia => $sesionesDia)
-                                            @php
-                                                $primeraSesionDia = $sesionesDia->first();
-                                            @endphp
-                                            <div class="sidan-dia-panel {{ $claveDia === $diaInicialCronograma ? '' : 'hidden' }}"
-                                                data-dia-panel="{{ $claveDia }}">
-                                                <div
-                                                    class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sidan-950 px-5 py-4 text-white">
-                                                    <div>
-                                                        <p
-                                                            class="text-xs font-black uppercase tracking-[0.15em] text-zinc-200">
-                                                            {{ ucfirst($primeraSesionDia['dia_semana']) }}
-                                                        </p>
-                                                        <p class="mt-1 text-xl font-black">
-                                                            {{ $primeraSesionDia['fecha_corta'] }}
-                                                        </p>
-                                                    </div>
-                                                    <span
-                                                        class="rounded-full bg-white/10 px-3 py-1.5 text-xs font-black">{{ $sesionesDia->count() }}
-                                                        sesión{{ $sesionesDia->count() === 1 ? '' : 'es' }}</span>
-                                                </div>
-
-                                                @php
-                                                    $idsSesionesDelDia = $sesiones
-                                                        ->filter(
-                                                            fn($sesion) => $sesion->fecha_inicio?->format('Y-m-d') ===
-                                                                $claveDia,
-                                                        )
-                                                        ->pluck('id_sesion')
-                                                        ->map(fn($id) => (int) $id)
-                                                        ->all();
-                                                    $itemsDia = $items->filter(function ($item) use (
-                                                        $idsSesionesDelDia,
-                                                    ) {
-                                                        if (($item->alcance_sesiones ?? 'actividad') === 'actividad') {
-                                                            return false;
-                                                        }
-                                                        return $item->sesiones->contains(
-                                                            fn($sesion) => in_array(
-                                                                (int) $sesion->id_sesion,
-                                                                $idsSesionesDelDia,
-                                                                true,
-                                                            ),
-                                                        );
-                                                    });
-                                                @endphp
-                                                <div class="space-y-3">
-                                                    @foreach ($sesionesDia as $datosSesion)
-                                                        <details
-                                                            class="group overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/60 dark:border-white/10 dark:bg-white/[0.025]">
-                                                            <summary
-                                                                class="flex cursor-pointer list-none flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                                                                <div class="flex min-w-0 gap-3">
-                                                                    <div
-                                                                        class="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-black text-zinc-500 shadow-sm dark:bg-white/10">
-                                                                        {{ $datosSesion['hora_inicio'] }}
-                                                                    </div>
-                                                                    <div class="min-w-0">
-                                                                        <div class="flex flex-wrap items-center gap-2">
-                                                                            <h4
-                                                                                class="font-black text-sidan-900 dark:text-white">
-                                                                                {{ $datosSesion['nombre'] }}
-                                                                            </h4>
-                                                                            <span
-                                                                                class="rounded-full bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600 shadow-sm dark:bg-white/10 dark:text-slate-300">{{ $datosSesion['modalidad'] }}</span>
-                                                                            @if ($datosSesion['obligatoria'])
-                                                                                <span
-                                                                                    class="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Obligatoria</span>
-                                                                            @endif
-                                                                        </div>
-                                                                        <p
-                                                                            class="mt-1 line-clamp-1 text-sm text-slate-500 dark:text-slate-400">
-                                                                            {{ $datosSesion['lugar'] }}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="flex shrink-0 items-center gap-3">
-                                                                    @if ($datosSesion['hora_fin'])
-                                                                        <span
-                                                                            class="text-xs font-bold text-slate-400">hasta
-                                                                            {{ $datosSesion['hora_fin'] }}</span>
-                                                                    @endif
-                                                                    <span
-                                                                        class="text-slate-400 transition group-open:rotate-180">⌄</span>
-                                                                </div>
-                                                            </summary>
-                                                            <div
-                                                                class="grid gap-3 border-t border-slate-200 p-4 dark:border-white/10 sm:grid-cols-3">
-                                                                <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
-                                                                        Horario</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
-                                                                        {{ $datosSesion['hora_inicio'] }}{{ $datosSesion['hora_fin'] ? ' – ' . $datosSesion['hora_fin'] : '' }}
-                                                                    </p>
-                                                                </div>
-                                                                <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
-                                                                        Cupo</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
-                                                                        {{ $datosSesion['cupo'] }}
-                                                                    </p>
-                                                                </div>
-                                                                <div class="rounded-xl bg-white p-3 dark:bg-white/5">
-                                                                    <p
-                                                                        class="text-[11px] font-bold uppercase text-slate-400">
-                                                                        Reserva</p>
-                                                                    <p
-                                                                        class="mt-1 text-sm font-bold text-sidan-900 dark:text-white">
-                                                                        {{ $datosSesion['reserva'] }}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </details>
-                                                    @endforeach
-                                                </div>
-
-                                                <div
-                                                    class="mt-5 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-sidan-900">
-                                                    <div class="flex flex-wrap items-start justify-between gap-3">
-                                                        <div>
-                                                            <p
-                                                                class="text-[11px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                                                                Oferta de este día</p>
-                                                            <h4
-                                                                class="mt-1 text-base font-black text-sidan-950 dark:text-white">
-                                                                Productos vinculados a las sesiones del
-                                                                {{ $primeraSesionDia['fecha_corta'] }}</h4>
-                                                        </div>
-                                                        <span
-                                                            class="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:bg-sidan-900 dark:text-zinc-200">{{ $itemsDia->count() }}
-                                                            específicos</span>
-                                                    </div>
-                                                    @if ($itemsDia->isNotEmpty())
-                                                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                                                            @foreach ($itemsDia as $itemDia)
-                                                                @php
-                                                                    $nombresSesionesDia = $itemDia->sesiones
-                                                                        ->filter(
-                                                                            fn($sesion) => in_array(
-                                                                                (int) $sesion->id_sesion,
-                                                                                $idsSesionesDelDia,
-                                                                                true,
-                                                                            ),
-                                                                        )
-                                                                        ->pluck('nombre')
-                                                                        ->implode(' · ');
-                                                                @endphp
-                                                                <div
-                                                                    class="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-                                                                    <p
-                                                                        class="text-sm font-black text-sidan-950 dark:text-white">
-                                                                        {{ $itemDia->nombre }}</p>
-                                                                    <p
-                                                                        class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                                                        {{ $nombresSesionesDia }}</p>
-                                                                    <p
-                                                                        class="mt-2 text-sm font-bold text-sidan-950 dark:text-white">
-                                                                        ${{ number_format((float) $itemDia->precio, 2) }}
-                                                                    </p>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                        <button type="button" data-panel-target="productos"
-                                                            class="mt-4 rounded-xl bg-sidan-950 px-4 py-2.5 text-xs font-black text-white hover:bg-sidan-800 dark:bg-white dark:text-sidan-950 dark:hover:bg-zinc-200">Ver
-                                                            productos →</button>
-                                                    @else
-                                                        <p class="mt-3 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                                                            No hay productos asignados exclusivamente a las sesiones de este
-                                                            día. Revisá arriba los productos generales, si existen.</p>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    @endif
-
+                    @include('activities.partials.cronograma')
 
                     @if ($items->isNotEmpty())
 
@@ -733,7 +474,7 @@
 
                                         <div>
                                             <h2 class="text-xl font-black uppercase text-sidan-900 dark:text-white">
-                                                Productos y servicios
+                                                Productos y servicios generales
                                             </h2>
 
                                             <p class="mt-1 text-sm text-slate-500 dark:text-slate-300">
@@ -807,316 +548,17 @@
 
                                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 
-                                    @foreach ($items as $item)
-                                        @php
-                                            $medioItem =
-                                                $item->medios->firstWhere('es_portada', true) ?: $item->medios->first();
-
-                                            $imagenItem = $urlMedio($medioItem?->url) ?: $actividad['imagen'];
-
-                                            $variantes = $item->variantes
-                                                ->where('activo', true)
-                                                ->sortBy('orden')
-                                                ->values();
-
-                                            $variantesCompra = $variantes
-                                                ->map(function ($variante) use ($stockVariantes) {
-                                                    return [
-                                                        'id' => (int) $variante->id_variante_item,
-                                                        'nombre' => (string) $variante->nombre_variante,
-                                                        'precio' =>
-                                                            $variante->precio !== null
-                                                                ? (float) $variante->precio
-                                                                : null,
-                                                        'stock' =>
-                                                            $stockVariantes[(int) $variante->id_variante_item] ?? null,
-                                                    ];
-                                                })
-                                                ->values();
-
-                                            $configuracionCampos = ($camposPorItem ?? collect())->get(
-                                                $item->id_item_actividad,
-                                            );
-
-                                            $configuracionPrecio = ($preciosPorItem ?? collect())->get(
-                                                $item->id_item_actividad,
-                                            );
-
-                                            $campos = collect($configuracionCampos['fields'] ?? [])
-                                                ->filter(fn($campo) => is_array($campo) && !empty($campo['key']))
-                                                ->values();
-
-                                            $reglasPrecio = collect($configuracionPrecio['rules'] ?? [])
-                                                ->filter(fn($regla) => is_array($regla))
-                                                ->values();
-
-                                            $ahora = now();
-
-                                            $disponible =
-                                                (bool) $item->activo &&
-                                                (!$item->venta_desde || $ahora->gte($item->venta_desde)) &&
-                                                (!$item->venta_hasta || $ahora->lte($item->venta_hasta));
-
-                                            $minimo = max(1, (int) ($item->min_por_inscripcion ?? 1));
-
-                                            $maximo =
-                                                $item->max_por_inscripcion !== null
-                                                    ? (int) $item->max_por_inscripcion
-                                                    : null;
-
-                                            $stockItem = $stockItems[(int) $item->id_item_actividad] ?? null;
-
-                                            $limite = $maximo;
-
-                                            if ($stockItem !== null) {
-                                                $limite = $limite === null ? $stockItem : min($limite, $stockItem);
-                                            }
-
-                                            // Disponibilidad real del producto.
-                                            $tieneDisponibilidad =
-                                                $disponible && ($limite === null || $limite >= $minimo);
-
-                                            // Permiso para comprar según inscripción.
-                                            $puedeConfigurar = $tieneDisponibilidad && !$compraBloqueadaPorInscripcion;
-
-                                            $sesionesItem = $item->sesiones->sortBy('fecha_inicio')->values();
-                                        @endphp
-
-                                        <article
-                                            class="sidan-producto flex flex-col rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-sidan-900 {{ $loop->index >= 6 ? 'hidden' : '' }}"
-                                            data-producto-config data-item-id="{{ $item->id_item_actividad }}"
-                                            data-precio-base="{{ (float) $item->precio }}"
-                                            data-minimo="{{ $minimo }}" data-maximo="{{ $limite ?? '' }}"
-                                            data-stock="{{ $stockItem ?? '' }}"
-                                            data-reglas='@json($reglasPrecio->all())'
-                                            data-variantes='@json($variantesCompra->all())'>
-
-                                            <div
-                                                class="flex h-48 items-center justify-center overflow-hidden rounded-2xl bg-zinc-50 p-3 dark:bg-sidan-900">
-                                                <img src="{{ $imagenItem }}" alt="{{ $item->nombre }}" loading="lazy"
-                                                    class="h-full w-full object-contain transition-transform duration-300 hover:scale-105">
-                                            </div>
-
-                                            <div class="mt-4 flex flex-1 flex-col">
-
-                                                <span class="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
-                                                    {{ ucfirst($item->tipo) }}
-                                                </span>
-
-                                                <h3 class="mt-1 text-lg font-black text-sidan-900 dark:text-white">
-                                                    {{ $item->nombre }}
-                                                </h3>
-
-                                                @if ($item->descripcion)
-                                                    <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                        {{ $item->descripcion }}
-                                                    </p>
-                                                @endif
-
-                                                @if ($sesiones->count() > 1)
-                                                    @if (($item->alcance_sesiones ?? 'actividad') === 'actividad')
-                                                        <div
-                                                            class="mt-3 rounded-xl bg-zinc-100 px-3 py-2.5 text-xs font-semibold text-zinc-700 dark:bg-white/10 dark:text-zinc-300">
-                                                            Disponible para toda la actividad
-                                                        </div>
-                                                    @elseif ($sesionesItem->isNotEmpty())
-                                                        <div
-                                                            class="mt-3 rounded-xl bg-zinc-100 px-3 py-2.5 dark:bg-white/10">
-                                                            <p
-                                                                class="text-[10px] font-black uppercase tracking-wide text-zinc-700 dark:text-zinc-300">
-                                                                Aplica a
-                                                                {{ $sesionesItem->count() === 1 ? 'esta sesión' : 'estas sesiones' }}
-                                                            </p>
-
-                                                            <p
-                                                                class="mt-1 text-xs font-semibold leading-5 text-slate-700 dark:text-slate-200">
-                                                                {{ $sesionesItem->pluck('nombre')->implode(' · ') }}
-                                                            </p>
-                                                        </div>
-                                                    @else
-                                                        <div
-                                                            class="mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                                                            Sesión pendiente de asignación
-                                                        </div>
-                                                    @endif
-                                                @elseif ($sesionesItem->isNotEmpty())
-                                                    <div
-                                                        class="mt-3 rounded-xl bg-zinc-100 px-3 py-2.5 text-xs font-semibold text-zinc-700 dark:bg-white/10 dark:text-zinc-300">
-                                                        Sesión: {{ $sesionesItem->first()->nombre }}
-                                                    </div>
-                                                @endif
-
-                                                @if ($campos->isNotEmpty())
-                                                    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-
-                                                        @foreach ($campos as $campo)
-                                                            @php
-                                                                $tipo = $campo['type'] ?? 'texto';
-                                                                $clave = $campo['key'] ?? '';
-                                                                $etiqueta = $campo['label'] ?? $clave;
-                                                                $obligatorio = !empty($campo['required']);
-                                                            @endphp
-
-                                                            <div>
-                                                                <label class="mb-2 block text-sm font-semibold">
-                                                                    {{ $etiqueta }}
-
-                                                                    @if ($obligatorio)
-                                                                        <span class="text-red-500">*</span>
-                                                                    @endif
-                                                                </label>
-
-                                                                @if ($tipo === 'lista')
-                                                                    <select data-campo-clave="{{ $clave }}"
-                                                                        @required($obligatorio) @required($obligatorio)
-                                                                        @disabled($compraBloqueadaPorInscripcion)
-                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2">
-                                                                        <option value="">Seleccionar...</option>
-
-                                                                        @foreach ($campo['options'] ?? [] as $opcion)
-                                                                            <option value="{{ $opcion }}">
-                                                                                {{ $opcion }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                @elseif ($tipo === 'numero')
-                                                                    <input type="number" step="any"
-                                                                        data-campo-clave="{{ $clave }}"
-                                                                        @required($obligatorio) @disabled($compraBloqueadaPorInscripcion)
-                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
-                                                                        placeholder="Ingresar número">
-                                                                @else
-                                                                    <input type="text" maxlength="200"
-                                                                        data-campo-clave="{{ $clave }}"
-                                                                        @required($obligatorio) @disabled($compraBloqueadaPorInscripcion)
-                                                                        class="w-full rounded-xl border border-slate-200 px-3 py-2"
-                                                                        placeholder="Escribir {{ mb_strtolower($etiqueta) }}">
-                                                                @endif
-                                                            </div>
-                                                        @endforeach
-
-                                                    </div>
-                                                @endif
-
-                                                <div class="relative mt-auto pt-5">
-
-                                                    <div
-                                                        class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/10">
-
-                                                        <div>
-                                                            <p
-                                                                class="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                                                Precio unitario
-                                                            </p>
-
-                                                            <p class="text-2xl font-black text-sidan-950 dark:text-white"
-                                                                data-precio-unitario>
-                                                                ${{ number_format((float) $item->precio, 2) }}
-                                                            </p>
-                                                        </div>
-
-                                                        <div class="flex items-center rounded-full border border-slate-200 dark:border-white/20"
-                                                            data-cantidad-control>
-                                                            <button type="button" data-restar disabled
-                                                                class="px-3 py-2 font-black text-sidan-900 dark:text-sidan-400 disabled:text-slate-300 dark:disabled:text-slate-600"
-                                                                aria-label="Restar cantidad">
-                                                                −
-                                                            </button>
-
-                                                            <output data-cantidad
-                                                                class="min-w-7 text-center text-sm font-black dark:text-white">
-                                                                0
-                                                            </output>
-
-                                                            <button type="button" data-sumar
-                                                                class="px-3 py-2 font-black text-sidan-900 dark:text-sidan-400 disabled:text-slate-300 dark:disabled:text-slate-600"
-                                                                @disabled(!$puedeConfigurar) aria-label="Sumar cantidad">
-                                                                +
-                                                            </button>
-                                                        </div>
-
-                                                    </div>
-
-                                                    {{-- Disponibilidad real: mensaje permanente --}}
-                                                    <p
-                                                        class="mt-2 text-xs font-semibold
-                                                                        {{ $stockItem === 0 ? 'text-red-600 dark:text-red-400' : 'text-sidan-600 dark:text-sidan-400' }}">
-
-                                                        @if ($stockItem === 0)
-                                                            Producto agotado
-                                                        @elseif (!$disponible)
-                                                            Producto no disponible actualmente
-                                                        @elseif (!$tieneDisponibilidad)
-                                                            No hay unidades suficientes para la cantidad mínima
-                                                        @elseif ($stockItem !== null)
-                                                            Disponibles: {{ $stockItem }}
-                                                        @else
-                                                            Stock sin límite
-                                                        @endif
-                                                    </p>
-
-                                                    {{-- Mensaje dinámico controlado por JavaScript --}}
-                                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400"
-                                                        data-disponibilidad>
-
-                                                        @if ($compraBloqueadaPorInscripcion)
-                                                            Debes tener una inscripción confirmada para comprar.
-                                                        @elseif ($puedeConfigurar)
-                                                            Configura el producto para continuar.
-                                                        @else
-                                                            No disponible actualmente.
-                                                        @endif
-                                                    </p>
-
-                                                    <p class="mt-2 hidden text-xs font-semibold text-red-600" data-error
-                                                        role="alert"></p>
-
-                                                    <button type="button" data-agregar-configuracion
-                                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 py-3.5 text-sm font-black text-white transition hover:bg-sidan-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-sidan-500 dark:text-white dark:hover:bg-sidan-600"
-                                                        @disabled(!$puedeConfigurar)>
-                                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="1.8">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M3 4h2l2 11h12l2-8H6M10 20h.01M17 20h.01" />
-                                                        </svg>
-                                                        Agregar al carrito
-                                                    </button>
-                                                    {{-- Aviso flotante temporal: no altera el alto de la tarjeta. --}}
-                                                    <p data-exito-carrito role="status" aria-live="polite"
-                                                        class="pointer-events-none absolute bottom-16 left-0 right-0 z-10 hidden rounded-xl border border-sidan-200 bg-sidan-50 px-3 py-2.5 text-center text-xs font-black text-sidan-600 shadow-lg dark:border-sidan-500/30 dark:bg-sidan-950 dark:text-sidan-200">
-                                                        ✓ Agregado al carrito
-                                                    </p>
-
-                                                    {{-- Este bloque se traslada al sidebar al inicializar la vista.
-                                                         Mantenemos los mismos data-* para no alterar las validaciones,
-                                                         la eliminación de líneas ni los cálculos actuales. --}}
-                                                    <div class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-sidan-950/60"
-                                                        data-resumen-configuraciones>
-                                                        <p class="mb-3 text-sm font-black text-sidan-900 dark:text-white">
-                                                            {{ $item->nombre }}
-                                                        </p>
-
-                                                        <div class="space-y-2" data-lineas-configuracion></div>
-
-                                                        <p
-                                                            class="mt-3 border-t border-slate-200 pt-2 text-sm font-black text-sidan-900 dark:border-white/10 dark:text-white">
-                                                            Subtotal:
-
-                                                            <span data-subtotal>
-                                                                $0.00
-                                                            </span>
-                                                        </p>
-                                                    </div>
-
-                                                </div>
-                                            </div>
-
-                                        </article>
-                                    @endforeach
+                                    @forelse ($itemsTodaActividad as $item)
+                                        @include('activities.partials.producto', ['item' => $item, 'ocultarProducto' => $loop->index >= 6])
+                                    @empty
+                                        <p class="sm:col-span-2 rounded-xl bg-slate-50 p-5 text-sm text-slate-500 dark:bg-white/5 dark:text-slate-300">
+                                            No hay productos generales. Encontrá los productos de cada sesión en Cronograma.
+                                        </p>
+                                    @endforelse
 
                                 </div>
 
-                                @if ($items->count() > 6)
+                                @if ($itemsTodaActividad->count() > 6)
                                     <div class="mt-7 text-center">
 
                                         <button type="button" id="btnMasProductos"
@@ -1327,8 +769,8 @@
                                 <div>
                                     <p class="text-xs font-bold uppercase text-slate-400">Oferta</p>
                                     <button type="button" data-panel-target="productos"
-                                        class="mt-1 font-black text-sidan-500 hover:underline">{{ $items->count() }}
-                                        producto{{ $items->count() === 1 ? '' : 's' }}/servicio{{ $items->count() === 1 ? '' : 's' }}
+                                        class="mt-1 font-black text-sidan-500 hover:underline">{{ $itemsTodaActividad->count() }}
+                                        producto{{ $itemsTodaActividad->count() === 1 ? '' : 's' }} generales
                                         →</button>
                                 </div>
                             @endif
@@ -1438,6 +880,14 @@
                                     </p>
                                 @endif
                                 
+                                @auth
+                                    <button type="submit" form="formCompraActividad" data-revisar-carrito disabled
+                                        class="mt-4 w-full rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40">
+                                        Revisar carrito
+                                    </button>
+                                @else
+                                    <a href="{{ route('login') }}" class="mt-4 block rounded-xl bg-sidan-500 px-4 py-3 text-center text-sm font-black text-white">Iniciar sesión para comprar</a>
+                                @endauth
                                 <p class="mt-2 text-center text-[11px] text-slate-500 dark:text-slate-400">La orden se
                                     genera al confirmar la compra.</p>
                             </div>
@@ -1518,13 +968,15 @@
                 });
             }
 
-            configurarMostrarMas('.sidan-producto', 'btnMasProductos', 6);
+            configurarMostrarMas('#productos .sidan-producto', 'btnMasProductos', 6);
 
             // Configurador visual de productos.
             // No registra pedidos ni persiste selecciones.
             // Configurador de compra de productos.
 
             const compraActividad = [];
+            // Una selección compartida por producto, aunque tenga tarjetas en varias sesiones.
+            const estadosProductos = new Map();
 
             const compraBloqueadaPorInscripcion = @json($compraBloqueadaPorInscripcion);
 
@@ -1598,6 +1050,10 @@
                         cantidadConfiguraciones === 0;
                 }
 
+                document.querySelectorAll('[data-revisar-carrito]').forEach(boton => {
+                    boton.disabled = compraBloqueadaPorInscripcion || cantidadConfiguraciones === 0;
+                });
+
                 // Contadores y subtotal visibles debajo de "Estás inscrito".
                 // Conservamos el precio de inscripción separado, como antes.
                 if (panelCarritoLateral) {
@@ -1663,20 +1119,22 @@
                             '[data-agregar-configuracion]'
                         );
 
-                    const contenedorResumen =
-                        tarjeta.querySelector(
-                            '[data-resumen-configuraciones]'
-                        );
-
-                    const lineasContenedor =
-                        tarjeta.querySelector(
-                            '[data-lineas-configuracion]'
-                        );
-
-                    const subtotalTexto =
-                        tarjeta.querySelector(
-                            '[data-subtotal]'
-                        );
+                    const resumenPropio = tarjeta.querySelector('[data-resumen-configuraciones]');
+                    const claveProducto = String(tarjeta.dataset.itemId);
+                    if (!estadosProductos.has(claveProducto)) {
+                        estadosProductos.set(claveProducto, {
+                            configuraciones: [],
+                            resumen: resumenPropio,
+                            vistas: []
+                        });
+                    }
+                    const estadoProducto = estadosProductos.get(claveProducto);
+                    if (resumenPropio && resumenPropio !== estadoProducto.resumen) {
+                        resumenPropio.remove();
+                    }
+                    const contenedorResumen = estadoProducto.resumen;
+                    const lineasContenedor = contenedorResumen?.querySelector('[data-lineas-configuracion]');
+                    const subtotalTexto = contenedorResumen?.querySelector('[data-subtotal]');
 
                     // Reubicar el DOM del resumen fuera de la tarjeta. Al mover
                     // el mismo nodo, renderResumen() y los botones Quitar
@@ -1710,7 +1168,7 @@
                             1
                         );
 
-                    const configuraciones = [];
+                    const configuraciones = estadoProducto.configuraciones;
 
                     let cantidad = 0;
 
@@ -2024,11 +1482,8 @@
                                                 );
                                         }
 
-                                        renderResumen();
-
-                                        refrescar();
-
-                                        actualizarCompraGlobal();
+                                        estadoProducto.vistas.forEach(actualizar => actualizar());
+                                    actualizarCompraGlobal();
                                     }
                                 );
 
@@ -2259,10 +1714,7 @@
 
                                     mostrarError('');
 
-                                    renderResumen();
-
-                                    refrescar();
-
+                                    estadoProducto.vistas.forEach(actualizar => actualizar());
                                     actualizarCompraGlobal();
 
                                     // Confirmación visual: la selección ya está en compraActividad.
@@ -2286,6 +1738,10 @@
                             );
                     }
 
+                    estadoProducto.vistas.push(() => {
+                        renderResumen();
+                        refrescar();
+                    });
                     refrescar();
                 });
 
@@ -2328,6 +1784,9 @@
                             btnContinuarCompra
                                 .disabled =
                                 true;
+                            document.querySelectorAll('[data-revisar-carrito]').forEach(boton => {
+                                boton.disabled = true;
+                            });
 
                             btnContinuarCompra
                                 .innerHTML =

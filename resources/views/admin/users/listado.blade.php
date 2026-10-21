@@ -21,7 +21,22 @@
         });
     @endphp
 
-    <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+    @php
+        $imagenesIniciales = $usersData->pluck('imagen_perfil', 'id')->all();
+    @endphp
+
+    {{-- Los botones de grupo son visuales; los permisos siguen controlados en Laravel. --}}
+    <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white"
+        x-data="{
+            tipoUsuario: 'normales',
+            imagenesIniciales: @js($imagenesIniciales),
+            usuariosPorTipo(users) {
+                return users.filter(user => {
+                    const esNormal = String(user.rol_nombre || '').trim().toLowerCase() === 'usuario';
+                    return this.tipoUsuario === 'normales' ? esNormal : !esNormal;
+                });
+            }
+        }">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
             <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -72,6 +87,7 @@
             </div>
 
             <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10"
+                x-init="performSearch()"
                 x-data="{
                     search: '',
                     loading: false,
@@ -95,6 +111,46 @@
                             });
                     }
                 }">
+                {{-- Filtro visible de cuentas: no modifica roles ni permisos. --}}
+                <div class="mb-4">
+                    <p class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Tipo de usuario
+                    </p>
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" role="group" aria-label="Filtrar usuarios por tipo">
+                        <button type="button"
+                            @click="tipoUsuario = 'normales'"
+                            :aria-pressed="tipoUsuario === 'normales'"
+                            :class="tipoUsuario === 'normales'
+                                ? 'border-sidan-500 bg-sidan-500 text-white shadow-sm'
+                                : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-sidan-300 hover:bg-sidan-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sidan-500/30">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            Usuarios normales
+                        </button>
+                        <button type="button"
+                            @click="tipoUsuario = 'sistema'"
+                            :aria-pressed="tipoUsuario === 'sistema'"
+                            :class="tipoUsuario === 'sistema'
+                                ? 'border-sidan-500 bg-sidan-500 text-white shadow-sm'
+                                : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-sidan-300 hover:bg-sidan-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sidan-500/30">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                            Personal del sistema
+                        </button>
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400"
+                        x-text="tipoUsuario === 'normales'
+                            ? 'Cuentas con rol Usuario.'
+                            : 'Administradores y demás roles internos.'"></p>
+                </div>
+
                 <label for="buscarUsuario" class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Buscar usuario
                 </label>
@@ -127,7 +183,11 @@
             </div>
 
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10"
-                x-data="userTable(@js($usersData), '{{ csrf_token() }}')" @users-updated.window="users = $event.detail">
+                x-data="userTable(@js($usersData), '{{ csrf_token() }}')"
+                @users-updated.window="users = $event.detail.map(user => ({
+                    ...user,
+                    imagen_perfil: user.imagen_perfil ?? imagenesIniciales[user.id] ?? null
+                }))">
                 <div class="overflow-x-auto">
 
                     <table class="min-w-full divide-y divide-slate-200 dark:divide-white/5">
@@ -165,7 +225,8 @@
 
                         <tbody class="divide-y divide-slate-200 dark:divide-white/5">
 
-                            <template x-for="user in users" :key="user.id">
+                            {{-- Filtro de roles aplicado a los registros existentes, sin alterar acciones. --}}
+                            <template x-for="user in usuariosPorTipo(users)" :key="user.id">
 
                                 <tr class="transition hover:bg-slate-50 dark:hover:bg-white/[0.02]"
                                     :class="{ 'opacity-60': !user.estado_activo }">
@@ -302,7 +363,7 @@
 
                 </div>
 
-                <div x-show="users.length === 0"
+                <div x-show="usuariosPorTipo(users).length === 0"
                     class="border-t border-slate-200 px-6 py-16 text-center sm:px-10 sm:py-20 dark:border-white/5">
 
                     <div
