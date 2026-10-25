@@ -57,6 +57,11 @@ return [
             'descripcion' => 'Gestionar pagos, abonos, entregas y órdenes vencidas.',
             'ruta' => 'admin.pagos.index',
         ],
+        'ventas_presenciales' => [
+            'nombre' => 'Generar orden',
+            'descripcion' => 'Generar órdenes de compra y registrar cobros presenciales.',
+            'ruta' => 'admin.ventas-presenciales.index',
+        ],
         'usuarios' => [
             'nombre' => 'Usuarios',
             'descripcion' => 'Gestionar usuarios y asignar roles dentro de los accesos autorizados.',
@@ -94,7 +99,10 @@ return [
         'admin.control.consolidado' => ['consolidado'],
         'admin.control.consolidado.imprimir' => ['consolidado'],
         'admin.pagos.*' => ['pagos'],
+        'admin.ventas-presenciales.*' => ['ventas_presenciales'],
         'admin.ordenes.vencidas' => ['pagos'],
+        'admin.ordenes.conciliar' => ['pagos'],
+        'admin.ordenes.abonar' => ['pagos'],
         'admin.ordenes.cerrar' => ['pagos'],
         'admin.ordenes.entregar' => ['pagos'],
         'admin.users.*' => ['usuarios'],

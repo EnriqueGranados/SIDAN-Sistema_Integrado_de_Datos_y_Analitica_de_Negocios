@@ -69,7 +69,7 @@
                 type="button"
                 data-assign-url="{{ route('admin.welcome.espacios.asignar', $espacio) }}"
                 data-slot-name="{{ $espacio->nombre }}"
-                class="js-cambiar-actividad hidden rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-xs font-black text-amber-600 transition hover:bg-amber-400 hover:text-slate-950 dark:text-amber-300 sm:inline-flex"
+                class="js-cambiar-actividad hidden rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-xs font-black text-amber-600 transition hover:bg-amber-500 hover:text-white dark:text-amber-400 sm:inline-flex dark:hover:text-white"
             >
                 {{ $actividad ? 'Cambiar' : 'Asignar' }}
             </button>
@@ -119,7 +119,7 @@
                     <button
                         type="button"
                         data-url="{{ route('admin.welcome.espacios.quitar', $espacio) }}"
-                        class="js-quitar-actividad rounded-xl border border-red-200 px-4 py-2.5 text-xs font-black text-red-600 transition hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:text-red-300"
+                        class="js-quitar-actividad rounded-xl border border-red-200 px-4 py-2.5 text-xs font-black text-red-600 transition hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:text-red-300 dark:hover:text-white"
                     >
                         Quitar actividad
                     </button>

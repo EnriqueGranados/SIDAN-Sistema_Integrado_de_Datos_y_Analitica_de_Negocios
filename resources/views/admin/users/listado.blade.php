@@ -39,9 +39,13 @@
         }">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
-            <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div class="max-w-3xl">
-                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                        Administración
+                    </p>
+
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                         Usuarios
                     </h1>
 
@@ -116,7 +120,7 @@
                     <p class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Tipo de usuario
                     </p>
-                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" role="group" aria-label="Filtrar usuarios por tipo">
+                    <div class="grid grid-cols-1 gap-20 sm:grid-cols-2" role="group" aria-label="Filtrar usuarios por tipo">
                         <button type="button"
                             @click="tipoUsuario = 'normales'"
                             :aria-pressed="tipoUsuario === 'normales'"

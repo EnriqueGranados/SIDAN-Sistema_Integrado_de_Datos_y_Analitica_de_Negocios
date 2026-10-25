@@ -17,38 +17,40 @@
         $totalProductos = $productos->count();
     @endphp
 
-    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8">
-        {{-- Encabezado y acciones: imprimir siempre conserva filtros y pestaña. --}}
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <p class="text-xs font-black uppercase tracking-widest text-sidan-500">
-                    Administración · Control de compras
-                </p>
-                <h1 class="mt-2 text-3xl font-black text-sidan-900 dark:text-white">
-                    Consolidado de pedidos
-                </h1>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                    Preparación y distribución de productos de órdenes pagadas.
-                </p>
-            </div>
+<div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                        Administración
+                    </p>
 
-            <div class="flex flex-wrap gap-2">
-                <a href="{{ route('admin.control.consolidado.imprimir', array_merge($filtrosActuales, ['vista' => $vista])) }}"
-                    target="_blank" rel="noopener"
-                    class="inline-flex items-center gap-2 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-sidan-600">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                        aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z" />
-                    </svg>
-                    Imprimir lista
-                </a>
-                <a href="{{ route('admin.control.ordenes') }}"
-                    class="inline-flex items-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-sidan-900 transition hover:bg-slate-100 dark:border-white/10 dark:text-white dark:hover:bg-white/5">
-                    Ver todas las órdenes
-                </a>
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
+                        Consolidado de pedidos
+                    </h1>
+
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Preparación y distribución de productos de órdenes pagadas.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('admin.control.consolidado.imprimir', array_merge($filtrosActuales, ['vista' => $vista])) }}"
+                        target="_blank" rel="noopener"
+                        class="inline-flex items-center gap-2 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-sidan-600">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                            aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z" />
+                        </svg>
+                        Imprimir lista
+                    </a>
+                    <a href="{{ route('admin.control.ordenes') }}"
+                        class="inline-flex items-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-sidan-900 transition hover:bg-slate-100 dark:border-white/10 dark:text-white dark:hover:bg-white/5">
+                        Ver todas las órdenes
+                    </a>
+                </div>
             </div>
-        </div>
 
         {{-- Los filtros afectan por igual indicadores, listas e impresión. --}}
         <form method="GET" action="{{ route('admin.control.consolidado') }}"
@@ -98,7 +100,7 @@
         </form>
 
         {{-- Indicadores netos de las mismas líneas pagadas que se muestran abajo. --}}
-        <div class="grid gap-4 sm:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-3 mt-5 mb-5">
             <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0f172a]">
                 <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Unidades pagadas</p>
                 <p class="mt-2 text-3xl font-black text-sidan-900 dark:text-white">{{ number_format($totalUnidades) }}</p>
@@ -117,7 +119,7 @@
         </div>
 
         {{-- Enlaces accesibles sin JavaScript; evitan una página interminable. --}}
-        <nav aria-label="Secciones del consolidado" class="grid gap-2 sm:grid-cols-3">
+        <nav aria-label="Secciones del consolidado" class="grid gap-2 sm:grid-cols-3 mt-5 mb-5">
             @foreach ($pestanas as $clave => $pestana)
                 <a href="{{ route('admin.control.consolidado', array_merge($filtrosActuales, ['vista' => $clave])) }}"
                     @if ($vista === $clave) aria-current="page" @endif
@@ -308,4 +310,5 @@
             </section>
         @endif
     </div>
+</div>
 @endsection

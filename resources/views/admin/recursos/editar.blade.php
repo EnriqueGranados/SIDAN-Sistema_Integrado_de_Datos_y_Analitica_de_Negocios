@@ -4,24 +4,30 @@
 
 @section('content')
     <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
-        <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-            <div class="mb-6">
-                <a href="{{ route('admin.recursos.index') }}"
-                    class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Volver a recursos
-                </a>
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <a href="{{ route('admin.recursos.index') }}"
+                        class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Volver a recursos
+                    </a>
 
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Editar recurso</h1>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                        Administración
+                    </p>
 
-                <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                    Actualiza la información de
-                    <span class="font-medium text-slate-700 dark:text-slate-300">
-                        {{ $recurso->nombre }}
-                    </span>.
-                </p>
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">Editar recurso</h1>
+
+                    <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                        Actualiza la información de
+                        <span class="font-medium text-slate-700 dark:text-slate-300">
+                            {{ $recurso->nombre }}
+                        </span>.
+                    </p>
+                </div>
             </div>
 
             <div

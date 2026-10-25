@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Actividad;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,11 +13,19 @@ use App\Services\DisponibilidadService;
 
 class CompraActividadController extends Controller
 {
-    public function store(
-        Request $request,
-        Actividad $actividad
-    ) {
-        $usuario = $request->user();
+    public function store(Request $request, Actividad $actividad)
+    {
+        return $this->procesar($request, $actividad, $request->user(), false);
+    }
+
+    /** Solo la ruta protegida de caja administrativa debe invocar este método. */
+    public function crearPresencial(Request $request, Actividad $actividad, User $comprador): int
+    {
+        return $this->procesar($request, $actividad, $comprador, true);
+    }
+
+    private function procesar(Request $request, Actividad $actividad, ?User $usuario, bool $presencial)
+    {
 
         if (!$usuario) {
             return redirect()
@@ -35,7 +44,7 @@ class CompraActividadController extends Controller
 
         if (
             $actividad->estado_publicacion !== 'publicada' ||
-            $actividad->visibilidad !== 'publica'
+            (!$presencial && $actividad->visibilidad !== 'publica')
         ) {
             throw ValidationException::withMessages([
                 'compra' =>
@@ -141,7 +150,7 @@ class CompraActividadController extends Controller
         */
 
         $resultado = DB::transaction(
-            function () use ($actividad, $selecciones, $correoUsuario, $idUsuario) {
+            function () use ($actividad, $selecciones, $correoUsuario, $idUsuario, $presencial, $request) {
                 $ahoraUtc =
                     now('UTC');
 
@@ -198,7 +207,7 @@ class CompraActividadController extends Controller
 
                 $requiereInscripcion = $actividad->requiereInscripcionGeneral();
 
-                if ($requiereInscripcion) {
+                if ($requiereInscripcion && !$presencial) {
                     $inscripcion =
                         DB::table(
                             'tbl_inscripciones'
@@ -1077,6 +1086,9 @@ class CompraActividadController extends Controller
                                 'tipo_orden' =>
                                     'productos',
 
+                                'canal_venta' => $presencial ? 'presencial' : 'portal',
+                                'creado_por' => $presencial ? (int) $request->user()->id_usuario : null,
+
                                 'correo_contacto' =>
                                     $correoUsuario,
 
@@ -1199,6 +1211,10 @@ class CompraActividadController extends Controller
         | Ir al resumen de compra
         |--------------------------------------------------------------------------
         */
+
+        if ($presencial) {
+            return (int) $resultado['id_orden'];
+        }
 
         return redirect()
             ->route(

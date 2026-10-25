@@ -300,7 +300,7 @@
                             @if ($actividad['requiere_cuenta'])
                                 <p class="mt-2 text-center text-xs leading-5 text-white/55">
                                     @guest
-                                        Necesitarás iniciar sesión para completar esta acción.
+                                        {{ $actividadModelo->requiereInscripcionGeneral() ? 'Podés inscribirte sin cuenta; SIDAN te enviará un enlace para establecer tu contraseña. Para comprar productos sí deberás iniciar sesión.' : 'Necesitarás iniciar sesión para comprar productos.' }}
                                     @else
                                         Tu cuenta está lista para continuar.
                                     @endguest

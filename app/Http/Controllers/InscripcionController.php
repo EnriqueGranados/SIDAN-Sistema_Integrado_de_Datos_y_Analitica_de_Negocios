@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Actividad;
 use App\Models\Inscripcion;
 use App\Services\InscripcionService;
+use App\Services\CuentaAutomaticaService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -80,7 +82,7 @@ class InscripcionController extends Controller
         // Las actividades que permiten visitantes siguen solicitando
         // nombre y correo, porque no existe un perfil del cual obtenerlos.
         if (!$usuario) {
-            $reglas['nombre'] = ['required', 'string', 'max:200'];
+            $reglas['nombre'] = ['required', 'string', 'max:200', 'regex:/^\S+\s+\S+/u'];
             $reglas['correo'] = ['required', 'email', 'max:150'];
         }
 
@@ -114,11 +116,31 @@ class InscripcionController extends Controller
             }
         }
 
-        $inscripcion = $servicio->registrar(
-            $actividad,
-            $usuario?->id_usuario,
-            $datos
-        );
+        $cuentaNueva = null;
+        // La cuenta y la inscripción quedan en la MISMA transacción PostgreSQL.
+        $inscripcion = DB::transaction(function () use ($usuario, $datos, $actividad, $servicio, &$cuentaNueva) {
+            if (!$usuario) {
+                $cuentaNueva = app(CuentaAutomaticaService::class)->crear(
+                    $datos['nombre'], $datos['correo'], $datos['telefono'] ?? null
+                );
+            }
+            return $servicio->registrar(
+                $actividad,
+                $usuario?->id_usuario ?? $cuentaNueva->id_usuario,
+                $datos
+            );
+        }, 3);
+
+        if ($cuentaNueva) {
+            try {
+                app(CuentaAutomaticaService::class)->enviarEnlace($cuentaNueva);
+                $request->session()->flash('info', 'Te enviamos un correo para establecer tu contraseña de SIDAN.');
+            } catch (\Throwable $e) {
+                report($e);
+                $request->session()->flash('warning',
+                    'La inscripción se registró, pero no se pudo enviar el correo. Usá «Olvidé mi contraseña» para acceder.');
+            }
+        }
 
         // Permitimos al visitante consultar su operación
         // durante la sesión actual.
@@ -183,11 +205,8 @@ class InscripcionController extends Controller
             'La cuenta no está habilitada.'
         );
 
-        abort_if(
-            $actividad->requiere_cuenta && !$usuario,
-            403,
-            'Debes iniciar sesión para esta actividad.'
-        );
+        // La inscripción general puede iniciar como visitante.
+        // La compra pública de productos continúa exigiendo cuenta. 
     }
 
     // Temporal: evita perder respuestas de formularios dinámicos.

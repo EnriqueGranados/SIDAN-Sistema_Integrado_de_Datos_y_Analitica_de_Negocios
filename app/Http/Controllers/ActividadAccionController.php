@@ -18,10 +18,7 @@ class ActividadAccionController extends Controller
             return $respuesta;
         }
 
-        if ($respuesta = $this->exigirCuentaSiCorresponde($request, $actividad)) {
-            return $respuesta;
-        }
-
+        // Inscribirse como visitante es distinto de comprar productos.
         if (!$actividad->requiereInscripcionGeneral()) {
             return redirect()
                 ->route('activities.show', $actividad->slug)

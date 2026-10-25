@@ -179,7 +179,7 @@
     </style>
     <div
         class="espacios-theme min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
-        <div class="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <div class="mb-5">
                 <a href="{{ route('admin.espacios.index') }}"
                     class="mb-3 inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white">
@@ -188,7 +188,11 @@
                     </svg>
                     Volver a espacios
                 </a>
-                <h1 class="text-2xl font-bold text-white">
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                    Administración
+                </p>
+
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                     Nuevo espacio
                 </h1>
                 <p class="mt-1 text-sm text-slate-400">

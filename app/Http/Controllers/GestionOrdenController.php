@@ -6,6 +6,7 @@ use App\Models\Orden;
 use App\Models\Pago;
 use App\Models\AbonoTransferencia;
 use App\Services\GestionOrdenService;
+use App\Services\ResumenFinancieroPagosService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -192,7 +193,7 @@ class GestionOrdenController extends Controller
             ->with('success', 'La orden fue cancelada y eliminada.');
     }
 
-    public function index(Request $request)
+    public function index(Request $request, ResumenFinancieroPagosService $resumen)
     {
         $estadosPagos = Pago::query()
             ->select('estado')
@@ -201,16 +202,111 @@ class GestionOrdenController extends Controller
             ->orderBy('estado')
             ->pluck('total', 'estado');
 
+        $metodosPagos = Pago::query()
+            ->whereNotNull('proveedor')
+            ->distinct()
+            ->orderBy('proveedor')
+            ->pluck('proveedor');
+
+        // El historial debe incluir actividades finalizadas, archivadas y fuera de ventana.
+        // No aplicar los filtros de venta presencial ni de visibilidad pública.
+        $actividadesFiltro = \App\Models\Actividad::withTrashed()
+            ->with(['categoria', 'portada'])
+            ->orderBy('nombre')
+            ->get([
+                'id_actividad', 'id_categoria', 'nombre', 'slug',
+                'visible_desde', 'visible_hasta', 'eliminado_en',
+                'realizacion_desde', 'realizacion_hasta',
+            ]);
+
         $filtros = $request->validate([
             'estado' => ['nullable', 'string', \Illuminate\Validation\Rule::in($estadosPagos->keys()->all())],
+            'actividad' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('tbl_actividades', 'id_actividad')],
+            'metodo' => ['nullable', 'string', \Illuminate\Validation\Rule::in($metodosPagos->all())],
+            'situacion' => ['nullable', 'in:vencidas,revision_pendiente,saldo_pendiente'],
+            'entrega' => ['nullable', 'in:pendientes,completadas'],
         ]);
+
         $estadoSeleccionado = $filtros['estado'] ?? '';
+        $actividadSeleccionada = (int) ($filtros['actividad'] ?? 0);
+        $metodoSeleccionado = $filtros['metodo'] ?? '';
+        $situacionSeleccionada = $filtros['situacion'] ?? '';
+        $entregaSeleccionada = $filtros['entrega'] ?? '';
+
+        $consulta = Pago::query()
+            ->with([
+                'orden.actividad' => fn ($q) => $q->withTrashed(),
+                'orden.detalles',
+                'abonos',
+            ])
+            ->when($estadoSeleccionado !== '', fn ($q) => $q->where('estado', $estadoSeleccionado))
+            ->when($metodoSeleccionado !== '', fn ($q) => $q->where('proveedor', $metodoSeleccionado))
+            ->when($actividadSeleccionada > 0, fn ($q) => $q->whereHas('orden',
+                fn ($orden) => $orden->where('id_actividad', $actividadSeleccionada)));
+
+        if ($situacionSeleccionada !== 'vencidas') {
+            $consulta->whereDoesntHave('orden', fn ($q) => $q->where('estado', 'vencida')
+                ->where('cierre_financiero_estado', 'regularizacion'));
+        }
+
+        if ($situacionSeleccionada === 'vencidas') {
+            $consulta->whereHas('orden', function ($orden) {
+                $orden->where(function ($q) {
+                    $q->where('estado', 'vencida')
+                        ->orWhere(function ($pendiente) {
+                            $pendiente->where('estado', 'pendiente_pago')
+                                ->where(function ($vencimiento) {
+                                    $vencimiento->where(function ($q) {
+                                        $q->whereNotNull('limite_saldo_en')
+                                            ->where('limite_saldo_en', '<=', now());
+                                    })->orWhere(function ($q) {
+                                        $q->whereNull('limite_saldo_en')
+                                            ->whereNotNull('expira_en')
+                                            ->where('expira_en', '<=', now());
+                                    });
+                                });
+                        });
+                });
+            });
+        } elseif ($situacionSeleccionada === 'revision_pendiente') {
+            $consulta->whereIn('proveedor', ['efectivo', 'transferencia'])
+                ->whereHas('abonos', fn ($abono) => $abono->where('estado', 'pendiente'));
+        } elseif ($situacionSeleccionada === 'saldo_pendiente') {
+            $consulta->whereHas('orden', fn ($orden) => $orden->where('estado', 'pendiente_pago'));
+        }
+
+        if ($entregaSeleccionada !== '') {
+            // Se comprueba la cantidad entregada por detalle, no la fecha ni el estado global.
+            $consulta->whereHas('orden', function ($orden) use ($entregaSeleccionada) {
+                $orden->where('tipo_orden', 'productos')
+                    ->whereHas('detalles', fn ($d) => $d->where('tipo_concepto', 'producto'));
+
+                if ($entregaSeleccionada === 'pendientes') {
+                    $orden->whereHas('detalles', fn ($d) => $d
+                        ->where('tipo_concepto', 'producto')
+                        ->whereColumn('cantidad_entregada', '<', 'cantidad'));
+                } else {
+                    $orden->whereDoesntHave('detalles', fn ($d) => $d
+                        ->where('tipo_concepto', 'producto')
+                        ->whereColumn('cantidad_entregada', '<', 'cantidad'));
+                }
+            });
+        }
 
         return view('admin.pagos.index', [
             'estadosPagos' => $estadosPagos,
             'estadoSeleccionado' => $estadoSeleccionado,
-            'pagos' => Pago::with(['orden.actividad', 'orden.detalles', 'abonos'])
-                ->when($estadoSeleccionado !== '', fn($query) => $query->where('estado', $estadoSeleccionado))
+            'metodosPagos' => $metodosPagos,
+            'metodoSeleccionado' => $metodoSeleccionado,
+            'actividadesFiltro' => $actividadesFiltro,
+            'actividadSeleccionada' => $actividadSeleccionada,
+            'situacionSeleccionada' => $situacionSeleccionada,
+            'entregaSeleccionada' => $entregaSeleccionada,
+            // Resumen de TODO el histórico; la actividad aplicada lo acota.
+            // Estado/método son filtros de la lista, NO del libro de caja.
+            'resumenFinanciero' => $resumen->calcular($actividadSeleccionada ?: null),
+            'hayFiltros' => collect($filtros)->contains(fn ($valor) => $valor !== null && $valor !== ''),
+            'pagos' => $consulta
                 ->orderByRaw("CASE WHEN estado IN ('pendiente', 'parcial') THEN 0 ELSE 1 END")
                 ->orderByDesc('id_pago')
                 ->paginate(20)

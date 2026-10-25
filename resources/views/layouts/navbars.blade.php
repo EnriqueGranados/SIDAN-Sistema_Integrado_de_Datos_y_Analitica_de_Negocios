@@ -52,7 +52,8 @@
         $usuarioPanel = auth()->user();
 
         $menuPanel = collect(\App\Support\AccesoModulos::catalogo())
-            ->filter(fn ($modulo, $clave) => \App\Support\AccesoModulos::permite($usuarioPanel, $clave));
+            ->filter(fn ($modulo, $clave) => \App\Support\AccesoModulos::permite($usuarioPanel, $clave)
+                && ($clave !== 'ventas_presenciales' || in_array($usuarioPanel?->rol?->nombre, ['admin', 'superadmin'], true)));
 
         $mostrarPanel = $menuPanel->isNotEmpty();
         $rutaActual = request()->route()?->getName() ?? '';
@@ -69,6 +70,7 @@
             'ordenes' => 'M3 7h18l-2 13H5L3 7zM8 7V5a4 4 0 018 0v2',
             'consolidado' => 'M4 6h16M4 12h16M4 18h16M7 4v4M7 10v4M7 16v4',
             'pagos' => 'M3 5h14v10H3zM7 9h14v11H7zM14 12a2 2 0 100 4 2 2 0 000-4z',
+            'ventas_presenciales' => 'M3 7h18v13H3V7zm3-4h12l3 4H3l3-4zm4 8h4m-2-2v4',
             'usuarios' => 'M9 11a4 4 0 100-8 4 4 0 000 8M2 21v-2a6 6 0 0112 0v2M16 3a4 4 0 010 8M17 15a5 5 0 014 5v1',
             'welcome' => 'M3 3h18v18H3zM3 9h18M8 9v12',
             'roles' => 'M12 3l9 4v5c0 5-9 9-9 9s-9-4-9-9V7l9-4zM9 12l2 2 4-4',
@@ -109,6 +111,7 @@
                                 'consolidado' => str_starts_with($rutaActual, 'admin.control.consolidado'),
                                 'pagos' => str_starts_with($rutaActual, 'admin.pagos.')
                                     || str_starts_with($rutaActual, 'admin.ordenes.'),
+                                'ventas_presenciales' => str_starts_with($rutaActual, 'admin.ventas-presenciales.'),
                                 'usuarios' => str_starts_with($rutaActual, 'admin.users.'),
                                 default => str_starts_with($rutaActual, 'admin.' . $clave . '.'),
                             };

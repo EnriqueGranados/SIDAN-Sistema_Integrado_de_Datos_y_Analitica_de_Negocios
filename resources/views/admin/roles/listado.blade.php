@@ -3,10 +3,16 @@
 @section('title', 'Gestión de Roles')
 
 @section('content')
-    <div class="max-w-7xl mx-auto space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+<div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-black text-sidan-900 dark:text-white">
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                    Administración
+                </p>
+
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                     Gestión de Roles
                 </h1>
 
@@ -179,6 +185,7 @@
             @endif
         </div>
     </div>
+</div>
 
     <script>
         // Mostrar notificaciones de éxito, error, advertencia o información

@@ -226,9 +226,9 @@
             };
         };
     @endphp
-    <div class="activity-ui w-full min-w-0 max-w-full overflow-x-hidden">
-        <div class="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-            <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div class="activity-ui min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="min-w-0">
                     <div class="mb-2 flex flex-wrap items-center gap-2">
                         <span
@@ -247,7 +247,7 @@
                                 class="rounded-full bg-white/5 px-2 py-1 text-[11px] text-gray-500">#{{ $etiqueta->nombre }}</span>
                         @endforeach
                     </div>
-                    <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                         {{ $modoCorreccion ? 'Corrige la configuración solicitada' : 'Termina de configurar tu actividad' }}
                     </h1>
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
@@ -459,12 +459,12 @@
                             </div>
                         </label>
                         <label
-                            class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
+                            class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-4 transition hover:bg-white/[0.03]">
                             <div class="flex items-start gap-3">
                                 <input type="radio" name="ofrece_productos" value="1" required
                                     @checked($ofreceProductos)>
                                 <div>
-                                    <p class="font-semibold text-blue-200">
+                                    <p class="font-semibold text-white">
                                         Sí, ofrece productos o servicios
                                     </p>
                                     <p class="mt-1 text-xs leading-5 text-gray-500">
@@ -809,12 +809,12 @@
                                 </div>
                             </label>
                             <label
-                                class="activity-choice-card cursor-pointer rounded-xl border border-blue-500/20 bg-blue-500/[0.04] p-4">
+                                class="activity-choice-card cursor-pointer rounded-xl border border-white/10 bg-black/10 p-4 transition hover:bg-white/[0.03]">
                                 <div class="flex gap-3">
                                     <input type="radio" name="requiere_datos" value="1" required
                                         @checked($configActual && ($configActual['enabled'] ?? false))>
                                     <div>
-                                        <p class="font-semibold text-blue-200">
+                                        <p class="font-semibold text-white">
                                             Sí
                                         </p>
                                         <p class="mt-1 text-xs text-gray-500">

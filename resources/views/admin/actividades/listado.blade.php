@@ -3,13 +3,18 @@
 @section('content')
     @include('admin.actividades.partials.tema-visual')
     <div class="activity-ui w-full min-w-0 max-w-full overflow-x-hidden">
-        <div class="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             {{-- ENCABEZADO --}}
             <div class="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="min-w-0">
-                    <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-[#22C55E]">
+                        Administración
+                    </p>
+
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                         Actividades
                     </h1>
+                        
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
                         Administra las actividades, continúa las configuraciones pendientes y consulta su estado de
                         publicación.
@@ -24,11 +29,19 @@
                 </a>
                 <div class="flex flex-wrap gap-2">
                     <a href="{{ route('admin.control.inscripciones') }}"
-                        class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800">
                         Inscripciones
                     </a>
                     <a href="{{ route('admin.control.ordenes') }}"
-                        class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800">
                         Órdenes y compras
                     </a>
                 </div>

@@ -60,6 +60,7 @@ class GestionOrdenService
         } elseif ($orden->tipo_orden === 'productos') {
             if (
                 $orden->actividad->requiereInscripcionGeneral()
+                && $orden->canal_venta !== 'presencial'
                 && (
                     !$orden->inscripcion
                     || !in_array(

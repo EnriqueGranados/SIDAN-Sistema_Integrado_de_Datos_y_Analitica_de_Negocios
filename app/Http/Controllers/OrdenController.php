@@ -32,7 +32,7 @@ class OrdenController extends Controller
             ->pluck('estado');
 
         $consulta = (clone $propias)
-            ->with(['actividad', 'inscripcion', 'detalles', 'pago']);
+            ->with(['actividad', 'inscripcion', 'detalles', 'pago.abonos']);
 
         foreach ([
             'actividad' => 'id_actividad',

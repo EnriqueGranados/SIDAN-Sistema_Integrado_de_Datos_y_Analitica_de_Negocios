@@ -7,7 +7,13 @@
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div class="max-w-3xl">
-                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Recursos</h1>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                        Administración
+                    </p>
+
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
+                        Recursos
+                    </h1>
                     <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
                         Administra los equipos, mobiliario, infraestructura y otros recursos que pueden
                         estar disponibles en los espacios o utilizarse de forma móvil en las actividades.

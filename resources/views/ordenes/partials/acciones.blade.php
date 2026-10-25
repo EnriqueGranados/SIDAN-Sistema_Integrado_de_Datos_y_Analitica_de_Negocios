@@ -91,9 +91,16 @@
     @if(!$vigente && $pagoActual && in_array($pagoActual->proveedor,['transferencia','efectivo'],true)
         && $pagoActual->montoAcreditadoCentavos()>0 && $orden->estado!=='pagada')
         <div class="rounded-xl border border-amber-500 bg-amber-50 p-4 text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
-            <h3 class="font-bold">Pago vencido con dinero recibido</h3>
-            <p>Conservamos ${{ number_format($pagoActual->montoAcreditadoCentavos()/100,2) }} acreditados.
-                La orden requiere revisión de administración. No enviés nuevos pagos sin autorización.</p>
+            <h3 class="font-bold">{{ $orden->cierre_financiero_estado === 'finalizada' ? 'Orden finalizada' : 'Orden vencida con abonos recibidos' }}</h3>
+            <p>Conservamos ${{ number_format($pagoActual->montoAcreditadoCentavos()/100,2) }} acreditados.</p>
+            @if(in_array($orden->cierre_financiero_estado, ['regularizacion','pendiente_revision'], true))
+                <p class="mt-2">Para continuar pagando debés presentarte en persona ante el administrador/cajero. Solo se admite efectivo; no enviés nuevas transferencias.</p>
+                @if($fechaPresencial = app(\App\Services\RegularizacionVencidasService::class)->plazo($orden))
+                    <p class="mt-2 font-bold">Último día para regularizar: {{ $fechaPresencial->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') }}</p>
+                @endif
+            @else
+                <p class="mt-2">Ya no se aceptan pagos para esta orden. Los productos totalmente pagados pueden seguir pendientes de entrega.</p>
+            @endif
         </div>
     @endif
     @if ($orden->tipo_orden === 'productos' && $pagoActual && in_array($pagoActual->proveedor,['transferencia','efectivo'],true))

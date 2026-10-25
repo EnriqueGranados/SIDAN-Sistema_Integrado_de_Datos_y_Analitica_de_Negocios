@@ -23,7 +23,17 @@
                 </p>
             </div>
             <a href="{{ route('user.inscripciones.index') }}"
-                class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/5">
+                class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800">
+
+                <svg class="h-4 w-4" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 7h18M5 7l1 13h12l1-13M9 11h6M9 15h6" />
+                </svg>
                 Ver mis inscripciones
             </a>
         </div>
@@ -107,6 +117,19 @@
                     $puedePagar = $orden->estado === 'pendiente_pago' && !$expirada;
 
                     $fechaPago = $orden->pago?->fecha_confirmacion;
+                    $vencidaConAbono = $orden->estado === 'vencida'
+                        && in_array($orden->cierre_financiero_estado, ['regularizacion','pendiente_revision'], true);
+                    $regularizacion = app(\App\Services\RegularizacionVencidasService::class);
+                    $limiteRegularizacion = $regularizacion->plazo($orden);
+                    $centavosTotal = (int) round((float)$orden->total * 100);
+                    $centavosAcreditado = $orden->pago?->proveedor === 'wompi'
+                        ? ($orden->pago?->estado === 'confirmado' ? $centavosTotal : 0)
+                        : ($orden->pago?->montoAcreditadoCentavos() ?? 0);
+                    $centavosSaldo = max(0, $centavosTotal - $centavosAcreditado);
+                    $estadoVisual = $orden->estado === 'pagada' ? 'Pagada' : ($vencidaConAbono ? 'Vencida · regularización presencial' : (
+                        $orden->estado === 'vencida' && in_array($orden->cierre_financiero_estado, ['finalizada','autorizado'], true)
+                            ? 'Finalizada por vencimiento' : ucfirst(str_replace('_',' ', $orden->estado))));
+
 
                     $color = match ($orden->estado) {
                         'pagada' => 'bg-sidan-500/10 text-sidan-600 dark:text-sidan-300',
@@ -129,7 +152,7 @@
                                             Orden #{{ $orden->id_orden }}
                                         </span>
                                         <span class="rounded-full px-3 py-1 text-xs font-black {{ $color }}">
-                                            {{ ucfirst(str_replace('_', ' ', $orden->estado)) }}
+                                            {{ $estadoVisual }}
                                         </span>
                                         <span
                                             class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
@@ -152,6 +175,14 @@
                                         </p>
                                     </div>
                                     <div>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Acreditado</p>
+                                        <p class="text-sm font-black text-sidan-600 dark:text-sidan-300">${{ number_format($centavosAcreditado/100,2) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Saldo pendiente</p>
+                                        <p class="text-sm font-black {{ $centavosSaldo ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100' }}">${{ number_format($centavosSaldo/100,2) }}</p>
+                                    </div>
+                                    <div class="hidden xl:block">
                                         <p class="text-xs text-slate-500 dark:text-slate-400">Fecha de pago</p>
                                         <p class="text-sm font-bold text-slate-900 dark:text-white">
                                             {{ $fechaPago?->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? 'Sin pago confirmado' }}
@@ -169,7 +200,7 @@
                             class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4 dark:border-white/10 sm:px-6">
                             <p class="text-sm text-slate-500 dark:text-slate-400">
                                 @if ($expirada)
-                                    El plazo de pago de esta orden venció.
+                                    Esta orden venció. Si tenía dinero recibido, consultá las condiciones de regularización presencial.
                                 @elseif ($puedePagar)
                                     @if ($orden->expira_en)
                                         Paga antes del {{ $orden->expira_en->format('d/m/Y H:i') }}.
@@ -187,6 +218,28 @@
                         </div>
 
                         <div class="border-t border-slate-200 px-5 py-5 dark:border-white/10 sm:px-6">
+                            @if($vencidaConAbono)
+                                <div class="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+                                    <p class="font-bold">Regularización exclusivamente presencial</p>
+                                    <p class="mt-1">Ya venció el pago por internet. Para completar ${{ number_format($centavosSaldo/100, 2) }}, presentate con el administrador o cajero. No enviés otra transferencia.</p>
+                                    @if($limiteRegularizacion)
+                                        <p class="mt-2 font-semibold">Fecha máxima de regularización: {{ $limiteRegularizacion->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') }}</p>
+                                    @endif
+                                </div>
+                            @elseif($orden->estado === 'vencida' && $orden->cierre_financiero_estado === 'finalizada')
+                                <div class="mb-4 rounded-xl border border-slate-300 bg-slate-50 p-4 text-sm dark:border-white/10 dark:bg-white/5">
+                                    <p class="font-bold">Orden finalizada: ya no admite nuevos pagos.</p>
+                                    <p>{{ $orden->motivo_finalizacion ?: 'Finalizó el plazo de 30 días después del vencimiento.' }}</p>
+                                    <p class="mt-1">Los productos totalmente pagados continúan sujetos a entrega.</p>
+                                </div>
+                            @elseif($orden->cierre_financiero_estado === 'regularizada')
+                                <div class="mb-4 rounded-xl border border-sidan-200 bg-sidan-50 p-4 text-sm text-sidan-700 dark:border-sidan-500/30 dark:bg-sidan-500/10 dark:text-sidan-100">Pago completado mediante regularización presencial.</div>
+                            @endif
+                            <div class="mb-4 grid grid-cols-3 gap-2 text-center text-sm">
+                                <div class="rounded-xl bg-slate-50 p-3 dark:bg-white/5"><p class="text-xs text-slate-500">Total</p><strong>${{ number_format($centavosTotal/100,2) }}</strong></div>
+                                <div class="rounded-xl bg-sidan-50 p-3 dark:bg-sidan-500/10"><p class="text-xs text-slate-500">Acreditado</p><strong class="text-sidan-600 dark:text-sidan-300">${{ number_format($centavosAcreditado/100,2) }}</strong></div>
+                                <div class="rounded-xl bg-amber-50 p-3 dark:bg-amber-500/10"><p class="text-xs text-slate-500">Pendiente</p><strong class="text-amber-700 dark:text-amber-300">${{ number_format($centavosSaldo/100,2) }}</strong></div>
+                            </div>
                             <div class="mb-5 grid gap-3 text-sm sm:grid-cols-3">
                                 <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900/60">
                                     <p class="text-xs text-slate-500 dark:text-slate-400">Fecha de creación</p>
@@ -237,6 +290,11 @@
                                             <tr>
                                                 <td class="px-4 py-4 align-top font-bold">
                                                     {{ $detalle->nombre_concepto }}
+                                                    @if($orden->tipo_orden === 'productos' && in_array($orden->pago?->proveedor, ['efectivo','transferencia'], true))
+                                                        @php $distribucionOrden = app(\App\Services\AbonosProductosService::class); $pItem = $distribucionOrden->aplicado($detalle); $nItem = $distribucionOrden->neto($detalle); @endphp
+                                                        <p class="mt-1 text-xs font-normal text-slate-600 dark:text-slate-300">Pagado: ${{ number_format($pItem/100,2) }} / ${{ number_format($nItem/100,2) }}</p>
+                                                        <p class="mt-1 text-xs font-normal">{{ $pItem >= $nItem ? 'Producto pagado' : 'Saldo pendiente' }} · Entregado {{ $detalle->cantidad_entregada }}/{{ $detalle->cantidad }}</p>
+                                                    @endif
                                                 </td>
                                                 <td class="px-4 py-4 align-top">
                                                     @forelse ($configuracion as $clave => $valor)

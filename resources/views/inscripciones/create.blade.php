@@ -114,7 +114,7 @@
                         </h2>
 
                         <p class="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                            Completá la información necesaria para continuar con tu inscripción.
+                            @if($usuarioAutenticado) Confirmá los datos de tu cuenta para continuar. @else Ingresá tus datos. SIDAN creará una cuenta y enviará un enlace seguro para establecer tu contraseña. @endif
                         </p>
                     </div>
 

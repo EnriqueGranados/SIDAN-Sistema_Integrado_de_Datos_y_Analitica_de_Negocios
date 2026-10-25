@@ -76,7 +76,7 @@
                         'icono' => '🛍',
                     ],
                 ] as $valorTipo => $opcionTipo)
-                    <label class="cursor-pointer">
+                    <label class="activity-participation-option cursor-pointer">
                         <input
                             type="radio"
                             name="tipo_participacion"
@@ -84,7 +84,7 @@
                             class="peer sr-only tipo-participacion-radio"
                             @checked($tipoParticipacionActual === $valorTipo)
                         >
-                        <span class="flex h-full gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 transition hover:border-white/20 peer-checked:border-sidan-500/70 peer-checked:bg-sidan-500/10 peer-checked:ring-1 peer-checked:ring-sidan-500/30">
+                        <span class="activity-participation-card flex h-full gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 transition hover:border-white/20 peer-checked:border-sidan-500/70 peer-checked:bg-sidan-500/10 peer-checked:ring-1 peer-checked:ring-sidan-500/30">
                             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-lg">{{ $opcionTipo['icono'] }}</span>
                             <span class="min-w-0">
                                 <span class="block text-sm font-semibold text-white">{{ $opcionTipo['titulo'] }}</span>

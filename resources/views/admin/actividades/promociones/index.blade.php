@@ -10,9 +10,9 @@
         $vigentes = $actividad->promociones->filter(fn($promocion) => $promocion->estaVigente())->count();
     @endphp
 
-    <div class="min-h-screen bg-[#f6f8fb] text-slate-900 dark:bg-transparent dark:text-white">
+    <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <a href="{{ route('admin.actividades.configurar', ['actividad' => $actividad->id_actividad, 'paso' => 'precios']) }}"
@@ -23,7 +23,7 @@
                         <span>{{ $actividad->nombre }}</span>
                     </div>
 
-                    <h1 class="mt-2 text-2xl font-black text-sidan-900 dark:text-white sm:text-3xl">
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                         Promociones y descuentos
                     </h1>
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">

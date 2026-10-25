@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\EtiquetaController;
 use App\Http\Controllers\Admin\RecursoController;
 use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VentaPresencialController;
 use App\Http\Controllers\Admin\WelcomeAdministracionController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\GoogleController;
@@ -333,11 +334,30 @@ Route::middleware([
     Route::get('/ordenes-vencidas', [AbonosOrdenController::class, 'vencidas'])
         ->name('ordenes.vencidas');
 
+    Route::post('/ordenes-vencidas/{orden}/conciliar/{abono}', [AbonosOrdenController::class, 'conciliar'])
+        ->middleware('throttle:10,1')
+        ->name('ordenes.conciliar');
+
+    Route::post('/ordenes-vencidas/{orden}/abonar', [AbonosOrdenController::class, 'abonar'])
+        ->middleware('throttle:10,1')->name('ordenes.abonar');
+
+    Route::post('/ordenes-vencidas/{orden}/abonar', [AbonosOrdenController::class, 'abonar'])
+        ->middleware('throttle:10,1')->name('ordenes.abonar');
+
+    Route::post('/ordenes-vencidas/{orden}/abonar', [AbonosOrdenController::class, 'abonar'])
+        ->middleware('throttle:10,1')->name('ordenes.abonar');
+
     Route::post('/ordenes-vencidas/{orden}/cerrar', [AbonosOrdenController::class, 'cerrar'])
         ->name('ordenes.cerrar');
 
     Route::post('/ordenes/{orden}/entregar/{detalle}', [AbonosOrdenController::class, 'entregar'])
         ->name('ordenes.entregar');
+
+    Route::middleware('rol:admin,superadmin')->group(function () {
+        Route::get('/ventas-presenciales', [VentaPresencialController::class, 'index'])->name('ventas-presenciales.index');
+        Route::post('/ventas-presenciales', [VentaPresencialController::class, 'store'])->middleware('throttle:10,1')->name('ventas-presenciales.store');
+        Route::get('/ventas-presenciales/{orden}', [VentaPresencialController::class, 'show'])->name('ventas-presenciales.show');
+    });
 
     Route::get('/pagos', [GestionOrdenController::class, 'index'])
         ->name('pagos.index');

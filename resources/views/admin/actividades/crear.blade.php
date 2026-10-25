@@ -4,10 +4,9 @@
 
 @section('content')
     @include('admin.actividades.partials.tema-visual')
-    <div class="activity-ui w-full min-w-0 max-w-full overflow-x-hidden">
-        <div class="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-
-            <div class="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div class="activity-ui min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="min-w-0">
                     <div class="mb-2 flex flex-wrap items-center gap-2">
                         <span
@@ -20,7 +19,7 @@
                         </span>
                     </div>
 
-                    <h1 class="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                         Crear actividad
                     </h1>
 
@@ -610,7 +609,7 @@
                                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                                     @foreach ($etiquetas as $etiqueta)
                                         <label
-                                            class="flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/10 px-3 py-3 transition hover:bg-white/[0.03]">
+                                            class="activity-tag-option flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/10 px-3 py-3 transition hover:bg-white/[0.03]">
                                             <input type="checkbox" name="etiquetas[]"
                                                 value="{{ $etiqueta->id_etiqueta }}"
                                                 data-nombre-etiqueta="{{ $etiqueta->nombre }}"

@@ -560,52 +560,194 @@
             border-color: rgba(255, 255, 255, .20) !important;
         }
 
-        .activity-ui .activity-choice-card:has(input[type="radio"]:checked),
-        .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked),
-        .activity-ui label.cursor-pointer:has(.peer:checked)>span,
-        .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span,
-        .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span {
-            border-color: rgb(34 197 94 / 0.55) !important;
-            background-color: var(--activity-accent-soft) !important;
-            box-shadow: 0 0 0 1px var(--activity-accent-ring) inset;
+        /* Opciones de PARTICIPACIÓN (Crear / Editar).
+           El estilo de estado marcado pertenece al panel entero, NO a los
+           span interiores. La regla general del tema para bg-black/10 usa
+           !important y anulaba peer-checked:bg-sidan-500/10 en estas tarjetas.
+           Se restaura de forma aislada para no afectar las etiquetas. */
+        .activity-ui .activity-participation-option > input[type="radio"]:checked + .activity-participation-card {
+            border-color: rgb(34 197 94 / .78) !important;
+            background-color: rgb(34 197 94 / .11) !important;
+            box-shadow: inset 0 0 0 1px rgb(34 197 94 / .24),
+                        0 0 0 1px rgb(34 197 94 / .10) !important;
         }
 
-        .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-white"],
-        .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked) [class~="text-white"],
-        .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-white"],
-        .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span [class~="text-white"],
-        .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span [class~="text-white"] {
+        .dark .activity-ui .activity-participation-option > input[type="radio"]:checked + .activity-participation-card {
+            border-color: rgb(34 197 94 / .76) !important;
+            background-color: rgb(34 197 94 / .15) !important;
+            box-shadow: inset 0 0 0 1px rgb(34 197 94 / .30) !important;
+        }
+
+        .activity-ui .activity-participation-option > input[type="radio"]:checked + .activity-participation-card [class~="text-white"] {
             color: #166534 !important;
         }
 
-        .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-gray-500"],
-        .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked) [class~="text-gray-500"],
-        .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-gray-600"],
-        .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked) [class~="text-gray-600"],
-        .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-gray-500"],
-        .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-gray-600"],
-        .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span [class~="text-gray-500"],
-        .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span [class~="text-gray-500"] {
+        .activity-ui .activity-participation-option > input[type="radio"]:checked + .activity-participation-card [class~="text-gray-500"] {
+            color: #166534 !important;
+        }
+
+        .dark .activity-ui .activity-participation-option > input[type="radio"]:checked + .activity-participation-card [class~="text-white"] {
+            color: #dcfce7 !important;
+        }
+
+        .dark .activity-ui .activity-participation-option > input[type="radio"]:checked + .activity-participation-card [class~="text-gray-500"] {
+            color: #bbf7d0 !important;
+        }
+
+        .activity-ui .activity-participation-option > input[type="radio"]:focus-visible + .activity-participation-card {
+            outline: 2px solid #16a34a;
+            outline-offset: 3px;
+        }
+
+        /* Estado seleccionado SOLO en la tarjeta contenedora.
+           Antes los selectores genéricos label > span resaltaban pequeños
+           fragmentos de texto (etiquetas y opciones de participación). */
+        .activity-ui .activity-choice-card:has(input[type="radio"]:checked),
+        .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked),
+        .activity-ui .activity-tag-option:has(> input[type="checkbox"]:checked) {
+            border-color: rgb(34 197 94 / 0.65) !important;
+            background-color: var(--activity-accent-soft) !important;
+            box-shadow: inset 0 0 0 1px var(--activity-accent-ring);
+        }
+
+        .activity-ui .activity-choice-card:has(input:checked) [class~="text-white"],
+        .activity-ui .activity-tag-option:has(> input:checked)>span {
+            color: #166534 !important;
+        }
+
+        .activity-ui .activity-choice-card:has(input:checked) [class~="text-gray-500"],
+        .activity-ui .activity-choice-card:has(input:checked) [class~="text-gray-600"] {
             color: #15803d !important;
         }
 
-        .dark .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-white"],
-        .dark .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked) [class~="text-white"],
-        .dark .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-white"],
-        .dark .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span [class~="text-white"],
-        .dark .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span [class~="text-white"] {
-            color: #ecfdf5 !important;
+        .dark .activity-ui .activity-choice-card:has(input:checked) [class~="text-white"],
+        .dark .activity-ui .activity-tag-option:has(> input:checked)>span {
+            color: #dcfce7 !important;
         }
 
-        .dark .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-gray-500"],
-        .dark .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked) [class~="text-gray-500"],
-        .dark .activity-ui .activity-choice-card:has(input[type="radio"]:checked) [class~="text-gray-600"],
-        .dark .activity-ui .activity-choice-card:has(input[type="checkbox"]:checked) [class~="text-gray-600"],
-        .dark .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-gray-500"],
-        .dark .activity-ui label.cursor-pointer:has(.peer:checked)>span [class~="text-gray-600"],
-        .dark .activity-ui label.cursor-pointer:has(input[type="radio"]:checked)>span [class~="text-gray-500"],
-        .dark .activity-ui label.cursor-pointer:has(input[type="checkbox"]:checked)>span [class~="text-gray-500"] {
-            color: #a7f3d0 !important;
+        .dark .activity-ui .activity-choice-card:has(input:checked) [class~="text-gray-500"],
+        .dark .activity-ui .activity-choice-card:has(input:checked) [class~="text-gray-600"] {
+            color: #bbf7d0 !important;
+        }
+
+        /* Los checkbox de crear, editar y configurar comparten un control visible.
+           El complemento de formularios y los fondos utilitarios no deben
+           dibujarlos en blanco después de marcarlos. */
+        .activity-ui input[type="checkbox"]:not(.sr-only) {
+            -webkit-appearance: none !important;
+            appearance: none !important;
+            flex: 0 0 auto;
+            width: 1rem;
+            height: 1rem;
+            padding: 0 !important;
+            border: 1.5px solid #94a3b8 !important;
+            border-radius: .25rem;
+            background-color: #fff !important;
+            background-image: none !important;
+            box-shadow: none !important;
+            vertical-align: middle;
+            cursor: pointer;
+            transition: border-color .15s ease, background-color .15s ease;
+        }
+
+        .activity-ui input[type="checkbox"]:not(.sr-only):checked {
+            color: #22c55e !important;
+            border-color: #22c55e !important;
+            background-color: #22c55e !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M4 10l4 4 8-8' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+            background-size: 84% 84% !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+        }
+
+        .activity-ui input[type="checkbox"]:not(.sr-only):focus-visible {
+            outline: 2px solid #16a34a !important;
+            outline-offset: 3px;
+        }
+
+        .activity-ui input[type="checkbox"]:not(.sr-only):disabled {
+            cursor: not-allowed;
+            opacity: .55;
+        }
+
+        .dark .activity-ui input[type="checkbox"]:not(.sr-only):not(:checked) {
+            border-color: #64748b !important;
+            background-color: #172033 !important;
+        }
+
+        /* Contraste de la vista Ver y de los campos de resumen.
+           Clases heredadas de un diseño oscuro no pueden seguir casi blancas
+           sobre tarjetas blancas. Se restaura la paleta en dark mode. */
+        .activity-ui [class~="text-gray-100"],
+        .activity-ui [class~="text-gray-200"],
+        .activity-ui [class~="text-slate-100"],
+        .activity-ui [class~="text-slate-200"] {
+            color: #334155 !important;
+        }
+
+        .dark .activity-ui [class~="text-gray-100"],
+        .dark .activity-ui [class~="text-slate-100"] {
+            color: #f1f5f9 !important;
+        }
+
+        .dark .activity-ui [class~="text-gray-200"],
+        .dark .activity-ui [class~="text-slate-200"] {
+            color: #e2e8f0 !important;
+        }
+
+        /* La clase semántica es sidan-500. Para texto fino en fondo claro,
+           la variante de alto contraste se oscurece sin cambiar el verde base
+           de botones, fondos ni indicadores. */
+        .activity-ui [class~="text-sidan-500"]:not(input) {
+            color: #15803d !important;
+        }
+
+        .dark .activity-ui [class~="text-sidan-500"]:not(input) {
+            color: #22c55e !important;
+        }
+
+        /* Textos aclarados para el tema oscuro que en modo claro eran ilegibles
+           (en especial en el modal de producto, las tarjetas de aviso y promos). */
+        .activity-ui [class~="text-sidan-200"],
+        .activity-ui [class~="text-sidan-200/60"] {
+            color: #15803d !important;
+        }
+
+        .dark .activity-ui [class~="text-sidan-200"] {
+            color: #bbf7d0 !important;
+        }
+
+        .dark .activity-ui [class~="text-sidan-200/60"] {
+            color: rgb(187 247 208 / .78) !important;
+        }
+
+        .activity-ui [class~="text-blue-200"] {
+            color: #1d4ed8 !important;
+        }
+
+        .dark .activity-ui [class~="text-blue-200"] {
+            color: #bfdbfe !important;
+        }
+
+        .activity-ui [class~="text-amber-200"] {
+            color: #92400e !important;
+        }
+
+        .dark .activity-ui [class~="text-amber-200"] {
+            color: #fde68a !important;
+        }
+
+        /* Excluir botones de color sólido de las reglas anteriores. */
+        .activity-ui [class*="bg-sidan-500"][class~="text-white"] {
+            color: #fff !important;
+        }
+
+        .activity-ui [class~="text-red-200"] {
+            color: #b91c1c !important;
+        }
+
+        .dark .activity-ui [class~="text-red-200"] {
+            color: #fecaca !important;
         }
 
         .activity-ui .activity-choice-card:has(input:disabled) {
@@ -760,6 +902,7 @@
         }
 
         .activity-ui input[type="radio"]:checked {
+            color: #ffffff !important;
             border-color: #22c55e !important;
             background:
                 radial-gradient(circle at center, #22c55e 0 34%, transparent 36% 100%),
@@ -784,6 +927,7 @@
         }
 
         .dark .activity-ui input[type="radio"]:checked {
+            color: #0f172a !important;
             border-color: #4ade80 !important;
             background:
                 radial-gradient(circle at center, #4ade80 0 34%, transparent 36% 100%),

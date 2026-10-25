@@ -5,14 +5,14 @@
 @section('content')
 <div
     id="welcomeAdmin"
-    class="min-h-full bg-[#f6f8fb] dark:bg-sidan-950"
+    class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white"
     data-search-url="{{ route('admin.welcome.actividades.buscar') }}"
     data-create-url="{{ route('admin.welcome.espacios.store') }}"
 >
-    <main class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">Portal público</p>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Portal público</p>
                 <h1 class="mt-2 text-3xl font-black text-sidan-900 dark:text-white">Administrar Welcome</h1>
                 <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
                     Organiza qué actividades aparecen en el inicio sin cargar listas gigantes. Puedes programar actividades futuras y comprobar el resultado con la vista previa administrativa.
@@ -23,7 +23,11 @@
                 <a
                     href="{{ route('welcome') }}"
                     target="_blank"
-                    class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-sidan-500 hover:text-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800"
                 >
                     Ver público
                 </a>
@@ -53,7 +57,7 @@
             <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                 <div class="max-w-2xl">
                     <div class="flex flex-wrap items-center gap-2">
-                        <p class="text-xs font-black uppercase tracking-[0.16em] text-sidan-500">Actividad destacada</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Actividad destacada</p>
                         <span class="rounded-full px-2.5 py-1 text-[11px] font-black {{ $destacadaEsManual ? 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300' }}">
                             {{ $destacadaEsManual ? 'Selección manual' : 'Selección automática' }}
                         </span>
@@ -97,7 +101,7 @@
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
                         <label class="block">
                             <span class="mb-1 block text-[11px] font-black uppercase tracking-wide text-slate-500">Prioridad</span>
-                            <select id="welcomeFeaturedPriority" class="min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-sidan-950 dark:text-slate-200">
+                            <select id="welcomeFeaturedPriority" class="min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2.5 cursor-pointer text-sm font-bold text-slate-700 outline-none focus:border-sidan-500 dark:border-white/10 dark:bg-sidan-950 dark:text-slate-200">
                                 <option value="25" @selected((int) $destacada->prioridad === 25)>Baja</option>
                                 <option value="50" @selected((int) $destacada->prioridad === 50)>Regular</option>
                                 <option value="75" @selected((int) $destacada->prioridad === 75)>Media</option>
@@ -109,7 +113,7 @@
                             type="button"
                             data-url="{{ route('admin.welcome.destacada.prioridad', $destacada) }}"
                             data-select-id="welcomeFeaturedPriority"
-                            class="js-guardar-prioridad rounded-xl border border-sidan-500 px-4 py-2.5 text-sm font-black text-sidan-600 transition hover:bg-sidan-500 hover:text-white dark:text-sidan-300"
+                            class="js-guardar-prioridad rounded-xl border border-sidan-500 px-4 py-2.5 text-sm font-black text-sidan-600 transition hover:bg-sidan-500 hover:text-white dark:text-sidan-300 dark:hover:text-white"
                         >
                             Guardar prioridad
                         </button>
@@ -118,7 +122,7 @@
                             <button
                                 type="button"
                                 data-url="{{ route('admin.welcome.destacada.quitar') }}"
-                                class="js-quitar-destacada rounded-xl border border-red-200 px-4 py-2.5 text-sm font-black text-red-600 transition hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:text-red-300"
+                                class="js-quitar-destacada rounded-xl border border-red-200 px-4 py-2.5 text-sm font-black text-red-600 transition hover:bg-red-500 hover:text-white dark:border-red-500/20 dark:text-red-300 dark:hover:text-white"
                             >
                                 Volver a automática
                             </button>
@@ -135,7 +139,7 @@
         <section class="mt-10">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">Portada principal</p>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Portada principal</p>
                     <h2 class="mt-1 text-2xl font-black text-sidan-900 dark:text-white">Hero</h2>
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         {{ $espaciosHero->count() }} de {{ $maxHero }} espacios. Hasta 3 usan el mosaico principal; con más, el Welcome cambia automáticamente a una presentación desplazable.
@@ -166,7 +170,7 @@
         <section class="mt-12">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="text-sm font-black uppercase tracking-[0.18em] text-sidan-500">Selección editorial</p>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">Selección editorial</p>
                     <h2 class="mt-1 text-2xl font-black text-sidan-900 dark:text-white">Explorar</h2>
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         {{ $espaciosExplorar->count() }} de {{ $maxExplorar }} espacios. El catálogo completo sigue siendo paginado; aquí solo curas una selección para la portada.
@@ -193,7 +197,7 @@
                 @endforelse
             </div>
         </section>
-    </main>
+    </div>
 
     <div id="welcomeActivityModal" class="fixed inset-0 z-[2147482000] hidden items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
         <div class="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-sidan-950">

@@ -3,15 +3,15 @@
 @section('title', 'Control de órdenes')
 
 @section('content')
-    <div class="mx-auto max-w-7xl px-4 py-8 text-sidan-900 dark:text-white">
-
-        <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
+    <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-xs font-black uppercase tracking-widest text-sidan-600 dark:text-sidan-400">
-                    Administración · SIDAN
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                    Administración
                 </p>
 
-                <h1 class="mt-2 text-3xl font-black">
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                     Control de órdenes
                 </h1>
 
@@ -21,7 +21,11 @@
             </div>
 
             <a href="{{ route('admin.control.inscripciones') }}"
-                class="rounded-xl border border-slate-200 dark:border-white/10 px-5 py-3 text-sm font-bold text-sidan-900 dark:text-white">
+                class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800">
                 ← Ver inscripciones
             </a>
         </div>
@@ -90,12 +94,16 @@
             </div>
 
             <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white">
+                <button type="submit" class="flex-1 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white hover:bg-sidan-600">
                     Filtrar
                 </button>
 
                 <a href="{{ route('admin.control.ordenes') }}"
-                    class="rounded-xl border border-slate-200 dark:border-white/10 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800">
                     Limpiar
                 </a>
             </div>

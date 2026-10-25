@@ -64,7 +64,7 @@
 </div>
 
 <fieldset class="border-t border-slate-200 pt-5 dark:border-white/10">
-    <legend class="px-2 text-lg font-bold">Acceso a módulos</legend>
+    <label class="text-lg font-bold">Acceso a módulos</label>
 
     <p class="mb-5 mt-2 text-sm text-slate-500 dark:text-slate-400">
         Cada módulo seleccionado permite utilizar todas sus funciones,
