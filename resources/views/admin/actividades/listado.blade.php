@@ -624,6 +624,7 @@
     </div>
     <script>
         function mostrarNotificacionActividad(tipo, titulo, mensaje) {
+            if (window.SIDANToast?.show) return window.SIDANToast.show(mensaje, tipo, titulo);
             if (typeof window.showAppNotification === 'function') {
                 window.showAppNotification(tipo, titulo, mensaje);
                 return;

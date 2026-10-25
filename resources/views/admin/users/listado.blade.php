@@ -398,6 +398,11 @@
 
     <script>
         function showAppNotification(type, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, null);
+            }
+
             const previousNotification = document.getElementById(
                 'app-notification'
             );

@@ -2314,6 +2314,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentStageIndex = 0;
 
     function showToast(message, type = 'success') {
+        if (window.SIDANToast?.show) return window.SIDANToast.show(message, type);
         const container = document.getElementById('toast-container');
 
         if (!container) {
@@ -2377,7 +2378,7 @@ document.addEventListener('DOMContentLoaded', function () {
             button.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
-        window.scrollTo({
+        (document.getElementById('sidanAdminScroll') || window).scrollTo({
             top: 0,
             behavior: 'smooth'
         });

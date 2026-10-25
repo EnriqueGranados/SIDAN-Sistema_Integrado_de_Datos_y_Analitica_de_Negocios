@@ -37,12 +37,6 @@
 @endphp
 
 <div class="space-y-4 border-t border-slate-200 p-6 dark:border-white/10">
-    @if (session('success'))
-        <div role="status"
-            class="rounded-xl bg-sidan-50 p-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
-            {{ session('success') }}
-        </div>
-    @endif
 
     <div class="space-y-2 text-sm">
         <div class="flex justify-between gap-3 text-slate-500 dark:text-slate-400">

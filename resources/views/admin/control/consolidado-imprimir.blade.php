@@ -231,7 +231,7 @@
         <div>
             <div class="mark">SIDAN · CONTROL DE COMPRAS</div>
             <h1>{{ $titulos[$vista] }}</h1>
-            <div class="muted">Solo artículos de órdenes pagadas · Generado el {{ now()->format('d/m/Y H:i') }}</div>
+            <div class="muted">{{ ($filtros['cobertura'] ?? 'pagadas') === 'preparables' ? 'Pagadas y anticipos mínimos cubiertos' : 'Solo órdenes pagadas' }} · Generado el {{ now()->format('d/m/Y H:i') }}</div>
         </div>
         <div class="actions no-print">
             <button type="button" onclick="window.print()">Imprimir / Guardar PDF</button>
@@ -242,13 +242,14 @@
 
     <div class="filters">
         <span><strong>Actividad:</strong> {{ $nombreActividad }}</span>
+        <span><strong>Filtro:</strong> {{ ($filtros['cobertura'] ?? 'pagadas') === 'preparables' ? 'Pagadas y anticipos cubiertos' : 'Solo pagadas' }}</span>
         @if (!empty($filtros['buscar']))
             <span><strong>Búsqueda:</strong> {{ $filtros['buscar'] }}</span>
         @endif
     </div>
 
     <div class="metrics">
-        <div class="metric"><span class="muted">Unidades pagadas</span><strong>{{ number_format($unidades) }}</strong>
+        <div class="metric"><span class="muted">Unidades para preparar</span><strong>{{ number_format($unidades) }}</strong>
         </div>
         <div class="metric"><span class="muted">Productos
                 distintos</span><strong>{{ number_format($productos->count()) }}</strong></div>
@@ -258,13 +259,17 @@
 
     @if ($vista === 'productos')
         <h2>Cantidades a preparar</h2>
+        @if(($filtros['cobertura'] ?? 'pagadas') === 'preparables')
+            <p><strong>Modalidad:</strong> pagadas + órdenes con anticipo mínimo acreditado. Los anticipos no equivalen a pago completo.</p>
+        @endif
         <table>
             <thead>
                 <tr>
                     <th>Actividad</th>
                     <th>Producto</th>
                     <th class="center">Unidades</th>
-                    <th class="num">Importe neto</th>
+                    @if(($filtros['cobertura'] ?? 'pagadas') === 'preparables')<th class="center">Pagadas</th><th class="center">Con anticipo</th>@endif
+                    <th class="num">Valor neto</th>
                 </tr>
             </thead>
             <tbody>
@@ -273,11 +278,14 @@
                         <td>{{ $producto->actividad_nombre }}</td>
                         <td><strong>{{ $producto->nombre_concepto }}</strong></td>
                         <td class="center">{{ $producto->unidades }}</td>
+                        @if(($filtros['cobertura'] ?? 'pagadas') === 'preparables')
+                        <td class="center">{{ $producto->unidades_pagadas }}</td><td class="center">{{ $producto->unidades_anticipo }}</td>
+                        @endif
                         <td class="num">${{ number_format((float) $producto->importe, 2) }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="empty">No hay artículos pagados con estos filtros.</td>
+                        <td colspan="{{ ($filtros['cobertura'] ?? 'pagadas') === 'preparables' ? 6 : 4 }}" class="empty">No hay artículos que cumplan los filtros.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -313,7 +321,9 @@
                                 <span class="muted">Sin personalización</span>
                             @endforelse
                         </td>
-                        <td class="center"><strong>{{ $variacion->unidades }}</strong></td>
+                        <td class="center"><strong>{{ $variacion->unidades }}</strong>
+                        @if(($filtros['cobertura'] ?? 'pagadas') === 'preparables')<div class="muted">{{ $variacion->unidades_anticipo }} con anticipo</div>@endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
@@ -334,6 +344,7 @@
                         <strong>Orden #{{ $orden->id_orden }} ·
                             {{ $orden->nombre_participante ?: $orden->correo_contacto }}</strong>
                         <div class="muted">{{ $orden->correo_contacto }} · {{ $orden->actividad_nombre }}</div>
+                        <div><strong>{{ $orden->estado_orden === 'pagada' ? 'Pago completo' : 'Anticipo mínimo cubierto (saldo pendiente)' }}</strong></div>
                     </div>
                     <span
                         class="muted">{{ \Illuminate\Support\Carbon::parse($orden->fecha_orden)->format('d/m/Y H:i') }}</span>
@@ -372,12 +383,12 @@
                 </table>
             </section>
             @empty
-                <p class="empty">No hay órdenes pagadas para imprimir.</p>
+                <p class="empty">No hay órdenes para imprimir con estos filtros.</p>
             @endforelse
         @endif
 
         <p class="footer">Documento generado desde SIDAN. Los importes descuentan promociones aplicadas a los artículos. Las
-            reservas pendientes no están incluidas.</p>
+            comprobantes sin confirmar no están incluidos. Los valores de las órdenes con anticipo representan el valor de los productos a preparar, no ingresos realizados.</p>
     </body>
 
     </html>

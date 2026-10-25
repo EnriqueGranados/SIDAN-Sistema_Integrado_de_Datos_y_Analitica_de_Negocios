@@ -38,12 +38,6 @@
                 </a>
             </div>
 
-            @if (session('error'))
-                <div class="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
-                    {{ session('error') }}
-                </div>
-            @endif
-
             @if ($errors->any())
                 <div class="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
                     <p class="font-semibold text-red-300">
@@ -990,7 +984,7 @@
                     actualizarResumen();
                 }
 
-                window.scrollTo({
+                (document.getElementById('sidanAdminScroll') || window).scrollTo({
                     top: 0,
                     behavior: 'smooth'
                 });

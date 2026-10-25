@@ -41,7 +41,7 @@
 </head>
 
 <body
-    class="min-h-screen bg-slate-200 font-sans text-slate-900 antialiased dark:bg-[#080c14] dark:text-white"
+    class="h-[100dvh] overflow-hidden bg-slate-200 font-sans text-slate-900 antialiased dark:bg-[#080c14] dark:text-white"
     x-data="{ sidebarOpen: false }"
     @keydown.escape.window="sidebarOpen = false"
     x-cloak
@@ -77,7 +77,7 @@
         ];
     @endphp
 
-    <div class="min-h-screen p-2 lg:flex lg:gap-2">
+    <div class="flex h-[100dvh] min-h-0 gap-3 overflow-hidden p-2 lg:gap-5">
         @if ($mostrarPanel)
             <aside
                 class="fixed bottom-2 left-2 top-2 z-50 flex w-64 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white text-slate-700 shadow-sm transition-all duration-300 dark:border-white/5 dark:bg-[#0f172a] dark:text-white lg:sticky lg:top-2 lg:h-[calc(100vh-1rem)] lg:shrink-0 lg:translate-x-0"
@@ -150,104 +150,82 @@
             ></div>
         @endif
 
-        <div class="flex min-h-[calc(100vh-1rem)] min-w-0 flex-1 flex-col gap-2">
+        <div class="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-2">
             @if ($mostrarPanel)
-                <header class="sticky top-2 z-30 flex h-16 shrink-0 items-center justify-between rounded-2xl border border-slate-200/80 bg-white/95 px-4 shadow-sm backdrop-blur-xl dark:border-white/5 dark:bg-[#0f172a]/95 lg:px-8">
-                    <div class="flex min-w-0 flex-1 items-center gap-4">
-                        <button type="button" @click="sidebarOpen = true"
-                            aria-label="Abrir menú"
-                            class="shrink-0 text-slate-500 dark:text-gray-400 lg:hidden">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-
-                        <div class="hidden max-w-xl flex-1 md:block">
-                            <div class="relative">
-                                <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input
-                                    type="text"
-                                    aria-label="Buscar"
-                                    placeholder="Buscar actividades, estudiantes, pagos..."
-                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                                >
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex shrink-0 items-center gap-2">
-                        <button type="button" onclick="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema"
-                            class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 hover:text-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
-                            <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79Z" />
-                            </svg>
-                            <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                <circle cx="12" cy="12" r="4" />
-                                <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" />
-                            </svg>
-                        </button>
-
-                        <button type="button" aria-label="Notificaciones"
-                            class="relative rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:text-gray-400 dark:hover:bg-white/5">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 17h5l-2-3v-3a6 6 0 00-12 0v3l-2 3h11zm-6 0v1a3 3 0 006 0v-1" />
-                            </svg>
-                            <span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-sidan-500"></span>
-                        </button>
-
-                        <div class="relative" x-data="{ profileOpen: false }" @keydown.escape.window="profileOpen = false">
-                            <button type="button" @click="profileOpen = !profileOpen"
-                                @click.outside="profileOpen = false"
-                                :aria-expanded="profileOpen"
-                                aria-label="Abrir opciones de cuenta"
-                                class="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-100 dark:hover:bg-white/5">
-                                <img
-                                    src="{{ $usuarioPanel->imagen_perfil ? asset('storage/' . $usuarioPanel->imagen_perfil) : asset('images/usuario.png') }}"
-                                    alt="Foto de perfil"
-                                    class="h-8 w-8 rounded-full border border-slate-200 object-cover dark:border-white/10"
-                                >
-                                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                <header class="relative z-30 h-16 shrink-0 rounded-2xl border border-slate-200/80 bg-white/95 px-4 shadow-sm backdrop-blur-xl dark:border-white/5 dark:bg-[#0f172a]/95 lg:px-8">
+                    <div class="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-4">
+                        <div class="flex min-w-0 flex-1 items-center gap-4">
+                            <button type="button" @click="sidebarOpen = true"
+                                aria-label="Abrir menú"
+                                class="shrink-0 text-slate-500 dark:text-gray-400 lg:hidden">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </button>
 
-                            <div x-show="profileOpen" x-transition
-                                class="absolute right-0 z-50 mt-2 w-60 rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl dark:border-white/10 dark:bg-[#0f172a]"
-                                style="display: none;">
-                                <div class="border-b border-slate-100 px-4 py-3 dark:border-white/5">
-                                    <p class="text-sm font-semibold">
-                                        {{ $usuarioPanel->informacion_personal?->nombres }}
-                                        {{ $usuarioPanel->informacion_personal?->apellidos }}
-                                    </p>
-                                    <p class="mt-1 truncate text-xs text-slate-500">
-                                        {{ $usuarioPanel->correo }}
-                                    </p>
+                        </div>
+
+                        <div class="flex shrink-0 items-center gap-2">
+                            <button type="button" onclick="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema"
+                                class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 hover:text-sidan-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                                <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79Z" />
+                                </svg>
+                                <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="4" />
+                                    <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" />
+                                </svg>
+                            </button>
+
+                            <div class="relative" x-data="{ profileOpen: false }" @keydown.escape.window="profileOpen = false">
+                                <button type="button" @click="profileOpen = !profileOpen"
+                                    @click.outside="profileOpen = false"
+                                    :aria-expanded="profileOpen"
+                                    aria-label="Abrir opciones de cuenta"
+                                    class="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-100 dark:hover:bg-white/5">
+                                    <img
+                                        src="{{ $usuarioPanel->imagen_perfil ? asset('storage/' . $usuarioPanel->imagen_perfil) : asset('images/usuario.png') }}"
+                                        alt="Foto de perfil"
+                                        class="h-8 w-8 rounded-full border border-slate-200 object-cover dark:border-white/10"
+                                    >
+                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <div x-show="profileOpen" x-transition
+                                    class="absolute right-0 z-50 mt-2 w-60 rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl dark:border-white/10 dark:bg-[#0f172a]"
+                                    style="display: none;">
+                                    <div class="border-b border-slate-100 px-4 py-3 dark:border-white/5">
+                                        <p class="text-sm font-semibold">
+                                            {{ $usuarioPanel->informacion_personal?->nombres }}
+                                            {{ $usuarioPanel->informacion_personal?->apellidos }}
+                                        </p>
+                                        <p class="mt-1 truncate text-xs text-slate-500">
+                                            {{ $usuarioPanel->correo }}
+                                        </p>
+                                    </div>
+
+                                    <a href="{{ route('profile.edit') }}"
+                                        class="block px-4 py-3 text-sm hover:bg-slate-100 dark:hover:bg-white/5">
+                                        Mi perfil
+                                    </a>
+
+                                    <a href="{{ route('welcome') }}"
+                                        class="block px-4 py-3 text-sm hover:bg-slate-100 dark:hover:bg-white/5">
+                                        Ir al inicio
+                                    </a>
+
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
+                                            Cerrar sesión
+                                        </button>
+                                    </form>
                                 </div>
-
-                                <a href="{{ route('profile.edit') }}"
-                                    class="block px-4 py-3 text-sm hover:bg-slate-100 dark:hover:bg-white/5">
-                                    Mi perfil
-                                </a>
-
-                                <a href="{{ route('welcome') }}"
-                                    class="block px-4 py-3 text-sm hover:bg-slate-100 dark:hover:bg-white/5">
-                                    Ir al inicio
-                                </a>
-
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
-                                        Cerrar sesión
-                                    </button>
-                                </form>
                             </div>
                         </div>
                     </div>
@@ -255,15 +233,21 @@
             @endif
 
             <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-[#f6f8fb] shadow-sm dark:border-white/5 dark:bg-sidan-950">
-                <main class="flex-1 overflow-y-auto px-4 py-4 lg:px-8 lg:py-8">
-                    @yield('content')
-                </main>
+                {{-- El footer forma parte del contenido desplazable; no permanece fijo sobre las vistas. --}}
+                <main id="sidanAdminScroll" class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                    {{-- min-h-full mantiene el footer abajo cuando hay poco contenido, sin impedir el scroll cuando hay mucho. --}}
+                    <div class="flex min-h-full min-w-0 flex-col">
+                        <div class="min-w-0 flex-1 px-4 py-4 lg:px-8 lg:py-8">
+                            @yield('content')
+                        </div>
 
-                <footer class="shrink-0 border-t border-slate-200/80 bg-white/50 dark:border-white/5 dark:bg-white/[0.015]">
-                    <div class="px-4 py-5 text-center text-sm text-slate-400 dark:text-slate-500">
-                        © {{ date('Y') }} SIDAN. Todos los derechos reservados.
+                        <footer class="shrink-0 border-t border-slate-200/80 bg-white/50 dark:border-white/5 dark:bg-white/[0.015]">
+                            <div class="px-4 py-5 text-center text-sm text-slate-400 dark:text-slate-500">
+                                © {{ date('Y') }} SIDAN. Todos los derechos reservados.
+                            </div>
+                        </footer>
                     </div>
-                </footer>
+                </main>
             </section>
         </div>
     </div>

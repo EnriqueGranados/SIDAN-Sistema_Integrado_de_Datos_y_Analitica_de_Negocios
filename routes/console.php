@@ -15,3 +15,7 @@ Artisan::command('sidan:vencer-ordenes', function () {
 
 // Requiere ejecutar php artisan schedule:run cada minuto en el servidor.
 \Illuminate\Support\Facades\Schedule::command('sidan:vencer-ordenes')->everyFifteenMinutes()->withoutOverlapping();
+
+// Requiere cron Laravel + worker de cola activos en producción.
+\Illuminate\Support\Facades\Schedule::command('sidan:avisos-orden')
+    ->dailyAt('09:00')->timezone('America/El_Salvador')->withoutOverlapping();

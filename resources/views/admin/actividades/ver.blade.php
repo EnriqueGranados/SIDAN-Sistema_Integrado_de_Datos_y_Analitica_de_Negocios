@@ -191,10 +191,6 @@
             </div>
         </div>
 
-        @if (session('success'))
-            <div class="mb-5 rounded-2xl border border-sidan-500/20 bg-sidan-500/10 px-4 py-3 text-sm font-medium text-sidan-500">{{ session('success') }}</div>
-        @endif
-
         @if ($errors->has('publicacion'))
             <div class="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-200">{{ $errors->first('publicacion') }}</div>
         @endif

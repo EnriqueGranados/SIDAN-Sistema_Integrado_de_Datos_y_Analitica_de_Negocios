@@ -47,26 +47,6 @@
             @endif
         </div>
 
-        {{-- Notificaciones --}}
-        @if (session('success'))
-            <div role="status"
-                class="flex items-start gap-3 rounded-xl border border-sidan-200
-                       bg-sidan-50 p-4 text-sm text-sidan-600
-                       dark:border-sidan-500/20 dark:bg-sidan-500/10
-                       dark:text-sidan-300">
-
-                <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M5 13l4 4L19 7" />
-                </svg>
-
-                <p class="font-semibold">
-                    {{ session('success') }}
-                </p>
-            </div>
-        @endif
-
         @if ($errors->any())
             <div role="alert"
                 class="flex items-start gap-3 rounded-xl border border-red-200

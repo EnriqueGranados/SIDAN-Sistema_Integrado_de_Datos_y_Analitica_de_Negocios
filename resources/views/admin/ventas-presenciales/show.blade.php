@@ -14,7 +14,6 @@
     <div class="mx-auto max-w-4xl space-y-6">
         <header class="flex flex-wrap items-center justify-between gap-3"><div><h1 class="text-3xl font-black">Orden #{{ $orden->id_orden }}</h1><p class="mt-1 text-sm text-slate-500 dark:text-slate-300">{{ $orden->actividad?->nombre }} · {{ $orden->correo_contacto }}</p></div>
             <a href="{{ route('admin.ventas-presenciales.index') }}" class="rounded-xl bg-sidan-500 px-5 py-3 font-semibold text-sm text-white hover:bg-sidan-600">Nueva venta</a></header>
-        @if(session('success'))<div class="rounded-xl border border-sidan-200 bg-sidan-50 p-4 text-sm text-sidan-800 dark:border-sidan-500/30 dark:bg-sidan-500/10 dark:text-sidan-300">{{ session('success') }}</div>@endif
         <div class="grid gap-3 sm:grid-cols-4">
             @foreach([['Total',$total],['Anticipo mínimo',$minimo],['Acreditado',$abonado],['Saldo pendiente',$saldo]] as [$etiqueta,$valor])
                 <section class="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-[#0f172a]"><p class="text-xs text-slate-500 dark:text-slate-300">{{ $etiqueta }}</p><p class="mt-2 text-2xl font-black">${{ number_format($valor/100,2) }}</p></section>

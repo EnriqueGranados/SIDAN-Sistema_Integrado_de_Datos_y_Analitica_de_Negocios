@@ -7,7 +7,6 @@
 
 
 @section('content')
-
     @include('partials.public-header')
 
     @if (auth()->user()?->rol?->nombre === 'usuario')
@@ -129,14 +128,30 @@
 
 
 
-                    <span
-                        class="inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold {{ $estadoConfiguracion['clases'] }}">
+                    {{-- Estado y descargas dentro del encabezado de la orden (no por encima de la navbar). --}}
+                    <div class="flex w-full flex-col items-start gap-3 sm:w-auto sm:items-end">
+                        <span
+                            class="inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold {{ $estadoConfiguracion['clases'] }}">
+                            <span class="h-2 w-2 rounded-full {{ $estadoConfiguracion['punto'] }}"></span>
+                            {{ $estadoConfiguracion['texto'] }}
+                        </span>
 
-                        <span class="h-2 w-2 rounded-full {{ $estadoConfiguracion['punto'] }}"></span>
-
-                        {{ $estadoConfiguracion['texto'] }}
-
-                    </span>
+                        <div class="flex max-w-full flex-wrap items-center gap-2 sm:justify-end">
+                            <a href="{{ route('sidan.ordenes.recibo', $orden->id_orden) }}"
+                                class="inline-flex items-center gap-2 rounded-xl border border-sidan-500/40 bg-white px-3.5 py-2.5 text-xs font-bold text-sidan-600 shadow-sm transition hover:border-sidan-500 hover:bg-sidan-500/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidan-500 dark:bg-slate-900 dark:text-sidan-400 dark:hover:bg-sidan-500/10">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+                                </svg>
+                                Descargar resumen PDF
+                            </a>
+                            @foreach (($orden->pago?->abonos ?? collect())->where('estado', 'confirmado') as $abono)
+                                <a href="{{ route('sidan.ordenes.abono.recibo', [$orden->id_orden, $abono->id_abono]) }}"
+                                    class="inline-flex items-center rounded-xl bg-sidan-500 px-3.5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-sidan-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidan-500">
+                                    Recibo de abono #{{ $abono->id_abono }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
 
 
 

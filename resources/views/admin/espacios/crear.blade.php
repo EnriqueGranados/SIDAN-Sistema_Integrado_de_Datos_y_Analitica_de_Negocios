@@ -801,7 +801,7 @@
                 if (numero === 4) {
                     actualizarResumen();
                 }
-                window.scrollTo({
+                (document.getElementById('sidanAdminScroll') || window).scrollTo({
                     top: 0,
                     behavior: 'smooth'
                 });
@@ -1089,6 +1089,11 @@
     </script>
     <script>
         function showAppNotification(type, title, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, title);
+            }
+
             const previous = document.getElementById('app-notification');
             if (previous) previous.remove();
             const styles = {

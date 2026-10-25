@@ -96,6 +96,7 @@ return [
         'admin.espacios.*' => ['espacios'],
         'admin.control.inscripciones' => ['inscripciones'],
         'admin.control.ordenes' => ['ordenes'],
+        'admin.control.ordenes.recibo' => ['ordenes'],
         'admin.control.consolidado' => ['consolidado'],
         'admin.control.consolidado.imprimir' => ['consolidado'],
         'admin.pagos.*' => ['pagos'],

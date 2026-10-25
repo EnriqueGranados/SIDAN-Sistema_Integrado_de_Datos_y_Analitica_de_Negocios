@@ -31,14 +31,6 @@
                 </p>
             </div>
         </div>
-
-        @if (session('success'))
-            <div role="status"
-                class="rounded-xl bg-sidan-50 p-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
-                {{ session('success') }}
-            </div>
-        @endif
-
         @if ($errors->any())
             <div role="alert" class="rounded-xl bg-red-50 p-4 text-sm text-red-800 dark:bg-red-500/10 dark:text-red-300">
                 <ul class="list-inside list-disc">
@@ -482,6 +474,9 @@
 
                             <div class="min-w-0 rounded-xl border border-slate-200 p-4 dark:border-white/10">
                                 <h3 class="font-bold text-slate-900 dark:text-white">Historial y acciones</h3>
+                                @if($ordenPago)
+                                    <a href="{{ route('admin.pagos.orden.recibo', $ordenPago->id_orden) }}" class="mt-3 inline-flex rounded-xl border border-sidan-500/30 bg-sidan-500/5 px-3 py-2 text-xs font-bold text-sidan-600 hover:bg-sidan-500/10 dark:text-sidan-400">Descargar resumen PDF</a>
+                                @endif
                                 @if ($manual)
                                     <details class="mt-3 rounded-lg bg-slate-50 p-3 dark:bg-white/5">
                                         <summary class="cursor-pointer text-sm font-semibold text-slate-700 dark:text-slate-200">Ver comprobantes y abonos ({{ $pago->abonos->count() }})</summary>
@@ -497,6 +492,9 @@
                                                             <p class="mt-1 text-slate-500 dark:text-slate-400">{{ $abono->observacion_revision }}</p>
                                                         @endif
                                                     </div>
+                                                    @if ($abono->estado === 'confirmado')
+                                                        <a href="{{ route('admin.pagos.abono.recibo', [$ordenPago->id_orden, $abono->id_abono]) }}" class="font-semibold text-sidan-600 underline dark:text-sidan-400">Recibo PDF</a>
+                                                    @endif
                                                     @if ($abono->comprobante_path)
                                                         <a href="{{ route('admin.pagos.abonos.comprobante', $abono) }}" target="_blank" rel="noopener" class="font-semibold text-blue-600 underline dark:text-blue-400">Ver comprobante</a>
                                                     @endif

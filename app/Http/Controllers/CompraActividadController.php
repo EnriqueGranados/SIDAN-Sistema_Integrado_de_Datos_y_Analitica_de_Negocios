@@ -1208,6 +1208,31 @@ class CompraActividadController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Avisar al comprador cuando se crea una orden de productos
+        |--------------------------------------------------------------------------
+        |
+        | Esta orden se inserta mediante DB::table()->insertGetId(), que no
+        | dispara el evento "created" del Observer de Eloquent.
+        | Tras finalizar correctamente la transacción, programamos el aviso
+        | para una orden nueva. No reenviamos cuando se reutiliza una pendiente.
+        |
+        | Un fallo del correo no debe impedir consultar una compra ya guardada.
+        */
+        if (empty($resultado['existente'])) {
+            try {
+                $ordenCreada = \App\Models\Orden::find($resultado['id_orden']);
+
+                if ($ordenCreada !== null) {
+                    app(\App\Services\AvisosOrdenService::class)
+                        ->programar($ordenCreada, 'creada');
+                }
+            } catch (\Throwable $excepcion) {
+                report($excepcion);
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | Ir al resumen de compra
         |--------------------------------------------------------------------------
         */

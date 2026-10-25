@@ -14,9 +14,13 @@ class ControlActividadController extends Controller
 {
     private function actividades()
     {
-        return Actividad::query()
+        return Actividad::withTrashed()
+            ->with(['portada', 'categoria'])
             ->orderBy('nombre')
-            ->get(['id_actividad', 'nombre']);
+            ->get([
+                'id_actividad', 'nombre', 'id_categoria',
+                'realizacion_desde', 'realizacion_hasta', 'eliminado_en',
+            ]);
     }
 
     public function inscripciones(Request $request): View
@@ -159,7 +163,34 @@ class ControlActividadController extends Controller
             ->join('tbl_actividades as actividad', 'actividad.id_actividad', '=', 'orden.id_actividad')
             ->leftJoin('tbl_inscripciones as inscripcion', 'inscripcion.id_inscripcion', '=', 'orden.id_inscripcion')
             ->where('orden.tipo_orden', 'productos')
-            ->where('orden.estado', 'pagada')
+            ->where(function ($q) use ($filtros) {
+                $q->where('orden.estado', 'pagada');
+                if (($filtros['cobertura'] ?? 'pagadas') === 'preparables') {
+                    // Una orden con anticipo entra SOLO si el total confirmado alcanza su mínimo
+                    // histórico; comprobantes pendientes no cuentan como dinero recibido.
+                    $q->orWhere(function ($parcial) {
+                        $parcial->where(function ($opciones) {
+                        $opciones->where(function ($estados) {
+                            $estados->where('orden.estado', 'pendiente_pago')
+                                ->where(function ($vigente) {
+                                    $vigente->whereRaw('COALESCE(orden.limite_saldo_en, orden.expira_en) > ?', [now('UTC')]);
+                                });
+                        })->orWhere(function ($vencida) {
+                            $vencida->where('orden.estado', 'vencida')
+                                ->where('orden.cierre_financiero_estado', 'regularizacion')
+                                ->whereRaw("COALESCE(orden.limite_saldo_en, orden.expira_en) + INTERVAL '30 days' > ?", [now('UTC')]);
+                        });
+                        });
+                        $parcial->whereExists(function ($pagos) {
+                            $pagos->selectRaw('1')->from('tbl_pagos as pago')
+                                ->whereColumn('pago.id_orden', 'orden.id_orden')
+                                ->whereIn('pago.proveedor', ['efectivo', 'transferencia'])
+                                ->whereRaw("COALESCE((SELECT SUM(COALESCE(a.monto_recibido, 0)) FROM tbl_abonos_transferencia a WHERE a.id_pago = pago.id_pago AND a.estado = 'confirmado'), 0) >= COALESCE(orden.minimo_inicial, orden.total)")
+                                ->whereRaw("COALESCE((SELECT SUM(COALESCE(a.monto_recibido, 0)) FROM tbl_abonos_transferencia a WHERE a.id_pago = pago.id_pago AND a.estado = 'confirmado'), 0) > 0");
+                        });
+                    });
+                }
+            })
             ->whereNotNull('detalle.id_item_actividad');
 
         if (!empty($filtros['actividad'])) {
@@ -190,6 +221,7 @@ class ControlActividadController extends Controller
             'actividad' => ['nullable', 'integer', 'min:1'],
             'buscar' => ['nullable', 'string', 'max:150'],
             'vista' => ['nullable', 'in:productos,variaciones,compradores'],
+            'cobertura' => ['nullable', 'in:pagadas,preparables'],
         ]);
     }
 
@@ -203,6 +235,8 @@ class ControlActividadController extends Controller
                 'detalle.nombre_concepto'
             )
             ->selectRaw('SUM(detalle.cantidad) AS unidades')
+            ->selectRaw("SUM(CASE WHEN orden.estado = 'pagada' THEN detalle.cantidad ELSE 0 END) AS unidades_pagadas")
+            ->selectRaw("SUM(CASE WHEN orden.estado <> 'pagada' THEN detalle.cantidad ELSE 0 END) AS unidades_anticipo")
             // detalle.subtotal es bruto; detalle.descuento se descuenta de la línea.
             ->selectRaw('SUM(detalle.subtotal - COALESCE(detalle.descuento, 0)) AS importe')
             ->groupBy(
@@ -227,6 +261,8 @@ class ControlActividadController extends Controller
                 'detalle.configuracion'
             )
             ->selectRaw('SUM(detalle.cantidad) AS unidades')
+            ->selectRaw("SUM(CASE WHEN orden.estado = 'pagada' THEN detalle.cantidad ELSE 0 END) AS unidades_pagadas")
+            ->selectRaw("SUM(CASE WHEN orden.estado <> 'pagada' THEN detalle.cantidad ELSE 0 END) AS unidades_anticipo")
             ->selectRaw('SUM(detalle.subtotal - COALESCE(detalle.descuento, 0)) AS importe')
             ->groupBy(
                 'orden.id_actividad',
@@ -278,6 +314,7 @@ class ControlActividadController extends Controller
             $ordenes = (clone $base)
                 ->select(
                     'orden.id_orden',
+                    'orden.estado as estado_orden',
                     'orden.correo_contacto',
                     'orden.created_at as fecha_orden',
                     'actividad.nombre as actividad_nombre',
@@ -285,6 +322,7 @@ class ControlActividadController extends Controller
                 )
                 ->groupBy(
                     'orden.id_orden',
+                    'orden.estado',
                     'orden.correo_contacto',
                     'orden.created_at',
                     'actividad.nombre',
@@ -310,6 +348,7 @@ class ControlActividadController extends Controller
             'ordenes' => $ordenes,
             'pedidosPorOrden' => $pedidosPorOrden,
             'vista' => $vista,
+            'cobertura' => $filtros['cobertura'] ?? 'pagadas',
         ]);
     }
 
@@ -332,6 +371,7 @@ class ControlActividadController extends Controller
             $ordenes = (clone $base)
                 ->select(
                     'orden.id_orden',
+                    'orden.estado as estado_orden',
                     'orden.correo_contacto',
                     'orden.created_at as fecha_orden',
                     'actividad.nombre as actividad_nombre',
@@ -339,6 +379,7 @@ class ControlActividadController extends Controller
                 )
                 ->groupBy(
                     'orden.id_orden',
+                    'orden.estado',
                     'orden.correo_contacto',
                     'orden.created_at',
                     'actividad.nombre',
@@ -354,7 +395,7 @@ class ControlActividadController extends Controller
         }
 
         $actividadSeleccionada = !empty($filtros['actividad'])
-            ? Actividad::whereKey($filtros['actividad'])->value('nombre')
+            ? Actividad::withTrashed()->whereKey($filtros['actividad'])->value('nombre')
             : null;
 
         return view('admin.control.consolidado-imprimir', compact(

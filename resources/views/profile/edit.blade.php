@@ -10,7 +10,6 @@
 @endpush
 
 @section(auth()->user()?->rol?->nombre === 'usuario' ? 'user-content' : 'content')
-    <x-status-alert />
     
     <div id="edit-profile-container" class="relative min-h-full">
         <div

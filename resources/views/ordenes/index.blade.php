@@ -3,12 +3,6 @@
 @section('title', 'Mis órdenes - SIDAN')
 
 @section('user-content')
-    @if (session('success'))
-        <div role="status"
-            class="mx-auto mb-5 max-w-7xl rounded-xl bg-sidan-50 px-5 py-4 text-sm text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">
-            {{ session('success') }}
-        </div>
-    @endif
     <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -365,6 +359,7 @@
                             Ver detalle de la orden
                         </a>
 
+                        <a href="{{ route('sidan.ordenes.recibo', $orden->id_orden) }}" class="inline-flex items-center rounded-xl border border-sidan-500/30 px-4 py-2.5 text-xs font-bold text-sidan-600 hover:bg-sidan-500/5 dark:text-sidan-400">Descargar resumen PDF</a>
                         @include('ordenes.partials.cancelar', ['orden' => $orden])
 
                         @if ($puedePagar)

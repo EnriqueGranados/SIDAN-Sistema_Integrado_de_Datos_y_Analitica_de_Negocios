@@ -1,246 +1,151 @@
 @once
     @php
-        $mensajeToast = session('success') ?? session('error') ?? session('warning') ?? session('info');
-        $tipoToast = session('success')
-            ? 'success'
-            : (session('error')
-                ? 'error'
-                : (session('warning') ? 'warning' : 'info'));
-
-        if (!$mensajeToast && $errors->any()) {
-            $mensajeToast = 'Revisa los campos marcados e intenta nuevamente.';
-            $tipoToast = 'error';
+        // Un solo mensaje de sesión por navegación: el resto se muestra junto al formulario.
+        $tipoToast = null;
+        $mensajeToast = null;
+        foreach (['success', 'error', 'warning', 'info'] as $tipo) {
+            if (session()->has($tipo) && filled(session($tipo))) {
+                $tipoToast = $tipo;
+                $mensajeToast = (string) session($tipo);
+                break;
+            }
         }
-
-        $titulosToast = [
-            'success' => 'Listo',
-            'error' => 'Ocurrió un problema',
-            'warning' => 'Atención',
-            'info' => 'Información',
-        ];
+        if (!$mensajeToast && $errors->any()) {
+            $tipoToast = 'error';
+            $mensajeToast = $errors->first() ?: 'Revisá la información ingresada.';
+        }
     @endphp
 
-    <div
-        id="sidanToastRoot"
-        class="pointer-events-none fixed right-4 top-4 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 sm:right-6 sm:top-6"
+    {{-- Notificación global única para vistas administrativas y públicas.
+         La barra administrativa termina a ~80px desde el borde superior. --}}
+    <div id="sidanToastRoot"
+        class="pointer-events-none fixed right-4 top-24 w-[calc(100%-2rem)] max-w-md sm:right-6"
         style="z-index: 2147483000;"
-        aria-live="polite"
-        aria-atomic="false">
-        @if ($mensajeToast)
-            <div
-                class="sidan-toast pointer-events-auto translate-y-0 opacity-100 transition-all duration-300"
-                data-toast-type="{{ $tipoToast }}"
-                role="status">
-                <div class="overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-2xl shadow-black/30">
-                    <div class="flex items-start gap-3 p-4">
-                        <div
-                            data-toast-icon
-                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <p data-toast-title class="text-sm font-semibold text-white">
-                                {{ $titulosToast[$tipoToast] ?? $titulosToast['info'] }}
-                            </p>
-                            <p data-toast-message class="mt-1 break-words text-sm leading-5 text-gray-300">
-                                {{ $mensajeToast }}
-                            </p>
-                        </div>
-
-                        <button
-                            type="button"
-                            data-toast-close
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-white/10 hover:text-white"
-                            aria-label="Cerrar notificación">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="h-1 bg-white/5">
-                        <div data-toast-progress class="h-full w-full"></div>
-                    </div>
-                </div>
-            </div>
-        @endif
-    </div>
+        data-initial-type="{{ $tipoToast }}"
+        data-initial-message="{{ $mensajeToast }}"
+        aria-live="polite" aria-atomic="true"></div>
 
     <script>
         (() => {
             const root = document.getElementById('sidanToastRoot');
-            if (!root || window.SIDANToast) {
-                return;
-            }
+            if (!root || window.SIDANToast) return;
 
             const estilos = {
                 success: {
-                    icon: 'bg-sidan-500/15 text-sidan-400',
-                    progress: 'bg-sidan-400',
-                    title: 'Listo',
-                    svg: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M5 13l4 4L19 7" /></svg>',
+                    titulo: 'Listo',
+                    borde: 'border-sidan-200 dark:border-sidan-500/30',
+                    icono: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/15 dark:text-sidan-400',
+                    barra: 'bg-sidan-500',
+                    svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />'
                 },
                 error: {
-                    icon: 'bg-red-500/15 text-red-400',
-                    progress: 'bg-red-400',
-                    title: 'Ocurrió un problema',
-                    svg: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>',
+                    titulo: 'Ocurrió un problema',
+                    borde: 'border-red-200 dark:border-red-500/30',
+                    icono: 'bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-400',
+                    barra: 'bg-red-500',
+                    svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />'
                 },
                 warning: {
-                    icon: 'bg-amber-500/15 text-amber-400',
-                    progress: 'bg-amber-400',
-                    title: 'Atención',
-                    svg: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86A2 2 0 0020.66 16L13.73 4a2 2 0 00-3.46 0L3.34 16A2 2 0 005.07 19z" /></svg>',
+                    titulo: 'Atención',
+                    borde: 'border-amber-200 dark:border-amber-500/30',
+                    icono: 'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
+                    barra: 'bg-amber-500',
+                    svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9l-8 14a2 2 0 001.7 3h16a2 2 0 001.7-3l-8-14a2 2 0 00-3.4 0z" />'
                 },
                 info: {
-                    icon: 'bg-blue-500/15 text-blue-400',
-                    progress: 'bg-blue-400',
-                    title: 'Información',
-                    svg: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 3a9 9 0 110 18 9 9 0 010-18z" /></svg>',
-                },
+                    titulo: 'Información',
+                    borde: 'border-blue-200 dark:border-blue-500/30',
+                    icono: 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
+                    barra: 'bg-blue-500',
+                    svg: '<circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 11v6m0-10h.01" />'
+                }
             };
 
-            const normalizarTipo = tipo => estilos[tipo] ? tipo : 'info';
+            let actual = null;
+            let temporizador = null;
+            let ultimaClave = '';
+            let ultimoMomento = 0;
+            const normalizar = tipo => estilos[tipo] ? tipo : 'info';
 
-            const configurarToast = (toast, opciones = {}) => {
-                const tipo = normalizarTipo(opciones.type || toast.dataset.toastType || 'info');
+            const cerrar = () => {
+                if (!actual) return;
+                window.clearTimeout(temporizador);
+                const elemento = actual;
+                actual = null;
+                elemento.classList.add('opacity-0', '-translate-y-3');
+                window.setTimeout(() => elemento.remove(), 250);
+            };
+
+            const mostrar = (mensaje, tipo = 'info', titulo = null, duracion = 5000) => {
+                if (mensaje === null || mensaje === undefined || String(mensaje).trim() === '') return null;
+                tipo = normalizar(String(tipo));
+                mensaje = String(mensaje).trim();
+                const clave = `${tipo}:${mensaje.replace(/\s+/g, ' ').toLocaleLowerCase()}`;
+                const ahora = Date.now();
+
+                // Si el mensaje es el mismo que el de la sesión o la vista, no duplicarlo.
+                if (clave === ultimaClave && (actual || ahora - ultimoMomento < 1200)) return actual;
+                ultimaClave = clave;
+                ultimoMomento = ahora;
+                cerrar();
+
                 const estilo = estilos[tipo];
-                const icono = toast.querySelector('[data-toast-icon]');
-                const titulo = toast.querySelector('[data-toast-title]');
-                const mensaje = toast.querySelector('[data-toast-message]');
-                const progreso = toast.querySelector('[data-toast-progress]');
-                const cerrar = toast.querySelector('[data-toast-close]');
-                const duracion = Number(opciones.duration) > 0 ? Number(opciones.duration) : 4500;
-                let timeout = null;
-                let cerrado = false;
+                const tiempo = Number.isFinite(Number(duracion)) && Number(duracion) > 0
+                    ? Math.max(1500, Number(duracion)) : 5000;
 
-                toast.dataset.toastType = tipo;
-
-                if (icono) {
-                    icono.className = `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${estilo.icon}`;
-                    icono.innerHTML = estilo.svg;
-                }
-
-                if (titulo) {
-                    titulo.textContent = opciones.title || titulo.textContent?.trim() || estilo.title;
-                }
-
-                if (mensaje && opciones.message !== undefined) {
-                    mensaje.textContent = String(opciones.message);
-                }
-
-                if (progreso) {
-                    progreso.className = `h-full w-full ${estilo.progress}`;
-                    progreso.style.transition = `width ${duracion}ms linear`;
-                    progreso.style.width = '100%';
-                }
-
-                const ocultar = () => {
-                    if (cerrado) {
-                        return;
-                    }
-
-                    cerrado = true;
-                    toast.classList.add('-translate-y-3', 'opacity-0');
-
-                    window.setTimeout(() => {
-                        toast.remove();
-                    }, 300);
-                };
-
-                cerrar?.addEventListener('click', () => {
-                    if (timeout) {
-                        window.clearTimeout(timeout);
-                    }
-                    ocultar();
-                });
-
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        if (progreso) {
-                            progreso.style.width = '0%';
-                        }
-                    });
-                });
-
-                timeout = window.setTimeout(ocultar, duracion);
-            };
-
-            const crearToast = opciones => {
-                const toast = document.createElement('div');
-                toast.className = 'sidan-toast pointer-events-auto translate-y-0 opacity-100 transition-all duration-300';
-                toast.setAttribute('role', 'status');
-                toast.innerHTML = `
-                    <div class="overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-2xl shadow-black/30">
+                const alerta = document.createElement('div');
+                alerta.className = 'sidan-toast pointer-events-auto translate-y-0 opacity-100 transition-all duration-250 ease-out';
+                alerta.setAttribute('role', tipo === 'error' ? 'alert' : 'status');
+                alerta.dataset.toastType = tipo;
+                alerta.innerHTML = `
+                    <div class="overflow-hidden rounded-2xl border ${estilo.borde} bg-white shadow-2xl shadow-slate-900/10 dark:bg-[#0f172a] dark:shadow-black/40">
                         <div class="flex items-start gap-3 p-4">
-                            <div data-toast-icon class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"></div>
-                            <div class="min-w-0 flex-1">
-                                <p data-toast-title class="text-sm font-semibold text-white"></p>
-                                <p data-toast-message class="mt-1 break-words text-sm leading-5 text-gray-300"></p>
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${estilo.icono}">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${estilo.svg}</svg>
                             </div>
-                            <button type="button" data-toast-close class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-white/10 hover:text-white" aria-label="Cerrar notificación">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                            <div class="min-w-0 flex-1">
+                                <p data-titulo class="text-sm font-bold text-sidan-900 dark:text-white"></p>
+                                <p data-mensaje class="mt-1 whitespace-pre-line break-words text-sm leading-5 text-slate-600 dark:text-slate-300"></p>
+                            </div>
+                            <button type="button" data-cerrar class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sidan-500 dark:hover:bg-white/10 dark:hover:text-white" aria-label="Cerrar notificación">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        <div class="h-1 bg-white/5">
-                            <div data-toast-progress class="h-full w-full"></div>
-                        </div>
-                    </div>
-                `;
-
-                root.appendChild(toast);
-                configurarToast(toast, opciones);
-                return toast;
+                        <div class="h-1 bg-slate-100 dark:bg-white/10"><div data-progreso class="h-full w-full ${estilo.barra}"></div></div>
+                    </div>`;
+                alerta.querySelector('[data-titulo]').textContent = titulo || estilo.titulo;
+                alerta.querySelector('[data-mensaje]').textContent = mensaje;
+                alerta.querySelector('[data-cerrar]').addEventListener('click', cerrar);
+                root.replaceChildren(alerta);
+                actual = alerta;
+                const progreso = alerta.querySelector('[data-progreso]');
+                progreso.style.transformOrigin = 'left';
+                progreso.style.transition = `transform ${tiempo}ms linear`;
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    if (actual === alerta) progreso.style.transform = 'scaleX(0)';
+                }));
+                temporizador = window.setTimeout(cerrar, tiempo);
+                return alerta;
             };
 
             window.SIDANToast = {
-                show(message, type = 'info', title = null, duration = 4500) {
-                    if (!message) {
-                        return null;
-                    }
-
-                    return crearToast({
-                        message,
-                        type,
-                        title,
-                        duration,
-                    });
-                },
-                success(message, title = null) {
-                    return this.show(message, 'success', title);
-                },
-                error(message, title = null) {
-                    return this.show(message, 'error', title);
-                },
-                warning(message, title = null) {
-                    return this.show(message, 'warning', title);
-                },
-                info(message, title = null) {
-                    return this.show(message, 'info', title);
-                },
+                show: mostrar,
+                success: (mensaje, titulo) => mostrar(mensaje, 'success', titulo),
+                error: (mensaje, titulo) => mostrar(mensaje, 'error', titulo),
+                warning: (mensaje, titulo) => mostrar(mensaje, 'warning', titulo),
+                info: (mensaje, titulo) => mostrar(mensaje, 'info', titulo),
+                close: cerrar
             };
-
-            root.querySelectorAll('.sidan-toast').forEach(toast => {
-                configurarToast(toast);
-            });
-
+            // Compatibilidad con páginas que envían este evento sin llamar SIDANToast.
             window.addEventListener('sidan:toast', event => {
                 const detalle = event.detail || {};
-                const mensaje = detalle.message || detalle.mensaje;
-
-                if (!mensaje) {
-                    return;
-                }
-
-                window.SIDANToast.show(
-                    mensaje,
-                    detalle.type || detalle.tipo || 'info',
-                    detalle.title || detalle.titulo || null,
-                    detalle.duration || detalle.duracion || 4500
-                );
+                mostrar(detalle.message || detalle.mensaje, detalle.type || detalle.tipo || 'info',
+                    detalle.title || detalle.titulo || null, detalle.duration || detalle.duracion || 5000);
             });
+
+            if (root.dataset.initialMessage) {
+                mostrar(root.dataset.initialMessage, root.dataset.initialType || 'info');
+            }
         })();
     </script>
 @endonce

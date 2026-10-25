@@ -1,7 +1,6 @@
 @extends('layouts.navbars')
 
 @section('content')
-    <x-status-alert />
 
     <h1 class="text-2xl font-bold mb-4">Mi Panel</h1>
     <div class=" p-6 rounded-lg shadow">

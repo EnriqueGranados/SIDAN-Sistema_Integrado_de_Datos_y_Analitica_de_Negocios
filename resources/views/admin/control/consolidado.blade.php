@@ -11,13 +11,16 @@
             'compradores' => ['titulo' => 'Compradores', 'descripcion' => 'Pedidos por orden'],
         ];
 
-        $filtrosActuales = request()->only(['actividad', 'buscar']);
+        $filtrosActuales = request()->only(['actividad', 'buscar', 'cobertura']);
+        $cobertura = request('cobertura', 'pagadas');
+        $unidadesAnticipo = $productos->sum('unidades_anticipo');
+        $unidadesPagadas = $productos->sum('unidades_pagadas');
         $totalUnidades = $productos->sum('unidades');
         $totalImporte = $productos->sum('importe');
         $totalProductos = $productos->count();
     @endphp
 
-<div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+<div class="min-h-full bg-transparent text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -30,7 +33,7 @@
                     </h1>
 
                     <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                        Preparación y distribución de productos de órdenes pagadas.
+                        Preparación de artículos pagados o con anticipo mínimo acreditado, según el filtro.
                     </p>
                 </div>
 
@@ -57,19 +60,7 @@
             class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0f172a]">
             <input type="hidden" name="vista" value="{{ $vista }}">
             <div class="grid gap-4 md:grid-cols-2">
-                <div>
-                    <label for="consolidado-actividad"
-                        class="mb-2 block text-xs font-bold text-slate-600 dark:text-slate-300">Actividad</label>
-                    <select id="consolidado-actividad" name="actividad"
-                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-sidan-900 dark:border-white/10 dark:bg-slate-900 dark:text-white">
-                        <option value="">Todas las actividades</option>
-                        @foreach ($actividades as $actividad)
-                            <option value="{{ $actividad->id_actividad }}" @selected(request('actividad') == $actividad->id_actividad)>
-                                {{ $actividad->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                @include('admin.control.partials.selector-actividad')
                 <div>
                     <label for="consolidado-buscar" class="mb-2 block text-xs font-bold text-slate-600 dark:text-slate-300">
                         Búsqueda general
@@ -79,9 +70,18 @@
                         class="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-sidan-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-900 dark:text-white">
                 </div>
             </div>
+            <div class="mt-4">
+                <label for="cobertura-consolidado" class="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">Órdenes a incluir en el pedido</label>
+                <select id="cobertura-consolidado" name="cobertura"
+                    class="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold text-sidan-900 focus:border-sidan-500 focus:ring-sidan-500 dark:border-white/10 dark:bg-slate-900 dark:text-white">
+                    <option value="pagadas" @selected($cobertura === 'pagadas')>Solo órdenes pagadas totalmente</option>
+                    <option value="preparables" @selected($cobertura === 'preparables')>Pagadas + órdenes con anticipo mínimo acreditado</option>
+                </select>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Únicamente dinero confirmado. Los anticipos no significan que esté pagado todo el saldo.</p>
+            </div>
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Solo se incluyen artículos de órdenes pagadas.
+                    {{ $cobertura === 'preparables' ? 'Lista para encargar: órdenes pagadas y anticipos mínimos cubiertos.' : 'Solo se incluyen artículos de órdenes pagadas.' }}
                 </p>
                 <div class="flex gap-2">
                     <a href="{{ route('admin.control.consolidado', ['vista' => $vista]) }}"
@@ -102,7 +102,7 @@
         {{-- Indicadores netos de las mismas líneas pagadas que se muestran abajo. --}}
         <div class="grid gap-4 sm:grid-cols-3 mt-5 mb-5">
             <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0f172a]">
-                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Unidades pagadas</p>
+                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Unidades para preparar</p>
                 <p class="mt-2 text-3xl font-black text-sidan-900 dark:text-white">{{ number_format($totalUnidades) }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0f172a]">
@@ -110,14 +110,20 @@
                 <p class="mt-2 text-3xl font-black text-sidan-900 dark:text-white">{{ number_format($totalProductos) }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0f172a]">
-                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Importe neto de artículos</p>
+                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Valor neto de artículos</p>
                 <p class="mt-2 text-3xl font-black text-sidan-600 dark:text-sidan-400">
                     ${{ number_format((float) $totalImporte, 2) }}
                 </p>
-                <p class="mt-1 text-xs text-slate-400">Después de descuentos de artículos</p>
+                <p class="mt-1 text-xs text-slate-400">Valor de los artículos incluidos, no dinero recaudado</p>
             </div>
         </div>
 
+        @if($cobertura === 'preparables')
+            <div class="mb-5 rounded-2xl border border-sidan-500/30 bg-sidan-500/5 p-4 dark:bg-sidan-500/10">
+                <p class="font-bold text-sidan-900 dark:text-white">Desglose para hacer el pedido</p>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ number_format($unidadesPagadas) }} unidades de órdenes pagadas + {{ number_format($unidadesAnticipo) }} unidades de órdenes con anticipo cubierto = {{ number_format($totalUnidades) }} unidades para preparar.</p>
+            </div>
+        @endif
         {{-- Enlaces accesibles sin JavaScript; evitan una página interminable. --}}
         <nav aria-label="Secciones del consolidado" class="grid gap-2 sm:grid-cols-3 mt-5 mb-5">
             @foreach ($pestanas as $clave => $pestana)
@@ -147,6 +153,7 @@
                                 <th class="px-3 py-3">Actividad</th>
                                 <th class="px-3 py-3">Producto</th>
                                 <th class="px-3 py-3 text-center">Unidades</th>
+                                @if($cobertura === 'preparables')<th class="px-3 py-3 text-center">Pagadas</th><th class="px-3 py-3 text-center">Con anticipo</th>@endif
                                 <th class="px-3 py-3 text-right">Importe neto</th>
                             </tr>
                         </thead>
@@ -159,14 +166,14 @@
                                         {{ $producto->nombre_concepto }}</td>
                                     <td class="px-3 py-4 text-center font-black text-sidan-900 dark:text-white">
                                         {{ $producto->unidades }}</td>
+                                    @if($cobertura === 'preparables')<td class="px-3 py-4 text-center font-semibold">{{ $producto->unidades_pagadas }}</td><td class="px-3 py-4 text-center font-bold text-sidan-600 dark:text-sidan-400">{{ $producto->unidades_anticipo }}</td>@endif
                                     <td class="px-3 py-4 text-right font-black text-sidan-600 dark:text-sidan-400">
                                         ${{ number_format((float) $producto->importe, 2) }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-3 py-10 text-center text-slate-500">No hay productos
-                                        pagados con estos filtros.</td>
+                                    <td colspan="{{ $cobertura === 'preparables' ? 6 : 4 }}" class="px-3 py-10 text-center text-slate-500">No hay productos que cumplan estos filtros.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -199,6 +206,7 @@
                                 <span
                                     class="rounded-full bg-sidan-100 px-3 py-1 text-xs font-black text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                                     {{ $variacion->unidades }} uds.
+                                    @if($cobertura === 'preparables') · {{ $variacion->unidades_anticipo }} con anticipo @endif
                                 </span>
                             </div>
                             <div class="mt-3 flex flex-wrap gap-2">
@@ -251,7 +259,7 @@
                                     <h3 class="font-black text-sidan-900 dark:text-white">Orden #{{ $orden->id_orden }}
                                     </h3>
                                     <span
-                                        class="rounded-full bg-sidan-100 px-2.5 py-1 text-xs font-bold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">Pagada</span>
+                                        class="rounded-full bg-sidan-100 px-2.5 py-1 text-xs font-bold text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300">{{ $orden->estado_orden === 'pagada' ? 'Pagada' : 'Anticipo cubierto' }}</span>
                                 </div>
                                 <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                                     {{ $orden->nombre_participante ?: $orden->correo_contacto }}
@@ -303,7 +311,7 @@
                 @empty
                     <div
                         class="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500 dark:border-white/10 dark:bg-[#0f172a]">
-                        No hay órdenes pagadas con estos filtros.
+                        No hay órdenes que cumplan estos filtros.
                     </div>
                 @endforelse
                 <div>{{ $ordenes->links() }}</div>

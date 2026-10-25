@@ -23,6 +23,7 @@ use App\Http\Controllers\GestionOrdenController;
 use App\Http\Controllers\InscripcionController;
 use App\Http\Controllers\MisInscripcionesController;
 use App\Http\Controllers\OrdenController;
+use App\Http\Controllers\RecibosOrdenController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PaginasPublicasController;
 use App\Http\Controllers\ProfileController;
@@ -270,6 +271,13 @@ Route::middleware([
     Route::get('/control/consolidado/imprimir', [ControlActividadController::class, 'imprimirConsolidado'])
         ->name('control.consolidado.imprimir');
 
+    Route::get('/control/ordenes/{orden}/resumen-pdf', [RecibosOrdenController::class, 'adminOrden'])
+        ->name('control.ordenes.recibo');
+    Route::get('/pagos/ordenes/{orden}/resumen-pdf', [RecibosOrdenController::class, 'adminOrden'])
+        ->name('pagos.orden.recibo');
+    Route::get('/pagos/ordenes/{orden}/abonos/{abono}/recibo-pdf', [RecibosOrdenController::class, 'adminAbono'])
+        ->name('pagos.abono.recibo');
+
     Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
         ->name('categorias.reorder');
 
@@ -399,6 +407,11 @@ Route::middleware([
     Route::get('/user/ordenes', [OrdenController::class, 'index'])
         ->name('user.ordenes.index');
 });
+
+Route::get('/ordenes/{orden}/resumen-pdf', [RecibosOrdenController::class, 'orden'])
+    ->middleware('throttle:30,1')->name('sidan.ordenes.recibo');
+Route::get('/ordenes/{orden}/abonos/{abono}/recibo-pdf', [RecibosOrdenController::class, 'abono'])
+    ->middleware('throttle:30,1')->name('sidan.ordenes.abono.recibo');
 
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])
     ->name('google.login');

@@ -10,8 +10,8 @@
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Regularización únicamente presencial durante los 30 días posteriores al vencimiento. Los pagos acreditados y las entregas se conservan.</p>
         </div>
     </header>
-    @if(session('success'))<div class="rounded-xl border border-sidan-200 bg-sidan-50 p-4 text-sm text-sidan-700 dark:border-sidan-500/30 dark:bg-sidan-500/10 dark:text-sidan-200">{{ session('success') }}</div>@endif
-    @if($errors->any())<div role="alert" class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><strong>Revisá la operación:</strong><ul class="mt-2 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+    @if($errors->any())<div role="alert" class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><strong>Revisá la operación:</strong><ul class="mt-2 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+    @endif
     <div class="grid gap-3 sm:grid-cols-2">
         <a href="{{ route('admin.ordenes.vencidas', array_filter(['vista'=>'abiertas','actividad'=>$actividad ?: null])) }}" class="rounded-2xl border p-5 {{ $vista === 'abiertas' ? 'border-amber-400 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10' : 'border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900' }}">
             <p class="text-sm font-bold">En regularización</p><p class="mt-1 text-2xl font-black">{{ $abiertas }}</p><p class="text-xs text-slate-500 dark:text-slate-400">Se permite recibir efectivo, revisar comprobantes antiguos y entregar artículos pagados.</p>
@@ -50,6 +50,7 @@
                     </div>
                 </summary>
                 <div class="space-y-5 border-t border-slate-200 p-5 dark:border-white/10">
+                    <a href="{{ route('admin.pagos.orden.recibo', $orden->id_orden) }}" class="inline-flex rounded-xl border border-sidan-500/30 bg-sidan-500/5 px-4 py-2 text-xs font-bold text-sidan-600 hover:bg-sidan-500/10 dark:text-sidan-400">Descargar resumen PDF</a>
                     @if($plazo)
                         <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-500/30 dark:bg-amber-500/10">
                             Vencimiento original: <strong>{{ $plazoOriginal?->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') }}</strong> · Último día para regularizar: <strong>{{ $plazo->copy()->timezone('America/El_Salvador')->format('d/m/Y H:i') }}</strong>.

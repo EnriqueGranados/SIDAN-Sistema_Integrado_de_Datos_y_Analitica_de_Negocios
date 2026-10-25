@@ -189,6 +189,11 @@
     <script>
         // Mostrar una notificación temporal de éxito o error
         function showAppNotification(type, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, null);
+            }
+
             // Eliminar la notificación anterior para evitar mostrar varias al mismo tiempo
             const previousNotification = document.getElementById('app-notification');
 

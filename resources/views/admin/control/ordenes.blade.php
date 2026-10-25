@@ -3,7 +3,7 @@
 @section('title', 'Control de órdenes')
 
 @section('content')
-    <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+    <div class="min-h-full bg-transparent text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -31,24 +31,9 @@
         </div>
 
         <form method="GET" action="{{ route('admin.control.ordenes') }}"
-            class="mb-7 grid gap-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-5 md:grid-cols-2 xl:grid-cols-5">
+            class="mb-7 grid gap-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f172a] p-5 md:grid-cols-2 xl:grid-cols-4">
 
-            <div>
-                <label class="mb-2 block text-xs font-bold text-slate-500 dark:text-slate-400">
-                    Actividad
-                </label>
-
-                <select name="actividad"
-                    class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-3 text-sm text-sidan-900 dark:text-white">
-                    <option value="">Todas</option>
-
-                    @foreach ($actividades as $actividad)
-                        <option value="{{ $actividad->id_actividad }}" @selected(request('actividad') == $actividad->id_actividad)>
-                            {{ $actividad->nombre }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            @include('admin.control.partials.selector-actividad')
 
             <div>
                 <label class="mb-2 block text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -220,6 +205,7 @@
                             </div>
                         </div>
 
+                        <a href="{{ route('admin.control.ordenes.recibo', $orden->id_orden) }}" class="mb-4 inline-flex rounded-xl border border-sidan-500/30 bg-sidan-500/5 px-4 py-2 text-xs font-bold text-sidan-600 hover:bg-sidan-500/10 dark:text-sidan-400">Descargar resumen PDF</a>
                         <h3 class="mb-4 text-base font-black">
                             Artículos y conceptos de la orden
                         </h3>
