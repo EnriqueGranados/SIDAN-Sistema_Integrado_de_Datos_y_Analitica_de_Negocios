@@ -165,13 +165,17 @@
                     <td class="value paid">${{ number_format($acreditado / 100, 2) }}</td>
                 </tr>
                 <tr>
-                    <td class="key">Saldo pendiente</td>
-                    <td class="value {{ $saldo > 0 ? 'pending' : 'paid' }}">${{ number_format($saldo / 100, 2) }}</td>
+                    <td class="key">{{ $orden->estado === 'cancelada' ? 'Saldo exigible (orden cancelada)' : 'Saldo pendiente' }}</td>
+                    <td class="value {{ $orden->estado === 'cancelada' ? '' : ($saldo > 0 ? 'pending' : 'paid') }}">${{ number_format($saldo / 100, 2) }}</td>
                 </tr>
             </table>
         </div>
 
-        @if ($saldo > 0)
+        @if ($orden->estado === 'cancelada')
+            <div class="note">
+                <strong>Orden cancelada.</strong> Se conserva su total histórico de compra, pero no hay saldo exigible ni venta confirmada. Esta constancia no acredita un pago.
+            </div>
+        @elseif ($saldo > 0)
             <div class="note">
                 <strong>Saldo pendiente de pago.</strong> Este documento no acredita que la orden esté pagada completamente. Solo se consideran los pagos confirmados.
             </div>

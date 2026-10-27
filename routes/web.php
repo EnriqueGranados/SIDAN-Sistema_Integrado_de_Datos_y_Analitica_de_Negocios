@@ -371,6 +371,9 @@ Route::middleware([
         Route::get('/ventas-presenciales/{orden}', [VentaPresencialController::class, 'show'])->name('ventas-presenciales.show');
     });
 
+    Route::delete('/pagos/ordenes/{orden}/cancelar', [GestionOrdenController::class, 'cancelarAdministracion'])
+        ->middleware('throttle:10,1')->name('pagos.cancelar-orden');
+
     Route::get('/pagos', [GestionOrdenController::class, 'index'])
         ->name('pagos.index');
 

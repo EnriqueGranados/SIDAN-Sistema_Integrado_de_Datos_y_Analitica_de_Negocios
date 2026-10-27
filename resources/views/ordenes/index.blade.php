@@ -119,7 +119,7 @@
                     $centavosAcreditado = $orden->pago?->proveedor === 'wompi'
                         ? ($orden->pago?->estado === 'confirmado' ? $centavosTotal : 0)
                         : ($orden->pago?->montoAcreditadoCentavos() ?? 0);
-                    $centavosSaldo = max(0, $centavosTotal - $centavosAcreditado);
+                    $centavosSaldo = $orden->estado === 'cancelada' ? 0 : max(0, $centavosTotal - $centavosAcreditado);
                     $estadoVisual = $orden->estado === 'pagada' ? 'Pagada' : ($vencidaConAbono ? 'Vencida · regularización presencial' : (
                         $orden->estado === 'vencida' && in_array($orden->cierre_financiero_estado, ['finalizada','autorizado'], true)
                             ? 'Finalizada por vencimiento' : ucfirst(str_replace('_',' ', $orden->estado))));
@@ -212,6 +212,12 @@
                         </div>
 
                         <div class="border-t border-slate-200 px-5 py-5 dark:border-white/10 sm:px-6">
+                            @if($orden->estado === 'cancelada')
+                                <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">
+                                    <strong>Orden cancelada · Sin saldo pendiente de cobro</strong>
+                                    <p class="mt-1">{{ $orden->motivo_cancelacion ?: 'La compra fue cancelada y se conserva como historial.' }}</p>
+                                </div>
+                            @endif
                             @if($vencidaConAbono)
                                 <div class="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
                                     <p class="font-bold">Regularización exclusivamente presencial</p>

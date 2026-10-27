@@ -51,6 +51,12 @@
                 'punto' => 'bg-blue-500',
             ],
 
+            'cancelada' => [
+                'texto' => 'Orden cancelada',
+                'clases' => 'bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-300',
+                'punto' => 'bg-red-500',
+            ],
+
             'revision_cupo' => [
                 'texto' => 'Revisión de cupo',
 

@@ -485,68 +485,78 @@ class GestionOrdenService
         ]);
     }
 
+    /**
+     * Solo órdenes sin cobros ni comprobantes bancarios presentados.
+     * Siempre se revalida bajo bloqueo transaccional en ejecutar().
+     */
     public function puedeCancelar(Orden $orden): bool
     {
-        if ($orden->cierre_financiero_estado === 'autorizado') return false;
-        if (!in_array($orden->estado, ['pendiente_pago', 'vencida'], true)) {
+        if (!in_array($orden->estado, ['pendiente_pago', 'vencida'], true)
+            || !in_array($orden->cierre_financiero_estado ?? 'no_aplica', ['no_aplica'], true)) {
+            return false;
+        }
+
+        if ($orden->detalles()->where('cantidad_entregada', '>', 0)->exists()) {
             return false;
         }
 
         $pago = $orden->pago;
+        if (!$pago) return true;
 
-        // Una transferencia enviada puede contener dinero aunque siga en revisión.
-        // No borrar la orden hasta que el administrador la rechace sin abonos acreditados.
-        if ($pago?->proveedor === 'transferencia') {
-            if ($pago->estado !== 'rechazado'
-                || $pago->abonos()->where('estado', 'confirmado')->exists()) {
-                return false;
-            }
-        }
-
-        // El efectivo queda reservado y solo administración puede decidir su cierre.
-        if ($pago?->proveedor === 'efectivo') {
+        if (in_array($pago->estado, ['confirmado', 'parcial'], true)
+            || $pago->fecha_confirmacion
+            || $pago->montoAcreditadoCentavos() > 0
+            || $pago->abonos()->where('estado', 'confirmado')->exists()
+            || DB::table('tbl_comprobantes')->where('id_pago', $pago->id_pago)->exists()
+            || $pago->intentos()->exists()) {
             return false;
         }
 
-        return !$pago || (
-            in_array($pago->estado, ['pendiente', 'rechazado'], true)
-            && !$pago->intentos()->exists()
-            && !DB::table('tbl_comprobantes')
-                ->where('id_pago', $pago->id_pago)
-                ->exists()
-        );
+        // Comprobante enviado: aunque esté pendiente o rechazado, requiere
+        // revisión administrativa y no se cancela por este flujo automático.
+        if ($pago->comprobante_path || $pago->abonos()
+            ->whereNotNull('comprobante_path')->exists()) {
+            return false;
+        }
+        if ($pago->proveedor === 'transferencia' && $pago->abonos()->exists()) {
+            return false;
+        }
+
+        // Efectivo aún no recibido: permite cancelar, conservando el asiento.
+        return in_array($pago->estado, ['pendiente', 'rechazado', 'cancelado'], true);
     }
 
-    public function cancelar(Orden $orden): ?string
+    /** No elimina orden, pago, detalles ni abonos: conserva trazabilidad. */
+    public function cancelar(Orden $orden, ?int $actor = null, ?string $motivo = null): void
     {
         if (!$this->puedeCancelar($orden)) {
-            $this->error(
-                'No podés cancelar esta orden: el efectivo debe revisarlo administración o existe un pago que necesita revisión.'
-            );
+            $this->error('Esta orden no puede cancelarse: ya tiene dinero acreditado, un comprobante presentado, un intento de tarjeta o un movimiento que requiere revisión.');
         }
-
-        $archivo = $orden->pago?->comprobante_path;
 
         if ($orden->tipo_orden === 'inscripcion' && $orden->inscripcion) {
-            if (
-                !in_array(
-                    $orden->inscripcion->estado,
-                    ['pendiente_pago', 'vencida', 'cancelada'],
-                    true
-                )
-            ) {
+            if (!in_array($orden->inscripcion->estado, ['pendiente_pago', 'vencida', 'cancelada'], true)) {
                 $this->error('La inscripción asociada ya no se puede cancelar.');
             }
-
-            $orden->inscripcion->update([
-                'estado' => 'cancelada',
-                'expira_en' => now(),
-            ]);
+            $orden->inscripcion->update(['estado' => 'cancelada', 'expira_en' => now()]);
         }
 
-        $orden->pago?->delete();
-        $orden->delete();
+        if ($pago = $orden->pago) {
+            // Abonos de efectivo sin confirmar quedan documentados como cancelados.
+            $pago->abonos()->where('estado', 'pendiente')->update([
+                'estado' => 'cancelado',
+                'observacion_revision' => 'Solicitud cancelada sin dinero acreditado.',
+                'updated_at' => now(),
+            ]);
+            $pago->update(['estado' => 'cancelado',
+                'observacion_revision' => 'Orden cancelada sin dinero recibido.']);
+        }
 
-        return $archivo;
+        $orden->update([
+            'estado' => 'cancelada',
+            'cierre_financiero_estado' => 'no_aplica',
+            'cancelada_en' => now(),
+            'cancelada_por' => $actor,
+            'motivo_cancelacion' => $motivo ?: 'Cancelación solicitada sin pagos recibidos.',
+        ]);
     }
 }

@@ -173,24 +173,22 @@ class GestionOrdenController extends Controller
     public function cancelar(Request $request, Orden $orden)
     {
         $this->autorizar($request, $orden);
-
-        $archivo = $this->gestion->ejecutar(
-            $orden,
-            fn(Orden $actual) => $this->gestion->cancelar($actual)
+        $datos = $request->validate(['motivo' => ['nullable', 'string', 'max:300']]);
+        $this->gestion->ejecutar($orden, fn (Orden $actual) =>
+            $this->gestion->cancelar($actual, $request->user()?->id_usuario, $datos['motivo'] ?? null)
         );
+        return redirect()->route($request->user()?->rol?->nombre === 'usuario'
+            ? 'user.ordenes.index' : 'welcome')
+            ->with('success', 'Orden cancelada. Se conserva en tu historial y no genera saldo por cobrar.');
+    }
 
-        if ($archivo) {
-            Storage::disk('local')->delete($archivo);
-        }
-
-        $request->session()->forget('sidan.ordenes.' . $orden->id_orden);
-
-        $destino = $request->user()?->rol?->nombre === 'usuario'
-            ? 'user.ordenes.index'
-            : 'welcome';
-
-        return redirect()->route($destino)
-            ->with('success', 'La orden fue cancelada y eliminada.');
+    public function cancelarAdministracion(Request $request, Orden $orden)
+    {
+        $datos = $request->validate(['motivo' => ['required', 'string', 'min:8', 'max:300']]);
+        $this->gestion->ejecutar($orden, fn (Orden $actual) =>
+            $this->gestion->cancelar($actual, $request->user()->id_usuario, $datos['motivo'])
+        );
+        return back()->with('success', 'Orden cancelada y conservada en el historial, sin saldo pendiente de cobro.');
     }
 
     public function index(Request $request, ResumenFinancieroPagosService $resumen)
@@ -232,6 +230,17 @@ class GestionOrdenController extends Controller
         $metodoSeleccionado = $filtros['metodo'] ?? '';
         $situacionSeleccionada = $filtros['situacion'] ?? '';
         $entregaSeleccionada = $filtros['entrega'] ?? '';
+
+        // Órdenes sin método de pago: también se pueden cancelar desde Pagos.
+        // No forman parte de la paginación de tbl_pagos porque aún no existe un pago.
+        $ordenesSinMetodo = Orden::query()
+            ->with(['actividad' => fn ($q) => $q->withTrashed()])
+            ->whereDoesntHave('pago')
+            ->where('estado', 'pendiente_pago')
+            ->when($actividadSeleccionada > 0, fn ($q) => $q->where('id_actividad', $actividadSeleccionada))
+            ->orderByDesc('id_orden')
+            ->paginate(12, ['*'], 'sin_metodo_page')->withQueryString();
+
 
         $consulta = Pago::query()
             ->with([
@@ -305,6 +314,7 @@ class GestionOrdenController extends Controller
             // Resumen de TODO el histórico; la actividad aplicada lo acota.
             // Estado/método son filtros de la lista, NO del libro de caja.
             'resumenFinanciero' => $resumen->calcular($actividadSeleccionada ?: null),
+            'ordenesSinMetodo' => $ordenesSinMetodo,
             'hayFiltros' => collect($filtros)->contains(fn ($valor) => $valor !== null && $valor !== ''),
             'pagos' => $consulta
                 ->orderByRaw("CASE WHEN estado IN ('pendiente', 'parcial') THEN 0 ELSE 1 END")

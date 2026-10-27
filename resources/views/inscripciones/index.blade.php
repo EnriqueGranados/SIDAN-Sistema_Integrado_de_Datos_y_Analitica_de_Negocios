@@ -492,6 +492,9 @@
                         Si ya realizaste un pago,
                         <strong>no habrá devolución</strong>.
                         Esta acción no se puede deshacer.
+                        Si luego querés volver a inscribirte en esta actividad, tendrás que esperar 24 horas.
+                        Después de dos cancelaciones necesitarás ayuda de administración.
+
                     </p>
                 </div>
 

@@ -37,6 +37,13 @@
 @endphp
 
 <div class="space-y-4 border-t border-slate-200 p-6 dark:border-white/10">
+    @if($orden->estado === 'cancelada')
+        <div role="status" class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <p class="font-black">Orden cancelada · No hay saldo por cobrar</p>
+            <p class="mt-1">{{ $orden->motivo_cancelacion ?: 'La orden fue cancelada sin dinero recibido. Su historial permanece disponible.' }}</p>
+        </div>
+    @endif
+
 
     <div class="space-y-2 text-sm">
         <div class="flex justify-between gap-3 text-slate-500 dark:text-slate-400">

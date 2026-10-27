@@ -10,6 +10,11 @@ use Illuminate\Validation\ValidationException;
 
 class InscripcionService
 {
+    // Protección contra ciclos de inscribir/cancelar que distorsionan indicadores.
+    // Los registros anteriores se conservan intactos para trazabilidad.
+    public const HORAS_ESPERA_REINSCRIPCION = 24;
+    public const MAX_CANCELACIONES_POR_ACTIVIDAD = 2;
+
     public function verificar(Actividad $actividad): void
     {
         $ahora = now();
@@ -73,6 +78,42 @@ class InscripcionService
                 Orden::whereIn('id_inscripcion', $vencidas)
                     ->where('estado', 'pendiente_pago')
                     ->update(['estado' => 'vencida']);
+            }
+
+            // Revisar cancelaciones anteriores de la misma identidad en esta actividad.
+            // Se utiliza tanto el usuario como el correo normalizado para impedir
+            // que una cuenta antigua sin vínculo de usuario evada el límite.
+            $identidad = mb_strtolower(trim((string) $datos['correo']));
+            $canceladas = Inscripcion::query()
+                ->where('id_actividad', $actividad->id_actividad)
+                ->where('estado', 'cancelada')
+                ->where(function ($query) use ($identidad, $idUsuario) {
+                    $query->whereRaw('lower(correo_participante) = ?', [$identidad]);
+                    if ($idUsuario !== null) {
+                        $query->orWhere('id_usuario', $idUsuario);
+                    }
+                })
+                ->orderByDesc('updated_at')
+                ->get(['id_inscripcion', 'updated_at']);
+
+            if ($canceladas->count() >= self::MAX_CANCELACIONES_POR_ACTIVIDAD) {
+                throw ValidationException::withMessages([
+                    'actividad' => 'Ya realizaste dos cancelaciones de esta actividad. Para volver a inscribirte, comunicate con administración.',
+                ]);
+            }
+
+            if ($canceladas->isNotEmpty()) {
+                $ultimaCancelacion = $canceladas->first()->updated_at;
+                $disponibleDesde = $ultimaCancelacion?->copy()
+                    ->addHours(self::HORAS_ESPERA_REINSCRIPCION);
+
+                if ($disponibleDesde && now()->lt($disponibleDesde)) {
+                    throw ValidationException::withMessages([
+                        'actividad' => 'Para evitar inscripciones repetidas, podrás inscribirte nuevamente después del '
+                            . $disponibleDesde->timezone('America/El_Salvador')->format('d/m/Y H:i')
+                            . ' (hora de El Salvador).',
+                    ]);
+                }
             }
 
             // Comprobamos que el participante no esté inscrito.

@@ -260,7 +260,7 @@
                     $totalCentavos = (int) round((float) $pago->monto * 100);
                     // Wompi confirmado está pagado aunque no tenga abonos manuales.
                     $acreditado = $manual ? $pago->montoAcreditadoCentavos() : ($pago->estado === 'confirmado' ? $totalCentavos : 0);
-                    $saldo = max(0, $totalCentavos - $acreditado);
+                    $saldo = $ordenPago?->estado === 'cancelada' ? 0 : max(0, $totalCentavos - $acreditado);
                     $esProducto = $ordenPago?->tipo_orden === 'productos';
                     $esAnticipo = $manual && $esProducto && $ordenPago?->modalidad_pago === 'anticipo';
                     $minimoInicialCentavos = $esAnticipo ? (int) round((float) $ordenPago->minimo_inicial * 100) : $totalCentavos;
@@ -307,6 +307,9 @@
                                 <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $estadoColor }}">
                                     {{ str_replace('_', ' ', ucfirst($pago->estado)) }}
                                 </span>
+                                @if($ordenPago?->estado === 'cancelada')
+                                    <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-300">Orden cancelada</span>
+                                @endif
                                 @if($ordenVencida)
                                     <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-300">
                                         {{ $ordenPago?->estado === 'vencida' ? 'Orden vencida' : ($pago->proveedor === 'transferencia' && $abonoPendiente ? 'Plazo vencido · por conciliar' : 'Plazo vencido · sin cerrar') }}
@@ -345,6 +348,34 @@
                         role="region" aria-labelledby="cabecera-pago-{{ $pago->id_pago }}"
                         class="border-t border-slate-100 px-4 pb-5 pt-4 dark:border-white/10 sm:px-5">
 
+                        @if($ordenPago && app(\App\Services\GestionOrdenService::class)->puedeCancelar($ordenPago))
+                            <div class="mb-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50/60 p-3 dark:border-red-500/20 dark:bg-red-500/5">
+                                <p class="text-sm text-red-800 dark:text-red-200">Sin abonos acreditados ni comprobantes presentados. Podés cancelar la orden y conservar el historial.</p>
+                                <button type="button" onclick="document.getElementById('admin-cancelar-{{ $ordenPago->id_orden }}').showModal()" class="shrink-0 rounded-lg border border-red-400 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 dark:text-red-300">Cancelar orden</button>
+                            </div>
+                            <dialog id="admin-cancelar-{{ $ordenPago->id_orden }}" class="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 dark:border-white/10 dark:bg-slate-900 dark:text-white">
+                                <div class="border-b border-slate-200 p-5 dark:border-white/10">
+                                    <h3 class="text-lg font-black">Cancelar orden #{{ $ordenPago->id_orden }}</h3>
+                                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Se conservarán el total, los conceptos y el historial. Su saldo dejará de contabilizarse como cartera pendiente.</p>
+                                </div>
+                                <form method="POST" action="{{ route('admin.pagos.cancelar-orden', $ordenPago) }}" class="space-y-4 p-5">
+                                    @csrf @method('DELETE')
+                                    <label class="block text-sm"><strong>Motivo de cancelación</strong>
+                                        <textarea name="motivo" required minlength="8" maxlength="300" rows="3" class="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 dark:border-white/20 dark:bg-slate-800 dark:text-white" placeholder="El cliente solicitó cancelar sin haber realizado pagos."></textarea>
+                                    </label>
+                                    <div class="flex justify-end gap-3">
+                                        <button type="button" onclick="this.closest('dialog').close()" class="rounded-xl border border-slate-300 px-4 py-2 font-bold dark:border-white/20">Volver</button>
+                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700">Confirmar cancelación</button>
+                                    </div>
+                                </form>
+                            </dialog>
+                        @endif
+                        @if($ordenPago?->estado === 'cancelada')
+                            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">
+                                <strong>Orden cancelada · Sin saldo exigible.</strong>
+                                <p class="mt-1">{{ $ordenPago->motivo_cancelacion ?: 'Se conserva el historial de esta operación.' }}</p>
+                            </div>
+                        @endif
                         @if($ordenVencida)
                             <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                                 <span>Esta orden venció. Sus pagos acreditados permanecen registrados; el saldo que nunca se pagó no es ingreso.</span>
@@ -357,7 +388,7 @@
                             </div>
                         @endif
 
-                        @if ($esProducto && $manual)
+                        @if ($esProducto && $manual && $ordenPago?->estado !== 'cancelada')
                             <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
                                 @if ($esAnticipo)
                                     <strong>Anticipo mínimo: ${{ number_format($minimoInicialCentavos / 100, 2) }}</strong>
@@ -624,6 +655,38 @@
             @endforelse
         </section>
 
+        @if($ordenesSinMetodo->isNotEmpty() && !$estadoSeleccionado && !$metodoSeleccionado && !$situacionSeleccionada && !$entregaSeleccionada)
+            <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900">
+                <h2 class="font-black text-sidan-900 dark:text-white">Órdenes sin método de pago</h2>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">También pueden cancelarse desde administración. Las órdenes canceladas permanecen visibles en Control de órdenes.</p>
+                <div class="mt-4 space-y-3">
+                    @foreach($ordenesSinMetodo as $ordenSinMetodo)
+                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 dark:border-white/10">
+                            <div>
+                                <p class="font-bold text-slate-900 dark:text-white">Orden #{{ $ordenSinMetodo->id_orden }} · {{ $ordenSinMetodo->actividad?->nombre ?? 'Actividad' }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $ordenSinMetodo->correo_contacto }} · Total histórico ${{ number_format((float)$ordenSinMetodo->total,2) }}</p>
+                            </div>
+                            <button type="button" onclick="document.getElementById('admin-cancelar-sin-pago-{{ $ordenSinMetodo->id_orden }}').showModal()" class="rounded-lg border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:text-red-300">Cancelar</button>
+                            <dialog id="admin-cancelar-sin-pago-{{ $ordenSinMetodo->id_orden }}" class="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl backdrop:bg-black/60 dark:border-white/10 dark:bg-slate-900 dark:text-white">
+                                <h3 class="text-lg font-black">Cancelar orden #{{ $ordenSinMetodo->id_orden }}</h3>
+                                <p class="my-3 text-sm">La orden permanecerá en el historial, sin saldo por cobrar.</p>
+                                <form method="POST" action="{{ route('admin.pagos.cancelar-orden', $ordenSinMetodo) }}" class="space-y-3">
+                                    @csrf @method('DELETE')
+                                    <label class="block text-sm font-semibold">Motivo
+                                        <textarea name="motivo" required minlength="8" maxlength="300" rows="2" class="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 dark:border-white/20 dark:bg-slate-800 dark:text-white"></textarea>
+                                    </label>
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" onclick="this.closest('dialog').close()" class="rounded-lg border px-3 py-2">Volver</button>
+                                        <button type="submit" class="rounded-lg bg-red-600 px-3 py-2 font-bold text-white">Cancelar orden</button>
+                                    </div>
+                                </form>
+                            </dialog>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="mt-4">{{ $ordenesSinMetodo->links() }}</div>
+            </section>
+        @endif
         {{ $pagos->links() }}
     </div>
 </div>

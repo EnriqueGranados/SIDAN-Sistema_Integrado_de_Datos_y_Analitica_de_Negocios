@@ -41,7 +41,7 @@ class RecibosOrdenController extends Controller
         $tipo = $abono ? 'recibo' : 'orden';
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfs.recibo-orden', [
             'orden' => $orden, 'pago' => $pago, 'abono' => $abono, 'total' => $total,
-            'acreditado' => $acreditado, 'saldo' => max(0, $total - $acreditado),
+            'acreditado' => $acreditado, 'saldo' => $orden->estado === 'cancelada' ? 0 : max(0, $total - $acreditado),
         ])->setPaper('a4');
         return $pdf->download('SIDAN-'.($tipo === 'recibo' ? 'abono-'.$abono->id_abono : 'orden-'.$orden->id_orden).'.pdf');
     }
