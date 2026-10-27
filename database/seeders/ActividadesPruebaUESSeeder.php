@@ -1283,9 +1283,5 @@ class ActividadesPruebaUESSeeder extends Seeder
                 }
             }
         });
-
-        $this->command?->info(
-            '5 actividades DEMO creadas correctamente: 3 con inscripción pagada y 2 gratuitas, todas con productos. Disponibles durante 24 horas.'
-        );
     }
 }
