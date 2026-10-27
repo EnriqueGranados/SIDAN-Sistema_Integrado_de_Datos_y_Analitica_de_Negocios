@@ -144,7 +144,15 @@
             });
 
             if (root.dataset.initialMessage) {
-                mostrar(root.dataset.initialMessage, root.dataset.initialType || 'info');
+                const mostrarAvisoInicial = () =>
+                    mostrar(root.dataset.initialMessage, root.dataset.initialType || 'info');
+
+                @if (request()->routeIs('welcome'))
+                    // En Welcome se espera hasta que desaparezca la animación SIDAN.
+                    window.addEventListener('sidan:welcome-intro-finished', mostrarAvisoInicial, { once: true });
+                @else
+                    mostrarAvisoInicial();
+                @endif
             }
         })();
     </script>

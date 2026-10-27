@@ -8,7 +8,7 @@
         #loader {
             position: fixed;
             inset: 0;
-            z-index: 9999;
+            z-index: 2147483001; /* Por encima de las alertas solo durante la animación */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1110,11 +1110,32 @@
             };
         }
 
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.getElementById('loader').classList.add('hidden');
-            }, 2200);
-        });
+        // La alerta de inicio de sesión se publica una vez finalizada la animación,
+        // no mientras el overlay todavía cubre la pantalla.
+        const loaderBienvenida = document.getElementById('loader');
+        if (loaderBienvenida) {
+            let introNotificada = false;
+            const notificarFinIntro = () => {
+                if (introNotificada) return;
+                introNotificada = true;
+                window.dispatchEvent(new Event('sidan:welcome-intro-finished'));
+            };
+
+            loaderBienvenida.addEventListener('transitionend', evento => {
+                if (evento.target === loaderBienvenida && evento.propertyName === 'opacity'
+                    && loaderBienvenida.classList.contains('hidden')) {
+                    notificarFinIntro();
+                }
+            });
+
+            window.addEventListener('load', () => {
+                window.setTimeout(() => {
+                    loaderBienvenida.classList.add('hidden');
+                    // Respaldo cuando el navegador no dispara transitionend.
+                    window.setTimeout(notificarFinIntro, 900);
+                }, 2200);
+            });
+        }
     </script>
 
 @endsection
