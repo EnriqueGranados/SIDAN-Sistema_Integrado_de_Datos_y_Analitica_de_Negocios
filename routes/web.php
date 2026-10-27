@@ -54,14 +54,14 @@ Route::get('/actividades/{slug}', [WelcomeController::class, 'show'])
 
 require __DIR__ . '/auth.php';
 
-Route::get('/dashboard', function (Request $request) {
-    return redirect()->route(AccesoModulos::inicio($request->user()));
+Route::get('/dashboard', function () {
+    return redirect()->route('welcome');
 })
     ->middleware(['auth', 'user.status', 'force.password.change'])
     ->name('dashboard');
 
-Route::get('/user/dashboard', function (Request $request) {
-    return redirect()->route(AccesoModulos::inicio($request->user()));
+Route::get('/user/dashboard', function () {
+    return redirect()->route('welcome');
 })
     ->middleware(['auth', 'user.status', 'force.password.change'])
     ->name('user.dashboard');
@@ -131,16 +131,20 @@ Route::get('/tunnel-test', function () {
 Route::post('/wompi/webhook', [WompiController::class, 'webhook'])
     ->name('wompi.webhook');
 
+// Enlace histórico: /admin/dashboard ahora abre el primer módulo autorizado.
+// Va fuera del middleware 'modulo' porque ya no existe el módulo dashboard.
+Route::get('/admin/dashboard', function (Request $request) {
+    return redirect()->route(AccesoModulos::inicio($request->user()));
+})
+    ->middleware(['auth', 'force.password.change', 'user.status'])
+    ->name('admin.dashboard');
+
 Route::middleware([
     'auth',
     'force.password.change',
     'user.status',
     'modulo',
 ])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
-
     Route::get('/welcome', [WelcomeAdministracionController::class, 'index'])
         ->name('welcome.index');
 

@@ -86,7 +86,7 @@ class GoogleController extends Controller
             }
 
             return redirect()
-                ->route('dashboard')
+                ->route('welcome')
                 ->with('success', 'Has iniciado sesión con tu cuenta de Google.');
         }
 
@@ -220,7 +220,7 @@ class GoogleController extends Controller
             ]);
         }
 
-        // 3. Redirigimos al dashboard con un mensaje de éxito
+        // 3. Redirigimos al Welcome con un mensaje de éxito
         return redirect()
             ->route('welcome')
             ->with('success', '¡Perfil actualizado con éxito!');
@@ -398,7 +398,7 @@ class GoogleController extends Controller
         request()->session()->forget('url.intended');
 
         return redirect()
-            ->route('dashboard')
+            ->route('welcome')
             ->with('success', 'Cuenta de Google vinculada exitosamente.');
 
     }

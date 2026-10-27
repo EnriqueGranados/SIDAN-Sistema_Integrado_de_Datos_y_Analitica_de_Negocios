@@ -2,11 +2,6 @@
 
 return [
     'catalogo' => [
-        'dashboard' => [
-            'nombre' => 'Dashboard',
-            'descripcion' => 'Consultar el panel administrativo.',
-            'ruta' => 'admin.dashboard',
-        ],
         'actividades' => [
             'nombre' => 'Actividades',
             'descripcion' => 'Crear, configurar, editar y publicar actividades.',
@@ -88,7 +83,6 @@ return [
         'admin.espacios.descendientes' => ['espacios', 'actividades'],
         'admin.espacios.crear-rapido' => ['espacios', 'actividades'],
 
-        'admin.dashboard' => ['dashboard'],
         'admin.actividades.*' => ['actividades'],
         'admin.categorias.*' => ['categorias'],
         'admin.etiquetas.*' => ['etiquetas'],

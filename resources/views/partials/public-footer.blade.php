@@ -116,7 +116,7 @@
                         @endphp
 
                         <a
-                            href="{{ $esAdminFooter ? route('admin.dashboard') : route('user.dashboard') }}"
+                            href="{{ $esAdminFooter ? route(\App\Support\AccesoModulos::inicio($usuarioFooter)) : route('welcome') }}"
                             class="block transition hover:text-sidan-500"
                         >
                             {{ $esAdminFooter ? 'Panel administrativo' : 'Mi cuenta' }}

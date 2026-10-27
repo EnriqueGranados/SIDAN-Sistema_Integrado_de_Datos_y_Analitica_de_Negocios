@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Support\AccesoModulos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -14,9 +13,7 @@ class ForcePasswordChangeController extends Controller
     public function create(Request $request)
     {
         if (!$request->user()->must_change_password) {
-            return redirect()->route(
-                AccesoModulos::inicio($request->user())
-            );
+            return redirect()->route('welcome');
         }
 
         return view('auth.force-password-change');
@@ -27,7 +24,7 @@ class ForcePasswordChangeController extends Controller
         $user = $request->user();
 
         if (!$user->must_change_password) {
-            return redirect()->route(AccesoModulos::inicio($user));
+            return redirect()->route('welcome');
         }
 
         $validated = $request->validate([
@@ -60,7 +57,7 @@ class ForcePasswordChangeController extends Controller
         $request->session()->forget('url.intended');
 
         return redirect()
-            ->route(AccesoModulos::inicio($user))
+            ->route('welcome')
             ->with(
                 'success',
                 'Tu contraseña se actualizó correctamente. Bienvenido a SIDAN.'
