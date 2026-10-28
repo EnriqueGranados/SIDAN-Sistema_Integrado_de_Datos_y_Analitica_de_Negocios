@@ -19,25 +19,15 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = mb_substr(trim((string) $request->query('search', '')), 0, 150);
+        $tipo = $request->query('tipo') === 'sistema' ? 'sistema' : 'normales';
 
-        $users = User::with(['rol', 'informacion_personal'])
-            ->where('eliminado', false)
-            ->where('estado_activo', true)
-            ->when($search, function ($query, $search) {
-                $query->where(function ($consulta) use ($search) {
-                    $consulta->whereHas('informacion_personal', function ($q) use ($search) {
-                        $q->where('nombres', 'like', "%{$search}%")
-                            ->orWhere('apellidos', 'like', "%{$search}%")
-                            ->orWhere('documento', 'like', "%{$search}%");
-                    })->orWhere('correo', 'like', "%{$search}%");
-                });
-            })
+        $users = $this->consultaUsuariosActivos($search, $tipo)
             ->orderByDesc('id_usuario')
-            ->paginate(10)
+            ->paginate(15)
             ->withQueryString();
 
-        return view('admin.users.listado', compact('users', 'search'));
+        return view('admin.users.listado', compact('users', 'search', 'tipo'));
     }
 
     public function create()
@@ -358,32 +348,27 @@ class UserController extends Controller
 
     public function search(Request $request)
     {
-        $search = $request->input('q', '');
+        // Búsqueda y filtros ANTES de paginar: evita cargar toda tbl_usuarios en el navegador.
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 150);
+        $tipo = $request->query('tipo') === 'sistema' ? 'sistema' : 'normales';
+        $pagina = max(1, $request->integer('page', 1));
 
-        $users = User::with(['rol', 'informacion_personal'])
-            ->where('eliminado', false)
-            ->where('estado_activo', true)
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('correo', 'like', "%{$search}%")
-                        ->orWhereHas('informacion_personal', function ($q) use ($search) {
-                            $q->where('nombres', 'like', "%{$search}%")
-                                ->orWhere('apellidos', 'like', "%{$search}%")
-                                ->orWhere('documento', 'like', "%{$search}%")
-                                ->orWhere('telefono', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('rol', function ($q) use ($search) {
-                            $q->where('nombre', 'like', "%{$search}%");
-                        });
-                });
-            })
-            ->orderByDesc('id_usuario')
-            ->get();
+        $query = $this->consultaUsuariosActivos($search, $tipo)
+            ->orderByDesc('id_usuario');
+        $users = $query->paginate(15, ['*'], 'page', $pagina);
+
+        // Si se bloqueó/eliminó al último usuario de la última página, regresar a la válida.
+        if ($users->currentPage() > $users->lastPage()) {
+            $users = $this->consultaUsuariosActivos($search, $tipo)
+                ->orderByDesc('id_usuario')
+                ->paginate(15, ['*'], 'page', $users->lastPage());
+        }
 
         return response()->json([
-            'users' => $users->map(function ($user) {
+            'users' => $users->getCollection()->map(function ($user) {
                 return [
                     'id' => $user->id_usuario,
+                    'imagen_perfil' => $user->imagen_perfil,
                     'nombres' => $user->informacion_personal->nombres ?? '',
                     'apellidos' => $user->informacion_personal->apellidos ?? '',
                     'documento' => $user->informacion_personal->documento ?? '',
@@ -394,8 +379,45 @@ class UserController extends Controller
                     'toggle_url' => route('admin.users.toggle', $user),
                     'ban_url' => route('admin.users.destroy', $user),
                 ];
-            }),
+            })->values(),
+            'pagination' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'total' => $users->total(),
+                'from' => $users->firstItem() ?? 0,
+                'to' => $users->lastItem() ?? 0,
+            ],
         ]);
+    }
+
+    private function consultaUsuariosActivos(string $search, string $tipo): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = User::with(['rol', 'informacion_personal'])
+            ->where('eliminado', false)
+            ->where('estado_activo', true);
+
+        // El filtro se aplica en PostgreSQL; no sobre una sola página del navegador.
+        $rolUsuario = fn ($q) => $q->whereRaw('LOWER(TRIM(nombre)) = ?', ['usuario']);
+        if ($tipo === 'sistema') {
+            $query->whereDoesntHave('rol', $rolUsuario);
+        } else {
+            $query->whereHas('rol', $rolUsuario);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('correo', 'ilike', "%{$search}%")
+                    ->orWhereHas('informacion_personal', function ($persona) use ($search) {
+                        $persona->where('nombres', 'ilike', "%{$search}%")
+                            ->orWhere('apellidos', 'ilike', "%{$search}%")
+                            ->orWhere('documento', 'ilike', "%{$search}%")
+                            ->orWhere('telefono', 'ilike', "%{$search}%");
+                    })
+                    ->orWhereHas('rol', fn ($rol) => $rol->where('nombre', 'ilike', "%{$search}%"));
+            });
+        }
+
+        return $query;
     }
 
     public function banned()
@@ -404,7 +426,8 @@ class UserController extends Controller
             ->where('eliminado', false)
             ->where('estado_activo', false)
             ->orderByDesc('id_usuario')
-            ->paginate(10);
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.users.banned', compact('users'));
     }
@@ -438,7 +461,8 @@ class UserController extends Controller
         $users = User::with(['rol', 'informacion_personal'])
             ->where('eliminado', true)
             ->orderByDesc('id_usuario')
-            ->paginate(10);
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.users.deleted', compact('users'));
     }

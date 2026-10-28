@@ -171,17 +171,7 @@
                     </tbody>
                 </table>
             </div>
-            {{-- Paginación --}}
-            @if ($users->hasPages())
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/5">
-                    {{ $users->links() }}
-                </div>
-            @endif
-            @if ($users->hasPages())
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/5">
-                    {{ $users->links() }}
-                </div>
-            @endif
+            @include('admin.users.partials.paginacion', ['users' => $users])
         </div>
     </div>
 </div>

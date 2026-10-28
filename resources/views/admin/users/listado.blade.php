@@ -23,20 +23,20 @@
 
     @php
         $imagenesIniciales = $usersData->pluck('imagen_perfil', 'id')->all();
+        $paginacionInicial = [
+            'pagina' => $users->currentPage(),
+            'ultima' => $users->lastPage(),
+            'total' => $users->total(),
+            'desde' => $users->firstItem() ?? 0,
+            'hasta' => $users->lastItem() ?? 0,
+        ];
     @endphp
 
     {{-- Los botones de grupo son visuales; los permisos siguen controlados en Laravel. --}}
     <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white"
-        x-data="{
-            tipoUsuario: 'normales',
-            imagenesIniciales: @js($imagenesIniciales),
-            usuariosPorTipo(users) {
-                return users.filter(user => {
-                    const esNormal = String(user.rol_nombre || '').trim().toLowerCase() === 'usuario';
-                    return this.tipoUsuario === 'normales' ? esNormal : !esNormal;
-                });
-            }
-        }">
+        x-data="userDirectory(@js($tipo), @js($search), @js($paginacionInicial), @js($imagenesIniciales))"
+        x-init="performSearch(currentPage)"
+        @users-page-refresh.window="performSearch(currentPage)">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
             <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -90,31 +90,7 @@
                 </div>
             </div>
 
-            <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10"
-                x-init="performSearch()"
-                x-data="{
-                    search: '',
-                    loading: false,
-                
-                    performSearch() {
-                        this.loading = true;
-                
-                        fetch(`{{ route('admin.users.search') }}?q=${encodeURIComponent(this.search)}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                this.$dispatch('users-updated', data.users);
-                                this.loading = false;
-                            })
-                            .catch(() => {
-                                this.loading = false;
-                
-                                showAppNotification(
-                                    'error',
-                                    'Error al realizar la búsqueda.'
-                                );
-                            });
-                    }
-                }">
+            <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10">
                 {{-- Filtro visible de cuentas: no modifica roles ni permisos. --}}
                 <div class="mb-4">
                     <p class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
@@ -122,7 +98,7 @@
                     </p>
                     <div class="grid grid-cols-1 gap-20 sm:grid-cols-2" role="group" aria-label="Filtrar usuarios por tipo">
                         <button type="button"
-                            @click="tipoUsuario = 'normales'"
+                            @click="cambiarTipo('normales')"
                             :aria-pressed="tipoUsuario === 'normales'"
                             :class="tipoUsuario === 'normales'
                                 ? 'border-sidan-500 bg-sidan-500 text-white shadow-sm'
@@ -136,7 +112,7 @@
                             Usuarios normales
                         </button>
                         <button type="button"
-                            @click="tipoUsuario = 'sistema'"
+                            @click="cambiarTipo('sistema')"
                             :aria-pressed="tipoUsuario === 'sistema'"
                             :class="tipoUsuario === 'sistema'
                                 ? 'border-sidan-500 bg-sidan-500 text-white shadow-sm'
@@ -169,7 +145,7 @@
                         </svg>
                     </div>
 
-                    <input id="buscarUsuario" type="search" x-model="search" @input.debounce.300ms="performSearch()"
+                    <input id="buscarUsuario" type="search" x-model="search" @input.debounce.300ms="performSearch(1)"
                         autocomplete="off" placeholder="Buscar por nombre, apellido, documento o correo..."
                         class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:bg-white focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-white/10">
 
@@ -188,10 +164,7 @@
 
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10"
                 x-data="userTable(@js($usersData), '{{ csrf_token() }}')"
-                @users-updated.window="users = $event.detail.map(user => ({
-                    ...user,
-                    imagen_perfil: user.imagen_perfil ?? imagenesIniciales[user.id] ?? null
-                }))">
+                @users-updated.window="users = $event.detail">
                 <div class="overflow-x-auto">
 
                     <table class="min-w-full divide-y divide-slate-200 dark:divide-white/5">
@@ -229,7 +202,7 @@
 
                         <tbody class="divide-y divide-slate-200 dark:divide-white/5">
 
-                            {{-- Filtro de roles aplicado a los registros existentes, sin alterar acciones. --}}
+                            {{-- PostgreSQL ya filtra por rol antes de paginar. --}}
                             <template x-for="user in usuariosPorTipo(users)" :key="user.id">
 
                                 <tr class="transition hover:bg-slate-50 dark:hover:bg-white/[0.02]"
@@ -391,12 +364,120 @@
 
                 </div>
 
+                {{-- Paginación activa: usa la misma consulta que la búsqueda por nombre y tipo. --}}
+                <div class="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/10"
+                    x-show="total > 0" x-cloak>
+                    <p class="text-sm text-slate-600 dark:text-slate-400"
+                        x-text="`Mostrando ${from}–${to} de ${total} usuarios`"></p>
+                    <nav class="flex flex-wrap items-center gap-1.5" aria-label="Paginación de usuarios">
+                        <button type="button" @click="performSearch(1)"
+                            :disabled="currentPage <= 1 || loading"
+                            aria-label="Ir a la primera página"
+                            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:border-sidan-500 hover:text-sidan-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300">
+                            « Primera
+                        </button>
+                        <button type="button" @click="performSearch(currentPage - 1)"
+                            :disabled="currentPage <= 1 || loading"
+                            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:border-sidan-500 hover:text-sidan-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300">
+                            Anterior
+                        </button>
+                        <template x-for="pagina in paginasVisibles()" :key="pagina">
+                            <button type="button" @click="performSearch(pagina)" x-text="pagina"
+                                :aria-current="pagina === currentPage ? 'page' : null"
+                                :disabled="loading"
+                                :class="pagina === currentPage ? 'border-sidan-500 bg-sidan-500 text-white' : 'border-slate-200 text-slate-600 hover:border-sidan-500 hover:text-sidan-600 dark:border-white/10 dark:text-slate-300'"
+                                class="min-w-9 rounded-lg border px-2.5 py-2 text-sm font-semibold transition disabled:opacity-60">
+                            </button>
+                        </template>
+                        <button type="button" @click="performSearch(currentPage + 1)"
+                            :disabled="currentPage >= lastPage || loading"
+                            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:border-sidan-500 hover:text-sidan-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300">
+                            Siguiente
+                        </button>
+                        <button type="button" @click="performSearch(lastPage)"
+                            :disabled="currentPage >= lastPage || loading"
+                            aria-label="Ir a la última página"
+                            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:border-sidan-500 hover:text-sidan-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300">
+                            Última »
+                        </button>
+                        <span class="ml-1 whitespace-nowrap px-2 text-xs text-slate-500 dark:text-slate-400"
+                            x-text="`Página ${currentPage} de ${lastPage}`"></span>
+                    </nav>
+                </div>
             </div>
 
         </div>
     </div>
 
     <script>
+        function userDirectory(tipo, busqueda, paginacion, imagenes) {
+            return {
+                tipoUsuario: tipo,
+                search: busqueda,
+                currentPage: paginacion.pagina,
+                lastPage: paginacion.ultima,
+                total: paginacion.total,
+                from: paginacion.desde,
+                to: paginacion.hasta,
+                loading: false,
+                imagenesIniciales: imagenes,
+                requestNumber: 0,
+
+                // La consulta ya llega filtrada por rol y paginada desde PostgreSQL.
+                usuariosPorTipo(users) { return users; },
+
+                cambiarTipo(tipo) {
+                    if (tipo === this.tipoUsuario) return;
+                    this.tipoUsuario = tipo;
+                    this.performSearch(1);
+                },
+
+                paginasVisibles() {
+                    const inicio = Math.max(1, Math.min(this.currentPage - 2, this.lastPage - 4));
+                    const fin = Math.min(this.lastPage, inicio + 4);
+                    return Array.from({length: Math.max(0, fin - inicio + 1)}, (_, i) => inicio + i);
+                },
+
+                async performSearch(pagina = 1) {
+                    if (pagina < 1 || (pagina > this.lastPage && this.lastPage > 0)) return;
+                    const numeroSolicitud = ++this.requestNumber;
+                    this.loading = true;
+                    const parametros = new URLSearchParams({
+                        q: this.search,
+                        tipo: this.tipoUsuario,
+                        page: String(pagina)
+                    });
+                    try {
+                        const respuesta = await fetch(`{{ route('admin.users.search') }}?${parametros}`, {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (!respuesta.ok) throw new Error('No fue posible consultar los usuarios.');
+                        const datos = await respuesta.json();
+                        if (numeroSolicitud !== this.requestNumber) return;
+                        this.currentPage = datos.pagination.current_page;
+                        this.lastPage = datos.pagination.last_page;
+                        this.total = datos.pagination.total;
+                        this.from = datos.pagination.from;
+                        this.to = datos.pagination.to;
+                        this.$dispatch('users-updated', datos.users);
+
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('tipo', this.tipoUsuario);
+                        if (this.search.trim()) url.searchParams.set('search', this.search.trim());
+                        else url.searchParams.delete('search');
+                        if (this.currentPage > 1) url.searchParams.set('page', String(this.currentPage));
+                        else url.searchParams.delete('page');
+                        window.history.replaceState(null, '', url);
+                    } catch (error) {
+                        if (numeroSolicitud === this.requestNumber) {
+                            showAppNotification('error', 'No se pudo cargar la lista de usuarios.');
+                        }
+                    } finally {
+                        if (numeroSolicitud === this.requestNumber) this.loading = false;
+                    }
+                }
+            };
+        }
         function showAppNotification(type, message) {
             // Centralizar avisos sin alterar las acciones existentes del módulo.
             if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
@@ -943,6 +1024,7 @@
                                                 user.id
                                             )
                                         );
+                                    this.$dispatch('users-page-refresh');
                                 }
 
                                 this.showNotification(
@@ -1035,6 +1117,7 @@
                                             user.id
                                         )
                                     );
+                                    this.$dispatch('users-page-refresh');
 
                                 this.showNotification(
                                     'success',

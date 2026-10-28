@@ -18,7 +18,7 @@ return new class extends Migration
 
         // 2. Obtener el costo vigente del producto o variante.
         DB::unprepared(<<<'SQL'
-            CREATE FUNCTION sidan_copiar_costo_historico()
+            CREATE OR REPLACE FUNCTION sidan_copiar_costo_historico()
             RETURNS TRIGGER
             LANGUAGE plpgsql
             AS $$

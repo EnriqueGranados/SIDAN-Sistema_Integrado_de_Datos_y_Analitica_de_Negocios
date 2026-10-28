@@ -21,13 +21,13 @@ class AbonosOrdenController extends Controller
         private readonly AbonosProductosService $abonos,
         private readonly RegularizacionVencidasService $regularizacion) {}
 
-    public function vencidas(Request $request, VencimientosOrdenService $vencimientos)
+    public function vencidas(Request $request)
     {
         $datos = $request->validate([
             'vista' => ['nullable', 'in:abiertas,finalizadas'],
             'actividad' => ['nullable', 'integer', 'exists:tbl_actividades,id_actividad'],
         ]);
-        $vencimientos->sincronizar();
+        
         $actividad = (int) ($datos['actividad'] ?? 0);
         $vista = $datos['vista'] ?? 'abiertas';
         $base = Orden::query()

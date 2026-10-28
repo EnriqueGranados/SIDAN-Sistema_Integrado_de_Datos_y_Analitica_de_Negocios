@@ -166,6 +166,7 @@
                     </tbody>
                 </table>
             </div>
+            @include('admin.users.partials.paginacion', ['users' => $users])
         </div>
     </div>
 </div>

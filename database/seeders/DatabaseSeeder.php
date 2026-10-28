@@ -15,8 +15,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolSeeder::class,
             UserSeeder::class,
-            CatalogoSeeder::class,
+            //CatalogoSeeder::class,
             ActividadesPruebaUESSeeder::class,
+            SidanCargaMasivaSeeder::class
         ]);
     }
 }

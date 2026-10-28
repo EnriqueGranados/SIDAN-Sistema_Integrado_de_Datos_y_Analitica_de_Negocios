@@ -27,7 +27,7 @@ return new class extends Migration
 
         // Función ejecutada cuando una orden pasa al estado pagada.
         DB::unprepared(<<<'SQL'
-            CREATE FUNCTION sidan_registrar_rentabilidad_confirmada()
+            CREATE OR REPLACE FUNCTION sidan_registrar_rentabilidad_confirmada()
             RETURNS TRIGGER
             LANGUAGE plpgsql
             AS $$

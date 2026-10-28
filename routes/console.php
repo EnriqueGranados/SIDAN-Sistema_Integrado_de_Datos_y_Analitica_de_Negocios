@@ -14,7 +14,15 @@ Artisan::command('sidan:vencer-ordenes', function () {
 })->purpose('Revisar vencimientos sin eliminar dinero recibido');
 
 // Requiere ejecutar php artisan schedule:run cada minuto en el servidor.
-\Illuminate\Support\Facades\Schedule::command('sidan:vencer-ordenes')->everyFifteenMinutes()->withoutOverlapping();
+\Illuminate\Support\Facades\Schedule::command('sidan:vencer-ordenes')
+    ->everyMinute()
+    ->withoutOverlapping();
+
+/*
+\Illuminate\Support\Facades\Schedule::command('sidan:vencer-ordenes')
+->everyFifteenSeconds()
+->withoutOverlapping();
+*/
 
 // Requiere cron Laravel + worker de cola activos en producción.
 \Illuminate\Support\Facades\Schedule::command('sidan:avisos-orden')
