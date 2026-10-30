@@ -1,8 +1,8 @@
 @if ($actividad->estado_publicacion === 'borrador')
 
     @if ($actividad->configuracion_completa ?? false)
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"></span>
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-sidan-500/20 bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-sidan-400"></span>
             Lista para revisión
         </span>
     @else
@@ -25,8 +25,8 @@
     </span>
 
 @elseif ($actividad->estado_publicacion === 'aprobada')
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"></span>
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-sidan-500/20 bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
+        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-sidan-400"></span>
         Aprobada
     </span>
 
@@ -37,8 +37,8 @@
     </span>
 
 @elseif ($actividad->estado_publicacion === 'publicada')
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"></span>
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-sidan-500/20 bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
+        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-sidan-400"></span>
         Publicada
     </span>
 

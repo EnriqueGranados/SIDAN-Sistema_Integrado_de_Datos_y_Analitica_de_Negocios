@@ -92,14 +92,14 @@
             </div>
         </div>
     </div>
-    <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4 sm:p-5">
+    <div class="rounded-2xl border border-sidan-500/20 bg-sidan-500/[0.05] p-4 sm:p-5">
         <div class="flex items-start gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-lg text-emerald-300">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sidan-500/10 text-lg text-sidan-300">
                 ✓
             </div>
 
             <div>
-                <h2 class="font-semibold text-emerald-300">
+                <h2 class="font-semibold text-sidan-300">
                     Revisa la configuración
                 </h2>
 
@@ -123,7 +123,7 @@
                             Presentación
                         </h3>
 
-                        <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                        <span class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
                             Completa
                         </span>
                     </div>
@@ -187,7 +187,7 @@
                             Productos o servicios
                         </h3>
 
-                        <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                        <span class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
                             Completo
                         </span>
                     </div>
@@ -265,7 +265,7 @@
                                 Datos solicitados
                             </h3>
 
-                            <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                            <span class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
                                 Completo
                             </span>
                         </div>
@@ -344,7 +344,7 @@
                                 Precios y costos
                             </h3>
 
-                            <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                            <span class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">
                                 Completo
                             </span>
                         </div>
@@ -440,6 +440,42 @@
         </div>
     @endif
 
+    <div class="overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/[0.03]">
+        <details class="group">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-xs font-bold text-amber-300">%</span>
+                        <h3 class="font-semibold text-white">Promociones</h3>
+                        <span class="rounded-full bg-white/[0.05] px-2.5 py-1 text-xs font-semibold text-gray-400">Opcional</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">{{ $actividad->promociones->count() }} promoción{{ $actividad->promociones->count() === 1 ? '' : 'es' }} configurada{{ $actividad->promociones->count() === 1 ? '' : 's' }}</p>
+                </div>
+                <span class="text-gray-500 transition group-open:rotate-180">⌄</span>
+            </summary>
+            <div class="border-t border-white/10 p-4 sm:p-5">
+                @if ($actividad->promociones->isEmpty())
+                    <p class="text-sm text-gray-400">No configuraste promociones para esta actividad.</p>
+                @else
+                    <div class="space-y-2">
+                        @foreach ($actividad->promociones->take(5) as $promocion)
+                            <div class="flex flex-col gap-2 rounded-xl border border-white/10 bg-black/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="font-semibold text-white">{{ $promocion->nombre }}</p>
+                                    <p class="mt-1 text-xs text-gray-500">{{ $promocion->codigo ?: 'Automática' }} · {{ $promocion->tipo_descuento === 'porcentaje' ? number_format((float) $promocion->valor, 2).'%' : '$'.number_format((float) $promocion->valor, 2) }}</p>
+                                </div>
+                                <span class="text-xs font-semibold {{ $promocion->activo ? 'text-sidan-400' : 'text-gray-500' }}">{{ $promocion->activo ? 'Activa' : 'Inactiva' }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+                <div class="mt-4">
+                    <a href="{{ route('admin.actividades.promociones.index', $actividad) }}" class="inline-flex rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-500/15">Administrar promociones</a>
+                </div>
+            </div>
+        </details>
+    </div>
+
     <div class="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
         <details class="group">
             <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5">
@@ -447,7 +483,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-xs font-bold text-blue-300">5</span>
                         <h3 class="font-semibold text-white">Programación</h3>
-                        <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">Completa</span>
+                        <span class="rounded-full bg-sidan-500/10 px-2.5 py-1 text-xs font-semibold text-sidan-400">Completa</span>
                     </div>
                     <p class="mt-2 text-sm text-gray-500">{{ $textoModoSesiones }}@if($totalSesiones > 0) · {{ $totalSesiones }} sesión{{ $totalSesiones === 1 ? '' : 'es' }} · {{ $totalRecursosSesiones }} recurso{{ $totalRecursosSesiones === 1 ? '' : 's' }} asignado{{ $totalRecursosSesiones === 1 ? '' : 's' }}@endif</p>
                 </div>
@@ -498,7 +534,7 @@
         </details>
     </div>
 
-    <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4 sm:p-6">
+    <div class="rounded-2xl border border-sidan-500/20 bg-sidan-500/[0.04] p-4 sm:p-6">
         <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <h3 class="text-lg font-semibold text-white">
@@ -516,7 +552,7 @@
                 @csrf
 
                 <button type="submit"
-                    class="w-full rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-400 sm:w-auto">
+                    class="w-full rounded-xl bg-sidan-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-sidan-600 sm:w-auto">
                     Guardar y finalizar configuración
                 </button>
             </form>

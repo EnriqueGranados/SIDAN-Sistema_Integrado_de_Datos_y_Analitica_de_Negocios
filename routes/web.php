@@ -1,37 +1,105 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WelcomeController;
-use App\Http\Controllers\Auth\GoogleController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WompiController;
+use App\Http\Controllers\ActividadAccionController;
+use App\Http\Controllers\Admin\AbonosOrdenController;
+use App\Http\Controllers\Admin\ActividadConfiguracionController;
 use App\Http\Controllers\Admin\ActividadController;
+use App\Http\Controllers\Admin\ActividadPromocionController;
+use App\Http\Controllers\Admin\ActividadPublicacionController;
 use App\Http\Controllers\Admin\ActividadRevisionController;
 use App\Http\Controllers\Admin\CategoriaController;
+use App\Http\Controllers\Admin\ControlActividadController;
+use App\Http\Controllers\Admin\EspacioController;
 use App\Http\Controllers\Admin\EtiquetaController;
 use App\Http\Controllers\Admin\RecursoController;
-use App\Http\Controllers\Admin\EspacioController;
+use App\Http\Controllers\Admin\RolController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VentaPresencialController;
+use App\Http\Controllers\Admin\WelcomeAdministracionController;
+use App\Http\Controllers\Auth\ForcePasswordChangeController;
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\CompraActividadController;
+use App\Http\Controllers\GestionOrdenController;
+use App\Http\Controllers\InscripcionController;
+use App\Http\Controllers\MisInscripcionesController;
+use App\Http\Controllers\OrdenController;
+use App\Http\Controllers\RecibosOrdenController;
+use App\Http\Controllers\PagoController;
+use App\Http\Controllers\PaginasPublicasController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UbicacionController;
-
+use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\WompiController;
+use App\Support\AccesoModulos;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+
+Route::get('/categorias', [PaginasPublicasController::class, 'categorias'])
+    ->name('publico.categorias');
+
+Route::get('/como-funciona', [PaginasPublicasController::class, 'comoFunciona'])
+    ->name('publico.como-funciona');
+
+Route::get('/actividades', [WelcomeController::class, 'catalogo'])
+    ->name('activities.index');
+
+Route::get('/actividades/sugerencias', [WelcomeController::class, 'sugerencias'])
+    ->middleware('throttle:120,1')
+    ->name('activities.suggestions');
 
 Route::get('/actividades/{slug}', [WelcomeController::class, 'show'])
     ->name('activities.show');
 
-// Rutas de autenticación
 require __DIR__ . '/auth.php';
 
-// Perfil
+Route::get('/dashboard', function () {
+    return redirect()->route('welcome');
+})
+    ->middleware(['auth', 'user.status', 'force.password.change'])
+    ->name('dashboard');
+
+Route::get('/user/dashboard', function () {
+    return redirect()->route('welcome');
+})
+    ->middleware(['auth', 'user.status', 'force.password.change'])
+    ->name('user.dashboard');
+
+Route::get('/actividades/{slug}/participar', [ActividadAccionController::class, 'participar'])
+    ->name('activities.participar');
+
+Route::get('/actividades/{slug}/comprar', [ActividadAccionController::class, 'comprar'])
+    ->name('activities.comprar');
+
+Route::post('/actividades/{actividad:slug}/compra', [CompraActividadController::class, 'store'])
+    ->middleware(['auth', 'user.status'])
+    ->name('activities.compra.store');
+
 Route::middleware('auth')->group(function () {
+    Route::get('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'create'])
+        ->name('password.force.edit');
+
+    Route::post('/cambiar-password-obligatorio', [ForcePasswordChangeController::class, 'store'])
+        ->name('password.force.update');
+
+    Route::get('/user/inscripciones', [MisInscripcionesController::class, 'index'])
+        ->name('user.inscripciones.index');
+
+    Route::patch('/user/inscripciones/{inscripcion}/cancelar', [MisInscripcionesController::class, 'cancelar'])
+        ->name('user.inscripciones.cancelar');
+
+    Route::get('/user/inscripciones/{inscripcion}/detalle', [MisInscripcionesController::class, 'detalle'])
+        ->name('user.inscripciones.detalle');
+});
+
+Route::middleware(['auth', 'force.password.change'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::post(
-        '/profile/password/email',
-        [ProfileController::class, 'sendPasswordLink']
-    )
-        ->middleware(['auth', 'throttle:3,1'])
+
+    Route::post('/profile/password/email', [ProfileController::class, 'sendPasswordLink'])
+        ->middleware('throttle:3,1')
         ->name('profile.password.email');
 });
 
@@ -39,16 +107,9 @@ Route::middleware(['throttle:60,1'])
     ->prefix('ubicaciones')
     ->name('ubicaciones.')
     ->group(function () {
-
-        Route::get('/paises', [UbicacionController::class, 'paises'])
-            ->name('paises');
-
-        Route::get('/estados/{pais}', [UbicacionController::class, 'estados'])
-            ->name('estados');
-
-        Route::get('/ciudades/{pais}/{estado}', [UbicacionController::class, 'ciudades'])
-            ->name('ciudades');
-
+        Route::get('/paises', [UbicacionController::class, 'paises'])->name('paises');
+        Route::get('/estados/{pais}', [UbicacionController::class, 'estados'])->name('estados');
+        Route::get('/ciudades/{pais}/{estado}', [UbicacionController::class, 'ciudades'])->name('ciudades');
     });
 
 Route::get('/wompi/prueba', [WompiController::class, 'prueba'])
@@ -70,156 +131,345 @@ Route::get('/tunnel-test', function () {
 Route::post('/wompi/webhook', [WompiController::class, 'webhook'])
     ->name('wompi.webhook');
 
-// Administradores
-Route::middleware(['auth', 'rol:superadmin,admin', 'user.status'])->prefix('admin')->name('admin.')->group(function () {
+// Enlace histórico: /admin/dashboard ahora abre el primer módulo autorizado.
+// Va fuera del middleware 'modulo' porque ya no existe el módulo dashboard.
+Route::get('/admin/dashboard', function (Request $request) {
+    return redirect()->route(AccesoModulos::inicio($request->user()));
+})
+    ->middleware(['auth', 'force.password.change', 'user.status'])
+    ->name('admin.dashboard');
 
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+Route::middleware([
+    'auth',
+    'force.password.change',
+    'user.status',
+    'modulo',
+])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/welcome', [WelcomeAdministracionController::class, 'index'])
+        ->name('welcome.index');
 
-    Route::get('/revisiones-actividades', [ActividadRevisionController::class, 'index'])->name('actividades.revision.index');
-    Route::get('/revisiones-actividades/{actividad}', [ActividadRevisionController::class, 'show'])->name('actividades.revision.show');
-    Route::post('/revisiones-actividades/{actividad}/observaciones', [ActividadRevisionController::class, 'guardarObservacion'])->name('actividades.revision.observaciones.store');
-    Route::delete('/revisiones-actividades/{actividad}/observaciones/{observacion}', [ActividadRevisionController::class, 'eliminarObservacion'])->name('actividades.revision.observaciones.destroy');
-    Route::post('/revisiones-actividades/{actividad}/aprobar', [ActividadRevisionController::class, 'aprobar'])->name('actividades.revision.aprobar');
-    Route::post('/revisiones-actividades/{actividad}/solicitar-cambios', [ActividadRevisionController::class, 'solicitarCambios'])->name('actividades.revision.solicitar-cambios');
-    Route::post('/revisiones-actividades/{actividad}/rechazar', [ActividadRevisionController::class, 'rechazar'])->name('actividades.revision.rechazar');
+    Route::get('/welcome/actividades', [WelcomeAdministracionController::class, 'buscarActividades'])
+        ->middleware('throttle:120,1')
+        ->name('welcome.actividades.buscar');
 
-    // CRUD de Actividades
-    Route::resource('actividades', \App\Http\Controllers\Admin\ActividadController::class)
+    Route::post('/welcome/espacios', [WelcomeAdministracionController::class, 'crearEspacio'])
+        ->name('welcome.espacios.store');
+
+    Route::put('/welcome/destacada', [WelcomeAdministracionController::class, 'establecerDestacada'])
+        ->name('welcome.destacada.actualizar');
+
+    Route::delete('/welcome/destacada', [WelcomeAdministracionController::class, 'quitarDestacada'])
+        ->name('welcome.destacada.quitar');
+
+    Route::patch('/welcome/destacada/{actividad}/prioridad', [WelcomeAdministracionController::class, 'actualizarPrioridad'])
+        ->name('welcome.destacada.prioridad');
+
+    Route::put('/welcome/espacios/{espacio}/actividad', [WelcomeAdministracionController::class, 'asignar'])
+        ->name('welcome.espacios.asignar');
+
+    Route::delete('/welcome/espacios/{espacio}/actividad', [WelcomeAdministracionController::class, 'quitar'])
+        ->name('welcome.espacios.quitar');
+
+    Route::patch('/welcome/espacios/{espacio}/mover', [WelcomeAdministracionController::class, 'mover'])
+        ->name('welcome.espacios.mover');
+
+    Route::delete('/welcome/espacios/{espacio}', [WelcomeAdministracionController::class, 'eliminarEspacio'])
+        ->name('welcome.espacios.destroy');
+
+    Route::get('/revisiones-actividades', [ActividadRevisionController::class, 'index'])
+        ->name('actividades.revision.index');
+
+    Route::get('/revisiones-actividades/{actividad}', [ActividadRevisionController::class, 'show'])
+        ->name('actividades.revision.show');
+
+    Route::post('/revisiones-actividades/{actividad}/observaciones', [ActividadRevisionController::class, 'guardarObservacion'])
+        ->name('actividades.revision.observaciones.store');
+
+    Route::delete('/revisiones-actividades/{actividad}/observaciones/{observacion}', [ActividadRevisionController::class, 'eliminarObservacion'])
+        ->name('actividades.revision.observaciones.destroy');
+
+    Route::post('/revisiones-actividades/{actividad}/aprobar', [ActividadRevisionController::class, 'aprobar'])
+        ->name('actividades.revision.aprobar');
+
+    Route::post('/revisiones-actividades/{actividad}/solicitar-cambios', [ActividadRevisionController::class, 'solicitarCambios'])
+        ->name('actividades.revision.solicitar-cambios');
+
+    Route::post('/revisiones-actividades/{actividad}/rechazar', [ActividadRevisionController::class, 'rechazar'])
+        ->name('actividades.revision.rechazar');
+
+    Route::post('actividades/{actividad}/publicar', [ActividadPublicacionController::class, 'publicar'])
+        ->name('actividades.publicar');
+
+    Route::post('actividades/{actividad}/retirar-publicacion', [ActividadPublicacionController::class, 'retirar'])
+        ->name('actividades.retirar-publicacion');
+
+    Route::resource('actividades', ActividadController::class)
         ->parameters(['actividades' => 'actividad']);
 
-    Route::get('actividades/{actividad}/configurar', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'show'])
+    Route::get('actividades/{actividad}/configurar', [ActividadConfiguracionController::class, 'show'])
         ->name('actividades.configurar');
 
-    Route::post('actividades/{actividad}/items', [\App\Http\Controllers\Admin\ActividadController::class, 'guardarItem'])
+    Route::post('actividades/{actividad}/items', [ActividadController::class, 'guardarItem'])
         ->name('actividades.items.store');
 
-    Route::put('actividades/{actividad}/items/{item}', [\App\Http\Controllers\Admin\ActividadController::class, 'actualizarItem'])
+    Route::put('actividades/{actividad}/items/{item}', [ActividadController::class, 'actualizarItem'])
         ->name('actividades.items.update');
 
-    Route::delete('actividades/{actividad}/items/{item}', [\App\Http\Controllers\Admin\ActividadController::class, 'eliminarItem'])
+    Route::delete('actividades/{actividad}/items/{item}', [ActividadController::class, 'eliminarItem'])
         ->name('actividades.items.destroy');
 
-    Route::post('/actividades/{actividad}/productos/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
+    Route::post('actividades/{actividad}/productos/configuracion', [ActividadConfiguracionController::class, 'guardarConfiguracionProductos'])
         ->name('actividades.productos.configuracion');
 
-    Route::post('/actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
+    Route::post('actividades/{actividad}/enviar-revision', [ActividadController::class, 'enviarRevision'])
         ->name('actividades.enviar-revision');
 
-
-
-    Route::post('/actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
+    Route::post('actividades/{actividad}/retirar-revision', [ActividadController::class, 'retirarRevision'])
         ->name('actividades.retirar-revision');
 
-    // Datos que se solicitarán al comprador
-    Route::post('actividades/{actividad}/items/{item}/datos-pedido', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarDatosPedido'])
+    Route::post('actividades/{actividad}/items/{item}/datos-pedido', [ActividadConfiguracionController::class, 'guardarDatosPedido'])
         ->name('actividades.datos-pedido.store');
 
-    // Aumentos de precio y costo según las opciones seleccionadas
-    Route::post('actividades/{actividad}/items/{item}/ajustes-precio', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarAjustesPrecio'])
+    Route::post('actividades/{actividad}/items/{item}/ajustes-precio', [ActividadConfiguracionController::class, 'guardarAjustesPrecio'])
         ->name('actividades.ajustes-precio.store');
 
-    // Fechas, horarios y turnos de la actividad
-    Route::post('actividades/{actividad}/sesiones/configuracion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarSesiones'])
+    Route::get('actividades/{actividad}/promociones', [ActividadPromocionController::class, 'index'])
+        ->name('actividades.promociones.index');
+
+    Route::post('actividades/{actividad}/promociones', [ActividadPromocionController::class, 'store'])
+        ->name('actividades.promociones.store');
+
+    Route::patch('actividades/{actividad}/promociones/{promocion}', [ActividadPromocionController::class, 'update'])
+        ->name('actividades.promociones.update');
+
+    Route::patch('actividades/{actividad}/promociones/{promocion}/estado', [ActividadPromocionController::class, 'toggle'])
+        ->name('actividades.promociones.toggle');
+
+    Route::delete('actividades/{actividad}/promociones/{promocion}', [ActividadPromocionController::class, 'destroy'])
+        ->name('actividades.promociones.destroy');
+
+    Route::post('actividades/{actividad}/sesiones/configuracion', [ActividadConfiguracionController::class, 'guardarSesiones'])
         ->name('actividades.sesiones.configuracion');
 
-    Route::post('actividades/{actividad}/configuracion/finalizar', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'finalizarConfiguracion'])
+    Route::post('actividades/{actividad}/configuracion/finalizar', [ActividadConfiguracionController::class, 'finalizarConfiguracion'])
         ->name('actividades.configuracion.finalizar');
 
-    Route::post('actividades/{actividad}/presentacion', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'guardarPresentacion'])
+    Route::post('actividades/{actividad}/presentacion', [ActividadConfiguracionController::class, 'guardarPresentacion'])
         ->name('actividades.presentacion.store');
 
-    Route::patch('actividades/{actividad}/medios/{medio}/portada', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'establecerPortada'])
+    Route::patch('actividades/{actividad}/medios/{medio}/portada', [ActividadConfiguracionController::class, 'establecerPortada'])
         ->name('actividades.medios.portada');
 
-    Route::delete('actividades/{actividad}/medios/{medio}', [\App\Http\Controllers\Admin\ActividadConfiguracionController::class, 'eliminarMedio'])
+    Route::delete('actividades/{actividad}/medios/{medio}', [ActividadConfiguracionController::class, 'eliminarMedio'])
         ->name('actividades.medios.destroy');
 
-    // Orden de Categorías
+    Route::get('/control/inscripciones', [ControlActividadController::class, 'inscripciones'])
+        ->name('control.inscripciones');
+
+    Route::get('/control/ordenes', [ControlActividadController::class, 'ordenes'])
+        ->name('control.ordenes');
+
+    Route::get('/control/consolidado', [ControlActividadController::class, 'consolidado'])
+        ->name('control.consolidado');
+
+    Route::get('/control/consolidado/imprimir', [ControlActividadController::class, 'imprimirConsolidado'])
+        ->name('control.consolidado.imprimir');
+
+    Route::get('/control/ordenes/{orden}/resumen-pdf', [RecibosOrdenController::class, 'adminOrden'])
+        ->name('control.ordenes.recibo');
+    Route::get('/pagos/ordenes/{orden}/resumen-pdf', [RecibosOrdenController::class, 'adminOrden'])
+        ->name('pagos.orden.recibo');
+    Route::get('/pagos/ordenes/{orden}/abonos/{abono}/recibo-pdf', [RecibosOrdenController::class, 'adminAbono'])
+        ->name('pagos.abono.recibo');
+
     Route::patch('categorias/reordenar', [CategoriaController::class, 'reorder'])
         ->name('categorias.reorder');
 
-    // CRUD de Categorías
     Route::resource('categorias', CategoriaController::class)
         ->except(['show'])
         ->parameters(['categorias' => 'categoria']);
 
-    //CRUD de Etiquetas
     Route::resource('etiquetas', EtiquetaController::class)
         ->except(['show'])
         ->parameters(['etiquetas' => 'etiqueta']);
 
-    //CRUD de Recursos
     Route::resource('recursos', RecursoController::class)
         ->except(['show'])
         ->parameters(['recursos' => 'recurso']);
 
-    //CRUD de Espacios
+    Route::get('espacios/buscar', [EspacioController::class, 'buscar'])
+        ->name('espacios.buscar');
+
+    Route::post('espacios/crear-rapido', [EspacioController::class, 'crearRapido'])
+        ->name('espacios.crear-rapido');
+
+    Route::get('espacios/{espacio}/descendientes', [EspacioController::class, 'descendientes'])
+        ->name('espacios.descendientes');
+
     Route::resource('espacios', EspacioController::class)
         ->except(['show'])
         ->parameters(['espacios' => 'espacio']);
 
-
-
-    // Rutas para la gestión de usuarios baneados y restauración
-    Route::get('/users/banned', [\App\Http\Controllers\Admin\UserController::class, 'banned'])
+    Route::get('/users/banned', [UserController::class, 'banned'])
         ->name('users.banned');
 
-    // Rutas para la gestión de usuarios eliminados y restauración
-    Route::get('/users/deleted', [\App\Http\Controllers\Admin\UserController::class, 'deleted'])
+    Route::get('/users/deleted', [UserController::class, 'deleted'])
         ->name('users.deleted');
 
-    Route::patch('/users/{user}/restore', [\App\Http\Controllers\Admin\UserController::class, 'restore'])
-        ->name('users.restore');
-
-    // Ruta para búsqueda en tiempo real (devuelve JSON)
-    Route::get('/users/search', [\App\Http\Controllers\Admin\UserController::class, 'search'])
+    Route::get('/users/search', [UserController::class, 'search'])
         ->name('users.search');
 
-    // Ruta para cambiar el estado (activo/inactivo)
-    Route::patch('/users/{user}/toggle', [\App\Http\Controllers\Admin\UserController::class, 'toggleEstado'])
+    Route::patch('/users/{user}/restore', [UserController::class, 'restore'])
+        ->name('users.restore');
+
+    Route::patch('/users/{user}/toggle', [UserController::class, 'toggleEstado'])
         ->name('users.toggle');
 
-    // CRUD de Usuarios (Ahora sí generará admin.users.index, admin.users.create, etc.)
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::post('/users/{user}/regenerar-password', [UserController::class, 'regenerarPassword'])
+        ->middleware('throttle:3,1')
+        ->name('users.regenerar-password');
 
-    // CRUD de Roles para superadmin
-    Route::middleware('rol:superadmin')->prefix('roles')->name('roles.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\RolController::class, 'index'])->name('index');
-        Route::get('/crear', [\App\Http\Controllers\Admin\RolController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Admin\RolController::class, 'store'])->name('store');
-        Route::get('/{rol}/editar', [\App\Http\Controllers\Admin\RolController::class, 'edit'])->name('edit');
-        Route::put('/{rol}', [\App\Http\Controllers\Admin\RolController::class, 'update'])->name('update');
-        Route::delete('/{rol}', [\App\Http\Controllers\Admin\RolController::class, 'destroy'])->name('destroy');
+    Route::resource('users', UserController::class)->except(['show']);
+
+    Route::middleware('rol:superadmin')
+        ->prefix('roles')
+        ->name('roles.')
+        ->group(function () {
+            Route::get('/', [RolController::class, 'index'])->name('index');
+            Route::get('/crear', [RolController::class, 'create'])->name('create');
+            Route::post('/', [RolController::class, 'store'])->name('store');
+            Route::get('/{rol}/editar', [RolController::class, 'edit'])->name('edit');
+            Route::put('/{rol}', [RolController::class, 'update'])->name('update');
+            Route::delete('/{rol}', [RolController::class, 'destroy'])->name('destroy');
+        });
+
+    Route::get('/ordenes-vencidas', [AbonosOrdenController::class, 'vencidas'])
+        ->name('ordenes.vencidas');
+
+    Route::post('/ordenes-vencidas/{orden}/conciliar/{abono}', [AbonosOrdenController::class, 'conciliar'])
+        ->middleware('throttle:10,1')
+        ->name('ordenes.conciliar');
+
+    Route::post('/ordenes-vencidas/{orden}/abonar', [AbonosOrdenController::class, 'abonar'])
+        ->middleware('throttle:10,1')->name('ordenes.abonar');
+
+    Route::post('/ordenes-vencidas/{orden}/abonar', [AbonosOrdenController::class, 'abonar'])
+        ->middleware('throttle:10,1')->name('ordenes.abonar');
+
+    Route::post('/ordenes-vencidas/{orden}/abonar', [AbonosOrdenController::class, 'abonar'])
+        ->middleware('throttle:10,1')->name('ordenes.abonar');
+
+    Route::post('/ordenes-vencidas/{orden}/cerrar', [AbonosOrdenController::class, 'cerrar'])
+        ->name('ordenes.cerrar');
+
+    Route::post('/ordenes/{orden}/entregar/{detalle}', [AbonosOrdenController::class, 'entregar'])
+        ->name('ordenes.entregar');
+
+    Route::middleware('rol:admin,superadmin')->group(function () {
+        Route::get('/ventas-presenciales', [VentaPresencialController::class, 'index'])->name('ventas-presenciales.index');
+        Route::post('/ventas-presenciales', [VentaPresencialController::class, 'store'])->middleware('throttle:10,1')->name('ventas-presenciales.store');
+        Route::get('/ventas-presenciales/{orden}', [VentaPresencialController::class, 'show'])->name('ventas-presenciales.show');
     });
+
+    Route::delete('/pagos/ordenes/{orden}/cancelar', [GestionOrdenController::class, 'cancelarAdministracion'])
+        ->middleware('throttle:10,1')->name('pagos.cancelar-orden');
+
+    Route::get('/pagos', [GestionOrdenController::class, 'index'])
+        ->name('pagos.index');
+
+    Route::get('/pagos/{pago}/comprobante', [GestionOrdenController::class, 'comprobante'])
+        ->name('pagos.comprobante');
+
+    Route::get('/abonos-transferencia/{abono}/comprobante', [GestionOrdenController::class, 'comprobanteAbono'])
+        ->name('pagos.abonos.comprobante');
+
+    Route::post('/pagos/{pago}/aprobar', [GestionOrdenController::class, 'aprobar'])
+        ->name('pagos.aprobar');
+
+    Route::post('/pagos/{pago}/rechazar', [GestionOrdenController::class, 'rechazar'])
+        ->name('pagos.rechazar');
 });
 
-// Usuario normal (Protegido)
-Route::middleware(['auth', 'rol:usuario', 'user.status'])->group(function () {
-    Route::get('/user/dashboard', function () {
-        return view('user.dashboard');
-    })->name('user.dashboard');
-
-    // Nueva ruta para el formulario de onboarding opcional
-    Route::get('/datos-personales', function () {
-        return view('auth.datos-personales');
-    })->name('datos.personales');
+Route::middleware([
+    'auth',
+    'force.password.change',
+    'rol:usuario',
+    'user.status',
+])->group(function () {
+    Route::get('/datos-personales', fn () => view('auth.datos-personales'))
+        ->name('datos.personales');
 
     Route::get('/omitir-perfil', function () {
-        return redirect()->route('user.dashboard')
-            ->with('success', 'Has omitido el registro. Puedes completar tus datos más tarde desde tu perfil.');
+        return redirect()
+            ->route('welcome')
+            ->with(
+                'success',
+                'Has omitido el registro. Puedes completar tus datos más tarde desde tu perfil.'
+            );
     })->name('perfil.omitir');
 
-    Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])->name('perfil.guardar');
+    Route::post('/datos-personales', [GoogleController::class, 'guardarDatosPersonales'])
+        ->name('perfil.guardar');
+
+    Route::get('/user/ordenes', [OrdenController::class, 'index'])
+        ->name('user.ordenes.index');
 });
 
-// Autenticación con Google (Público)
-Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])->name('vincular.cuenta');
-Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])->name('vincular.cuenta.procesar');
+Route::get('/ordenes/{orden}/resumen-pdf', [RecibosOrdenController::class, 'orden'])
+    ->middleware('throttle:30,1')->name('sidan.ordenes.recibo');
+Route::get('/ordenes/{orden}/abonos/{abono}/recibo-pdf', [RecibosOrdenController::class, 'abono'])
+    ->middleware('throttle:30,1')->name('sidan.ordenes.abono.recibo');
 
-// Google desde el perfil (Autenticado)
-Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])->middleware('auth')->name('profile.google.link');
-Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])->middleware('auth')->name('profile.google.unlink');
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])
+    ->name('google.login');
+
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
+Route::get('/vincular-cuenta', [GoogleController::class, 'showLinkAccountForm'])
+    ->name('vincular.cuenta');
+
+Route::post('/vincular-cuenta', [GoogleController::class, 'linkAccount'])
+    ->name('vincular.cuenta.procesar');
+
+Route::get('/actividades/{slug}/inscripcion', [InscripcionController::class, 'create'])
+    ->name('sidan.inscripciones.create');
+
+Route::post('/actividades/{slug}/inscripciones', [InscripcionController::class, 'store'])
+    ->middleware('throttle:8,1')
+    ->name('sidan.inscripciones.store');
+
+Route::get('/inscripciones/{inscripcion}', [InscripcionController::class, 'show'])
+    ->name('sidan.inscripciones.show');
+
+Route::get('/ordenes/{orden}', [OrdenController::class, 'show'])
+    ->name('sidan.ordenes.show');
+
+Route::post('/ordenes/{orden}/pagar', [PagoController::class, 'iniciar'])
+    ->middleware('throttle:5,1')
+    ->name('sidan.pagos.iniciar');
+
+Route::get('/profile/google/link', [GoogleController::class, 'redirectToGoogleFromProfile'])
+    ->middleware(['auth', 'force.password.change'])
+    ->name('profile.google.link');
+
+Route::delete('/profile/google', [ProfileController::class, 'unlinkGoogle'])
+    ->middleware(['auth', 'force.password.change'])
+    ->name('profile.google.unlink');
+
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/ordenes/{orden}/promocion', [GestionOrdenController::class, 'promocion'])
+        ->middleware(['auth', 'user.status'])
+        ->name('sidan.ordenes.promocion');
+
+    Route::post('/ordenes/{orden}/pago-manual', [GestionOrdenController::class, 'manual'])
+        ->name('sidan.ordenes.manual');
+
+    Route::post('/ordenes/{orden}/complemento-transferencia', [GestionOrdenController::class, 'complemento'])
+        ->name('sidan.ordenes.complemento');
+
+    Route::post('/ordenes/{orden}/confirmar-gratuita', [GestionOrdenController::class, 'gratuita'])
+        ->name('sidan.ordenes.gratuita');
+
+    Route::delete('/ordenes/{orden}', [GestionOrdenController::class, 'cancelar'])
+        ->name('sidan.ordenes.cancelar');
+});

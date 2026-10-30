@@ -71,7 +71,7 @@
 
                     <a
                         href="{{ route('login') }}"
-                        class="rounded-xl bg-sidan-500 px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 sm:px-4 sm:py-2.5">
+                        class="rounded-xl bg-sidan-500 px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600 sm:px-4 sm:py-2.5">
                         Iniciar sesión
                     </a>
                 </div>
@@ -97,10 +97,10 @@
                 </div>
 
                 @if ($esEstablecimiento)
-                    <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4 dark:border-green-500/20 dark:bg-green-500/5">
+                    <div class="mb-6 rounded-2xl border border-sidan-200 bg-sidan-50 p-4 dark:border-sidan-500/20 dark:bg-sidan-500/5">
                         <div class="flex items-start gap-3">
                             <svg
-                                class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
+                                class="mt-0.5 h-5 w-5 shrink-0 text-sidan-600 dark:text-sidan-400"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -109,7 +109,7 @@
                                 <path d="M20 6 9 17l-5-5" />
                             </svg>
 
-                            <p class="text-sm leading-6 text-green-800 dark:text-green-300">
+                            <p class="text-sm leading-6 text-sidan-600 dark:text-sidan-300">
                                 <strong>Tu cuenta de Google seguirá vinculada.</strong>
                                 Después de establecer tu contraseña podrás iniciar sesión
                                 con Google o con tu correo electrónico y contraseña.
@@ -204,7 +204,7 @@
                                 required
                                 autocomplete="new-password"
                                 placeholder="••••••••"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
 
                             @error('password')
                                 <p class="mt-2 text-sm font-semibold text-red-600 dark:text-red-400">
@@ -228,12 +228,12 @@
                                 required
                                 autocomplete="new-password"
                                 placeholder="••••••••"
-                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
+                                class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500">
                         </div>
 
                         <button
                             type="submit"
-                            class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-green-500/20 transition hover:-translate-y-0.5 hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-500/20">
+                            class="w-full rounded-xl bg-sidan-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-sidan-500/20 transition hover:-translate-y-0.5 hover:bg-sidan-600 focus:outline-none focus:ring-4 focus:ring-sidan-500/20">
                             {{ $esEstablecimiento ? 'Establecer contraseña' : 'Guardar nueva contraseña' }}
                         </button>
                     </form>

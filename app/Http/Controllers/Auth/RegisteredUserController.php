@@ -33,43 +33,45 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'nombres' => ['required', 'string', 'max:100'],
-            'apellidos' => ['required', 'string', 'max:100'],
-            'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento'],
-            'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono'],
-            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
-            'genero' => ['nullable', 'string', 'max:10'],
-            'ubicacion' => ['nullable', 'string', 'max:150'],
+        $request->validate(
+            [
+                'nombres' => ['required', 'string', 'max:100'],
+                'apellidos' => ['required', 'string', 'max:100'],
+                'documento' => ['nullable', 'string', 'regex:/^[0-9]{8}-[0-9]$/', 'unique:tbl_informacion_personal,documento'],
+                'telefono' => ['nullable', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/', 'unique:tbl_informacion_personal,telefono'],
+                'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(10)->format('Y-m-d')],
+                'genero' => ['nullable', 'string', 'max:10'],
+                'ubicacion' => ['nullable', 'string', 'max:150'],
 
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:150',
-                'unique:tbl_usuarios,correo',
+                'email' => [
+                    'required',
+                    'string',
+                    'lowercase',
+                    'email',
+                    'max:150',
+                    'unique:tbl_usuarios,correo',
+                ],
+
+                'password' => [
+                    'required',
+                    'confirmed',
+                    Rules\Password::defaults(),
+                ],
             ],
+            [
+                'documento.unique' => 'Este DUI ya está registrado.',
+                'documento.regex' => 'Ingresa un número de DUI válido.',
 
-            'password' => [
-                'required',
-                'confirmed',
-                Rules\Password::defaults(),
-            ],
-        ],
-        [
-            'documento.unique' => 'Este DUI ya está registrado.',
-            'documento.regex' => 'Ingresa un número de DUI válido.',
+                'telefono.regex' => 'Ingresa un número de teléfono válido.',
+                'telefono.unique' => 'Este número de teléfono ya está registrado.',
 
-            'telefono.regex' => 'Ingresa un número de teléfono válido.',
-            'telefono.unique' => 'Este número de teléfono ya está registrado.',
+                'email.required' => 'El correo electrónico es obligatorio.',
+                'email.email' => 'Ingresa un correo electrónico válido.',
+                'email.unique' => 'Este correo electrónico ya está registrado.',
 
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'Ingresa un correo electrónico válido.',
-            'email.unique' => 'Este correo electrónico ya está registrado.',
-
-            'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
-        ]);
+                'fecha_nacimiento.before_or_equal' => 'Debes tener al menos 10 años para registrarte.',
+            ]
+        );
 
         $usuario = DB::transaction(function () use ($request) {
 
@@ -103,6 +105,11 @@ class RegisteredUserController extends Controller
 
         Auth::login($usuario);
 
-        return redirect()->intended('/user/dashboard')->with('success', 'Cuenta creada exitosamente.');
+        $request->session()->regenerate();
+        $request->session()->forget('url.intended');
+
+        return redirect()
+            ->route('welcome')
+            ->with('success', 'Cuenta creada exitosamente.');
     }
 }

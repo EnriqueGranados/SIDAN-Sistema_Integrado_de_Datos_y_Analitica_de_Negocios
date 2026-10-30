@@ -4,172 +4,175 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Rol;
-use App\Models\User;
+use App\Support\AccesoModulos;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class RolController extends Controller
 {
-    // Mostrar el listado de roles junto con la cantidad de usuarios asignados
     public function index()
     {
         $roles = Rol::withCount('usuarios')
-            ->orderBy('id_rol', 'desc')
+            ->orderByDesc('id_rol')
             ->paginate(10);
 
         return view('admin.roles.listado', compact('roles'));
     }
 
-    // Mostrar el formulario para crear un nuevo rol
     public function create()
     {
-        return view('admin.roles.crear');
+        return view('admin.roles.crear', [
+            'modulosDisponibles' => AccesoModulos::asignables(),
+        ]);
     }
 
-    // Guardar un nuevo rol en el sistema
     public function store(Request $request)
     {
-        // Normalizar el nombre antes de realizar la validación
-        $request->merge([
-            'nombre' => strtolower(trim($request->nombre))
-        ]);
-
-        // Validar los datos enviados y evitar nombres de roles duplicados
-        $validated = $request->validate([
-            'nombre' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('tbl_roles', 'nombre')
-            ],
-            'descripcion' => [
-                'required',
-                'string'
-            ]
-        ], [
-            'nombre.required' => 'El nombre del rol es obligatorio.',
-            'nombre.string' => 'El nombre del rol debe ser un texto válido.',
-            'nombre.max' => 'El nombre del rol no puede superar los 255 caracteres.',
-            'nombre.unique' => 'Ya existe un rol con ese nombre.',
-            'descripcion.required' => 'La descripción del rol es obligatoria.',
-            'descripcion.string' => 'La descripción debe ser un texto válido.'
-        ]);
+        $datos = $this->validar($request);
 
         try {
-            Rol::create($validated);
+            DB::transaction(function () use ($datos) {
+                Rol::create($datos);
+            });
 
             return redirect()
                 ->route('admin.roles.index')
-                ->with('success', 'El rol fue creado correctamente.');
-        } catch (QueryException $e) {
-
-            // Registrar el error de base de datos para facilitar su revisión
-            Log::error('Error al crear rol', [
-                'error' => $e->getMessage()
-            ]);
-
-            // Controlar posibles duplicados detectados directamente por PostgreSQL
-            if (($e->errorInfo[0] ?? null) === '23505') {
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'nombre' => 'Ya existe un rol con ese nombre.'
-                    ]);
-            }
+                ->with('success', 'Rol y accesos creados correctamente.');
+        } catch (QueryException $exception) {
+            report($exception);
 
             return back()
                 ->withInput()
-                ->with('error', 'No se pudo crear el rol. Inténtalo nuevamente.');
+                ->withErrors([
+                    'nombre' => ($exception->errorInfo[0] ?? null) === '23505'
+                        ? 'Ya existe un rol con ese nombre.'
+                        : 'No fue posible guardar el rol.',
+                ]);
         }
     }
 
-    // Mostrar el formulario para editar un rol existente
     public function edit(Rol $rol)
     {
-        return view('admin.roles.editar', compact('rol'));
+        return view('admin.roles.editar', [
+            'rol' => $rol,
+            'modulosDisponibles' => AccesoModulos::asignables(),
+        ]);
     }
 
-    // Actualizar la información de un rol existente
     public function update(Request $request, Rol $rol)
     {
-        // Normalizar el nombre antes de realizar la validación
-        $request->merge([
-            'nombre' => strtolower(trim($request->nombre))
-        ]);
-
-        // Validar los datos ignorando al mismo rol en la regla de nombre único
-        $validated = $request->validate([
-            'nombre' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('tbl_roles', 'nombre')
-                    ->ignore($rol->id_rol, 'id_rol')
-            ],
-            'descripcion' => [
-                'required',
-                'string'
-            ]
-        ], [
-            'nombre.required' => 'El nombre del rol es obligatorio.',
-            'nombre.string' => 'El nombre del rol debe ser un texto válido.',
-            'nombre.max' => 'El nombre del rol no puede superar los 255 caracteres.',
-            'nombre.unique' => 'Ya existe otro rol con ese nombre.',
-            'descripcion.required' => 'La descripción del rol es obligatoria.',
-            'descripcion.string' => 'La descripción debe ser un texto válido.'
-        ]);
+        $datos = $this->validar($request, $rol);
 
         try {
-            $rol->update($validated);
+            DB::transaction(function () use ($rol, $datos) {
+                $rol->update($datos);
+            });
 
             return redirect()
                 ->route('admin.roles.index')
-                ->with('success', 'El rol fue actualizado correctamente.');
-        } catch (QueryException $e) {
-
-            // Registrar el error incluyendo el rol que se intentaba actualizar
-            Log::error('Error al actualizar rol', [
-                'rol' => $rol->id_rol,
-                'error' => $e->getMessage()
-            ]);
-
-            // Controlar posibles duplicados detectados directamente por PostgreSQL
-            if (($e->errorInfo[0] ?? null) === '23505') {
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'nombre' => 'Ya existe otro rol con ese nombre.'
-                    ]);
-            }
+                ->with('success', 'Rol y accesos actualizados correctamente.');
+        } catch (QueryException $exception) {
+            report($exception);
 
             return back()
                 ->withInput()
-                ->with('error', 'No se pudo actualizar el rol. Inténtalo nuevamente.');
+                ->withErrors([
+                    'nombre' => ($exception->errorInfo[0] ?? null) === '23505'
+                        ? 'Ya existe otro rol con ese nombre.'
+                        : 'No fue posible actualizar el rol.',
+                ]);
         }
     }
 
-    // Eliminar un rol del sistema
     public function destroy(Rol $rol)
     {
-        // Evitar eliminar roles que todavía tengan usuarios asignados
-        if ($rol->usuarios()->count() > 0) {
-            return back()->with('error', 'No se puede eliminar el rol porque tiene usuarios asignados.');
+        if ($rol->esBase()) {
+            return back()->with(
+                'error',
+                'No se pueden eliminar los roles base del sistema.'
+            );
         }
 
-        // Proteger los roles base necesarios para el funcionamiento del sistema
-        if (in_array($rol->nombre, ['superadmin', 'admin', 'usuario'])) {
-            return back()->with('error', 'No se pueden eliminar los roles base del sistema.');
+        if ($rol->usuarios()->exists()) {
+            return back()->with(
+                'error',
+                'No se puede eliminar el rol porque tiene usuarios asignados.'
+            );
         }
 
         try {
             $rol->delete();
 
-            return redirect()->route('admin.roles.index')->with('success', 'Rol eliminado correctamente.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error al eliminar el rol.');
+            return redirect()
+                ->route('admin.roles.index')
+                ->with('success', 'Rol eliminado correctamente.');
+        } catch (QueryException $exception) {
+            report($exception);
+
+            return back()->with('error', 'No fue posible eliminar el rol.');
         }
+    }
+
+    private function validar(Request $request, ?Rol $rol = null): array
+    {
+        $nombre = $request->input('nombre');
+
+        if (is_string($nombre)) {
+            $request->merge([
+                'nombre' => mb_strtolower(trim($nombre)),
+            ]);
+        }
+
+        $reglaUnica = Rule::unique('tbl_roles', 'nombre');
+
+        if ($rol) {
+            $reglaUnica->ignore($rol->id_rol, 'id_rol');
+        }
+
+        $datos = $request->validate([
+            'nombre' => ['required', 'string', 'max:255', $reglaUnica],
+            'descripcion' => ['required', 'string', 'max:2000'],
+            'modulos' => ['sometimes', 'array'],
+            'modulos.*' => [
+                'required',
+                'string',
+                'distinct',
+                Rule::in(array_keys(AccesoModulos::asignables())),
+            ],
+        ], [
+            'nombre.required' => 'El nombre del rol es obligatorio.',
+            'nombre.unique' => 'Ya existe un rol con ese nombre.',
+            'descripcion.required' => 'La descripción es obligatoria.',
+            'modulos.array' => 'Los módulos seleccionados no son válidos.',
+            'modulos.*.in' => 'Uno de los módulos seleccionados no está permitido.',
+        ]);
+
+        $nombresReservados = ['superadmin', 'admin', 'usuario'];
+
+        if ($rol?->esBase() && $datos['nombre'] !== $rol->nombre) {
+            throw ValidationException::withMessages([
+                'nombre' => 'No se puede cambiar el nombre de un rol base.',
+            ]);
+        }
+
+        if (
+            !$rol?->esBase()
+            && in_array($datos['nombre'], $nombresReservados, true)
+        ) {
+            throw ValidationException::withMessages([
+                'nombre' => 'Ese nombre está reservado para un rol base.',
+            ]);
+        }
+
+        $datos['modulos'] = array_values($datos['modulos'] ?? []);
+
+        if (in_array($rol?->nombre, ['superadmin', 'usuario'], true)) {
+            $datos['modulos'] = [];
+        }
+
+        return $datos;
     }
 }

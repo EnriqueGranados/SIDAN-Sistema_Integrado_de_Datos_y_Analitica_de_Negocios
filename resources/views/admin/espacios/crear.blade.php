@@ -58,9 +58,9 @@
             color: #cbd5e1 !important;
         }
 
-        html:not(.dark) .espacios-theme .text-emerald-300,
-        html:not(.dark) .espacios-theme .text-emerald-400 {
-            color: #047857 !important;
+        html:not(.dark) .espacios-theme .text-sidan-300,
+        html:not(.dark) .espacios-theme .text-sidan-400 {
+            color: #15803d !important;
         }
 
         html:not(.dark) .espacios-theme .text-sky-300,
@@ -83,7 +83,7 @@
             color: #b91c1c !important;
         }
 
-        html:not(.dark) .espacios-theme [class*="bg-emerald-500/10"] {
+        html:not(.dark) .espacios-theme [class*="bg-sidan-500/10"] {
             background-color: #ecfdf5 !important;
         }
 
@@ -107,8 +107,8 @@
             background-color: #fef2f2 !important;
         }
 
-        html:not(.dark) .espacios-theme [class*="border-emerald-500/20"],
-        html:not(.dark) .espacios-theme [class*="border-emerald-500/30"] {
+        html:not(.dark) .espacios-theme [class*="border-sidan-500/20"],
+        html:not(.dark) .espacios-theme [class*="border-sidan-500/30"] {
             border-color: #a7f3d0 !important;
         }
 
@@ -164,22 +164,22 @@
         }
 
         html:not(.dark) .espacios-theme input[type="checkbox"]:checked {
-            background-color: #10b981 !important;
-            border-color: #10b981 !important;
+            background-color: #22c55e !important;
+            border-color: #22c55e !important;
         }
 
         html:not(.dark) .espacios-theme input[type="checkbox"]:focus {
-            --tw-ring-color: rgb(16 185 129 / 0.25);
+            --tw-ring-color: rgb(34 197 94 / 0.25);
         }
 
         .dark .espacios-theme input[type="checkbox"]:checked {
-            background-color: #10b981;
-            border-color: #10b981;
+            background-color: #22c55e;
+            border-color: #22c55e;
         }
     </style>
     <div
         class="espacios-theme min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
-        <div class="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <div class="mb-5">
                 <a href="{{ route('admin.espacios.index') }}"
                     class="mb-3 inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white">
@@ -188,7 +188,11 @@
                     </svg>
                     Volver a espacios
                 </a>
-                <h1 class="text-2xl font-bold text-white">
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                    Administración
+                </p>
+
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                     Nuevo espacio
                 </h1>
                 <p class="mt-1 text-sm text-slate-400">
@@ -231,7 +235,7 @@
                     {{-- PASO 1 --}}
                     <section data-paso="1">
                         <div class="border-b border-slate-800 px-5 py-4 sm:px-6">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sidan-400">
                                 Paso 1 de 4
                             </p>
                             <h2 class="mt-1 text-lg font-semibold text-white">
@@ -249,7 +253,7 @@
                                 </label>
                                 <input id="nombre" name="nombre" type="text" maxlength="150" required autofocus
                                     value="{{ old('nombre') }}" placeholder="Ej. Salón Espino A"
-                                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                 <p id="errorNombre" class="mt-2 hidden text-xs text-red-400">
                                     Escribe el nombre del espacio.
                                 </p>
@@ -261,7 +265,7 @@
                                 </label>
                                 <textarea id="descripcion" name="descripcion" rows="3" maxlength="2000"
                                     placeholder="Ej. Salón utilizado para clases, capacitaciones y conferencias."
-                                    class="w-full resize-y rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">{{ old('descripcion') }}</textarea>
+                                    class="w-full resize-y rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">{{ old('descripcion') }}</textarea>
                             </div>
                             <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
                                 <label for="id_espacio_contenedor" class="block text-sm font-medium text-white">
@@ -271,7 +275,7 @@
                                     Por ejemplo, un salón puede estar dentro de una facultad, edificio o sede.
                                 </p>
                                 <select id="id_espacio_contenedor" name="id_espacio_contenedor"
-                                    class="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                    class="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                     <option value="">
                                         No, es un lugar independiente
                                     </option>
@@ -306,7 +310,7 @@
                                 <div class="relative max-w-xs">
                                     <input id="capacidad" name="capacidad" type="number" min="1" step="1"
                                         value="{{ old('capacidad') }}" placeholder="Ej. 200"
-                                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 pr-20 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 pr-20 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                     <span
                                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-slate-500">
                                         personas
@@ -322,7 +326,7 @@
                                     <div class="flex items-start gap-3">
                                         <input type="checkbox" id="permite_actividades" name="permite_actividades"
                                             value="1" @checked(old('permite_actividades', '1') == '1')
-                                            class="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-900 text-emerald-500 focus:ring-emerald-500">
+                                            class="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-900 text-sidan-500 focus:ring-sidan-500">
                                         <div>
                                             <span class="block text-sm font-medium text-white">
                                                 Se pueden realizar actividades aquí
@@ -338,7 +342,7 @@
                                     <div class="flex items-start gap-3">
                                         <input type="checkbox" id="activo" name="activo" value="1"
                                             @checked(old('activo', '1') == '1')
-                                            class="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-900 text-emerald-500 focus:ring-emerald-500">
+                                            class="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-900 text-sidan-500 focus:ring-sidan-500">
                                         <div>
                                             <span class="block text-sm font-medium text-white">
                                                 Disponible para usar
@@ -355,7 +359,7 @@
                     {{-- PASO 2 --}}
                     <section data-paso="2" class="hidden">
                         <div class="border-b border-slate-800 px-5 py-4 sm:px-6">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sidan-400">
                                 Paso 2 de 4
                             </p>
                             <h2 class="mt-1 text-lg font-semibold text-white">
@@ -395,7 +399,7 @@
                                 </label>
                                 <input id="direccion" name="direccion" type="text" maxlength="300"
                                     value="{{ old('direccion') }}" placeholder="Ej. Ciudad Universitaria, San Salvador"
-                                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                 <p id="textoDireccionHeredada" class="mt-1.5 hidden text-xs text-sky-500">
                                     Completada automáticamente. Puedes editarla.
                                 </p>
@@ -406,7 +410,7 @@
                                 </label>
                                 <textarea id="indicaciones" name="indicaciones" rows="3" maxlength="500"
                                     placeholder="Ej. Segundo nivel, frente al laboratorio..."
-                                    class="w-full resize-y rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">{{ old('indicaciones') }}</textarea>
+                                    class="w-full resize-y rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">{{ old('indicaciones') }}</textarea>
                                 <p id="textoIndicacionesHeredadas" class="mt-1.5 hidden text-xs text-sky-500">
                                     Completadas automáticamente. Puedes modificarlas.
                                 </p>
@@ -438,7 +442,7 @@
                                             <input id="latitud" name="latitud" type="number" step="0.0000001"
                                                 min="-90" max="90" value="{{ old('latitud') }}"
                                                 placeholder="Ej. 13.7188000"
-                                                class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                                class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                         </div>
                                         <div>
                                             <label for="longitud" class="mb-2 block text-xs font-medium text-slate-400">
@@ -447,7 +451,7 @@
                                             <input id="longitud" name="longitud" type="number" step="0.0000001"
                                                 min="-180" max="180" value="{{ old('longitud') }}"
                                                 placeholder="Ej. -89.2034000"
-                                                class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                                class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                         </div>
                                     </div>
                                     <p id="textoCoordenadasHeredadas" class="mt-3 hidden text-xs text-sky-500">
@@ -460,7 +464,7 @@
                     {{-- PASO 3 --}}
                     <section data-paso="3" class="hidden">
                         <div class="border-b border-slate-800 px-5 py-4 sm:px-6">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sidan-400">
                                 Paso 3 de 4
                             </p>
                             <h2 class="mt-1 text-lg font-semibold text-white">
@@ -475,7 +479,7 @@
                                 <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <input id="buscarRecurso" type="search" autocomplete="off"
                                         placeholder="Buscar recurso..."
-                                        class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 sm:max-w-sm">
+                                        class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 sm:max-w-sm">
                                     <span id="contadorRecursos" class="shrink-0 text-xs font-medium text-slate-500">
                                         0 seleccionados
                                     </span>
@@ -494,7 +498,7 @@
                                                     value="1" data-recurso-check
                                                     data-recurso-id="{{ $recurso->id_recurso }}"
                                                     @checked($seleccionado)
-                                                    class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-emerald-500 focus:ring-emerald-500">
+                                                    class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-sidan-500 focus:ring-sidan-500">
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex flex-wrap items-center gap-2">
                                                         <span data-nombre-recurso class="text-sm font-medium text-white">
@@ -526,7 +530,7 @@
                                                                 name="recursos[{{ $recurso->id_recurso }}][cantidad]"
                                                                 type="number" min="1" step="1"
                                                                 value="{{ old("recursos.{$recurso->id_recurso}.cantidad", 1) }}"
-                                                                class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 pr-16 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                                                class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 pr-16 text-sm text-white outline-none transition focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                                             <span
                                                                 class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-slate-500">
                                                                 {{ $recurso->unidad_medida }}
@@ -544,7 +548,7 @@
                                                             type="text" maxlength="300"
                                                             value="{{ old("recursos.{$recurso->id_recurso}.observacion") }}"
                                                             placeholder="Ej. Instalado al frente"
-                                                            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                                                            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20">
                                                     </div>
                                                 </div>
                                             </div>
@@ -573,7 +577,7 @@
                     {{-- PASO 4 --}}
                     <section data-paso="4" class="hidden">
                         <div class="border-b border-slate-800 px-5 py-4 sm:px-6">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sidan-400">
                                 Paso 4 de 4
                             </p>
                             <h2 class="mt-1 text-lg font-semibold text-white">
@@ -665,14 +669,14 @@
                             </button>
                         </div>
                         <button id="btnSiguiente" type="button"
-                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                            class="inline-flex items-center gap-2 rounded-lg bg-sidan-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sidan-600">
                             Siguiente
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                         <button id="btnGuardar" type="submit"
-                            class="hidden items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                            class="hidden items-center gap-2 rounded-lg bg-sidan-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sidan-600">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7" />
@@ -758,15 +762,15 @@
                         'flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold transition';
                     if (numeroIndicador < numero) {
                         circulo.classList.add(
-                            'border-emerald-500/50',
-                            'bg-emerald-500/10',
-                            'text-emerald-400'
+                            'border-sidan-500/50',
+                            'bg-sidan-500/10',
+                            'text-sidan-400'
                         );
-                        titulo.className = 'text-xs font-semibold text-emerald-400';
+                        titulo.className = 'text-xs font-semibold text-sidan-400';
                     } else if (numeroIndicador === numero) {
                         circulo.classList.add(
-                            'border-emerald-500',
-                            'bg-emerald-500',
+                            'border-sidan-500',
+                            'bg-sidan-500',
                             'text-white'
                         );
                         titulo.className = 'text-xs font-semibold text-white';
@@ -784,7 +788,7 @@
                     const numeroLinea = Number(linea.dataset.lineaPaso);
                     linea.className =
                         numeroLinea < numero ?
-                        'mx-3 h-px flex-1 bg-emerald-500/40' :
+                        'mx-3 h-px flex-1 bg-sidan-500/40' :
                         'mx-3 h-px flex-1 bg-slate-800';
                 });
                 btnCancelar.classList.toggle('hidden', numero !== 1);
@@ -797,7 +801,7 @@
                 if (numero === 4) {
                     actualizarResumen();
                 }
-                window.scrollTo({
+                (document.getElementById('sidanAdminScroll') || window).scrollTo({
                     top: 0,
                     behavior: 'smooth'
                 });
@@ -1085,14 +1089,19 @@
     </script>
     <script>
         function showAppNotification(type, title, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, title);
+            }
+
             const previous = document.getElementById('app-notification');
             if (previous) previous.remove();
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
                 error: {

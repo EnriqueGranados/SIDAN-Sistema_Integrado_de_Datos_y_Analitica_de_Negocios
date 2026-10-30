@@ -1,0 +1,322 @@
+@extends('layouts.navbars')
+
+@section('title', 'Control de órdenes')
+
+@section('content')
+    <div class="min-h-full bg-transparent text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                    Administración
+                </p>
+
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
+                    Control de órdenes
+                </h1>
+
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    Revisa compras, pagos y artículos personalizados.
+                </p>
+            </div>
+
+            <a href="{{ route('admin.control.inscripciones') }}"
+                class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800">
+                ← Ver inscripciones
+            </a>
+        </div>
+
+        <form method="GET" action="{{ route('admin.control.ordenes') }}"
+            class="mb-7 grid gap-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f172a] p-5 md:grid-cols-2 xl:grid-cols-4">
+
+            @include('admin.control.partials.selector-actividad')
+
+            <div>
+                <label class="mb-2 block text-xs font-bold text-slate-500 dark:text-slate-400">
+                    Tipo de orden
+                </label>
+
+                <select name="tipo"
+                    class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-3 text-sm text-sidan-900 dark:text-white">
+                    <option value="">Todas</option>
+                    <option value="inscripcion" @selected(request('tipo') === 'inscripcion')>
+                        Inscripciones
+                    </option>
+                    <option value="productos" @selected(request('tipo') === 'productos')>
+                        Productos
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-bold text-slate-500 dark:text-slate-400">
+                    Estado
+                </label>
+
+                <select name="estado"
+                    class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-3 text-sm text-sidan-900 dark:text-white">
+                    <option value="">Todos</option>
+
+                    @foreach ($estados as $estado)
+                        <option value="{{ $estado }}" @selected(request('estado') === $estado)>
+                            {{ ucfirst(str_replace('_', ' ', $estado)) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-bold text-slate-500 dark:text-slate-400">
+                    Comprador
+                </label>
+
+                <input type="search" name="buscar" value="{{ request('buscar') }}" placeholder="Nombre o correo"
+                    class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-3 text-sm text-sidan-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500">
+            </div>
+
+            <div class="flex items-end gap-2">
+                <button type="submit" class="flex-1 rounded-xl bg-sidan-500 px-4 py-3 text-sm font-black text-white hover:bg-sidan-600">
+                    Filtrar
+                </button>
+
+                <a href="{{ route('admin.control.ordenes') }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-[#102b54]/20 bg-white px-5 py-3 text-sm font-bold
+                           text-slate-700 transition hover:bg-slate-100
+                           dark:border-white/20 dark:bg-slate-900
+                           dark:text-white dark:hover:bg-slate-800">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+
+        <div class="mb-5 text-sm text-slate-500 dark:text-slate-400">
+            {{ $ordenes->total() }} orden(es) encontrada(s)
+        </div>
+
+        <div class="space-y-4">
+            @forelse ($ordenes as $orden)
+                @php
+                    $estado = $orden->estado;
+
+                    $color = match ($estado) {
+                        'pagada' => 'bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-300',
+                        'pendiente_pago' => 'bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300',
+                        'cancelada', 'vencida' => 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300',
+                        default => 'bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-300',
+                    };
+
+                    $fechaPago = $orden->pago?->fecha_confirmacion;
+
+                    $nombreComprador = $orden->inscripcion?->nombre_participante ?: $orden->correo_contacto;
+                @endphp
+
+                <details
+                    class="group overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5">
+                    <summary class="cursor-pointer list-none p-5 sm:p-6">
+                        <div class="flex flex-wrap items-center justify-between gap-5">
+
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-lg font-black">
+                                        Orden #{{ $orden->id_orden }}
+                                    </span>
+
+                                    <span class="rounded-full px-3 py-1 text-xs font-black {{ $color }}">
+                                        {{ ucfirst(str_replace('_', ' ', $estado)) }}
+                                    </span>
+
+                                    <span
+                                        class="rounded-full bg-slate-100 dark:bg-white/10 px-3 py-1 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        {{ $orden->tipo_orden === 'productos' ? 'Productos' : 'Inscripción' }}
+                                    </span>
+                                </div>
+
+                                <p class="mt-2 font-semibold text-sidan-900 dark:text-white">
+                                    {{ $orden->actividad?->nombre ?? 'Actividad no disponible' }}
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                    {{ $nombreComprador }}
+                                    · {{ $orden->correo_contacto }}
+                                </p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-6">
+                                <div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        Total de la orden
+                                    </p>
+
+                                    <p class="text-2xl font-black text-sidan-600 dark:text-sidan-400">
+                                        ${{ number_format((float) $orden->total, 2) }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        Fecha de pago
+                                    </p>
+
+                                    <p class="text-sm font-bold">
+                                        {{ $fechaPago ? $fechaPago->format('d/m/Y H:i') : 'Sin pago confirmado' }}
+                                    </p>
+                                </div>
+
+                                <span class="text-xl text-slate-500 dark:text-slate-400 transition group-open:rotate-180">
+                                    ⌄
+                                </span>
+                            </div>
+                        </div>
+                    </summary>
+
+                    <div class="border-t border-slate-200 dark:border-white/10 px-5 py-5 sm:px-6">
+
+                        <div class="mb-5 grid gap-3 text-sm sm:grid-cols-3">
+                            <div class="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    Fecha de creación
+                                </p>
+                                <p class="mt-1 font-bold">
+                                    {{ $orden->created_at?->format('d/m/Y H:i') ?? '—' }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    Estado del pago
+                                </p>
+                                <p class="mt-1 font-bold">
+                                    {{ $orden->pago?->estado ? ucfirst(str_replace('_', ' ', $orden->pago->estado)) : 'Sin registro de pago' }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    Fecha de confirmación
+                                </p>
+                                <p class="mt-1 font-bold">
+                                    {{ $fechaPago?->format('d/m/Y H:i') ?? 'Pendiente' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('admin.control.ordenes.recibo', $orden->id_orden) }}" class="mb-4 inline-flex rounded-xl border border-sidan-500/30 bg-sidan-500/5 px-4 py-2 text-xs font-bold text-sidan-600 hover:bg-sidan-500/10 dark:text-sidan-400">Descargar resumen PDF</a>
+                        <h3 class="mb-4 text-base font-black">
+                            Artículos y conceptos de la orden
+                        </h3>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-white/10">
+                            <table class="w-full min-w-[750px] text-left text-sm">
+                                <thead
+                                    class="bg-slate-50 dark:bg-white/5 text-xs uppercase text-slate-500 dark:text-slate-400">
+                                    <tr>
+                                        <th class="px-4 py-3">Producto</th>
+                                        <th class="px-4 py-3">Personalización</th>
+                                        <th class="px-4 py-3 text-center">Cantidad</th>
+                                        <th class="px-4 py-3 text-right">Precio unitario</th>
+                                        <th class="px-4 py-3 text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y divide-slate-100 dark:divide-white/10">
+                                    @foreach ($orden->detalles as $detalle)
+                                        @php
+                                            $configuracion = $detalle->configuracion;
+
+                                            if (is_string($configuracion)) {
+                                                $configuracion = json_decode($configuracion, true);
+                                            }
+
+                                            $configuracion = is_array($configuracion) ? $configuracion : [];
+                                        @endphp
+
+                                        <tr>
+                                            <td class="px-4 py-4 align-top">
+                                                <p class="font-bold">
+                                                    {{ $detalle->nombre_concepto }}
+                                                </p>
+
+                                                @if ($detalle->id_item_actividad)
+                                                    <p class="mt-1 text-xs text-slate-500">
+                                                        Producto #{{ $detalle->id_item_actividad }}
+                                                    </p>
+                                                @endif
+                                            </td>
+
+                                            <td class="px-4 py-4 align-top">
+                                                @forelse ($configuracion as $clave => $valor)
+                                                    <div class="mb-1">
+                                                        <span class="font-semibold text-slate-500 dark:text-slate-400">
+                                                            {{ ucfirst(str_replace('_', ' ', $clave)) }}:
+                                                        </span>
+
+                                                        <span class="text-sidan-900 dark:text-white">
+                                                            {{ is_scalar($valor) ? (string) $valor : json_encode($valor, JSON_UNESCAPED_UNICODE) }}
+                                                        </span>
+                                                    </div>
+                                                @empty
+                                                    <span class="text-slate-500">
+                                                        Sin personalización
+                                                    </span>
+                                                @endforelse
+                                            </td>
+
+                                            <td class="px-4 py-4 text-center align-top font-bold">
+                                                {{ $detalle->cantidad }}
+                                            </td>
+
+                                            <td class="px-4 py-4 text-right align-top">
+                                                ${{ number_format((float) $detalle->precio_unitario, 2) }}
+                                            </td>
+
+                                            <td
+                                                class="px-4 py-4 text-right align-top font-black text-sidan-600 dark:text-sidan-400">
+                                                ${{ number_format((float) $detalle->subtotal, 2) }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-5 flex flex-wrap items-center justify-between gap-4">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                Los precios corresponden al registro histórico de la orden.
+                            </p>
+
+                            <div class="text-right">
+                                <p class="text-sm text-slate-500 dark:text-slate-400">
+                                    Subtotal:
+                                    ${{ number_format((float) $orden->subtotal, 2) }}
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                    Descuento:
+                                    ${{ number_format((float) $orden->descuento_total, 2) }}
+                                </p>
+
+                                <p class="mt-2 text-xl font-black text-sidan-600 dark:text-sidan-400">
+                                    Total: ${{ number_format((float) $orden->total, 2) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+                @empty
+                    <div
+                        class="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-6 py-14 text-center text-slate-500 dark:text-slate-400">
+                        No se encontraron órdenes con los filtros seleccionados.
+                    </div>
+                @endforelse
+            </div>
+
+            <div class="mt-6">
+                {{ $ordenes->links() }}
+            </div>
+        </div>
+    @endsection

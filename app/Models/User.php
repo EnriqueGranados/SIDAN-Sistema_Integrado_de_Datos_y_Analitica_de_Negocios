@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable implements CanResetPasswordContract
 {
@@ -46,31 +47,47 @@ class User extends Authenticatable implements CanResetPasswordContract
         ];
     }
 
-    // Relación uno a uno con la cuenta de Google del usuario.
+    /**
+     * Relación uno a uno con la cuenta de Google del usuario.
+     */
     public function googleAccount(): HasOne
     {
-        return $this->hasOne(GoogleUser::class, 'id_usuario', 'id_usuario');
+        return $this->hasOne(
+            GoogleUser::class,
+            'id_usuario',
+            'id_usuario'
+        );
     }
 
-    // Devuelve la contraseña del usuario para la autenticación.
+    /**
+     * Devuelve la contraseña del usuario para la autenticación.
+     */
     public function getAuthPassword(): ?string
     {
         return $this->password_hash;
     }
 
-    // Devuelve el correo electrónico del usuario para la recuperación de contraseña.
+    /**
+     * Devuelve el correo electrónico del usuario para la recuperación
+     * de contraseña.
+     */
     public function getEmailForPasswordReset(): string
     {
         return $this->correo;
     }
 
-    // Devuelve la dirección de correo electrónico del usuario para las notificaciones.
+    /**
+     * Devuelve la dirección de correo electrónico del usuario
+     * para las notificaciones.
+     */
     public function routeNotificationForMail($notification): string
     {
         return $this->correo;
     }
 
-    // Envía la notificación de restablecimiento de contraseña al usuario.
+    /**
+     * Envía la notificación de restablecimiento de contraseña.
+     */
     public function sendPasswordResetNotification($token): void
     {
         $url = route('password.reset', [
@@ -83,13 +100,27 @@ class User extends Authenticatable implements CanResetPasswordContract
         );
     }
 
+    /**
+     * Información personal asociada al usuario.
+     */
     public function informacion_personal()
     {
-        return $this->belongsTo(InformacionPersonal::class, 'id_informacion_personal', 'id_informacion_personal');
+        return $this->belongsTo(
+            InformacionPersonal::class,
+            'id_informacion_personal',
+            'id_informacion_personal'
+        );
     }
 
-    public function rol()
+    /**
+     * Rol asignado al usuario.
+     */
+    public function rol(): BelongsTo
     {
-        return $this->belongsTo(Rol::class, 'id_rol', 'id_rol');
+        return $this->belongsTo(
+            Rol::class,
+            'id_rol',
+            'id_rol'
+        );
     }
 }

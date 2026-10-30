@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Throwable;
 use Illuminate\Http\Request;
+use App\Services\PagoService;
 
 class WompiController extends Controller
 {
@@ -55,37 +56,51 @@ class WompiController extends Controller
         }
     }
 
-    public function webhook(Request $request, WompiService $wompi)
-    {
+
+    public function webhook(
+        Request $request,
+        PagoService $pagos
+    ): JsonResponse {
+        // Leer el contenido original sin modificarlo.
         $body = $request->getContent();
         $hashRecibido = $request->header('wompi_hash');
 
-        if (!$hashRecibido) {
-            \Log::warning('Webhook Wompi rechazado: hash ausente.');
+        $secret = config('services.wompi.client_secret');
+
+        if (!$secret) {
+            \Log::error('Wompi: API Secret no configurado.');
 
             return response()->json([
                 'success' => false,
-                'message' => 'Webhook no autorizado.',
+            ], 500);
+        }
+
+        if (!$hashRecibido) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Firma ausente.',
             ], 401);
         }
 
+        // Calcular la firma del cuerpo recibido.
         $hashCalculado = hash_hmac(
             'sha256',
             $body,
-            config('services.wompi.client_secret')
+            $secret
         );
 
+        // Rechazar notificaciones sin firma válida.
         if (
             !hash_equals(
                 strtolower($hashCalculado),
                 strtolower($hashRecibido)
             )
         ) {
-            \Log::warning('Webhook Wompi rechazado: hash inválido.');
+            \Log::warning('Webhook Wompi con firma incorrecta.');
 
             return response()->json([
                 'success' => false,
-                'message' => 'Webhook no autorizado.',
+                'message' => 'Firma inválida.',
             ], 401);
         }
 
@@ -94,30 +109,27 @@ class WompiController extends Controller
         if (!is_array($datos)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Contenido inválido.',
+                'message' => 'JSON inválido.',
             ], 400);
         }
 
-        $idTransaccion = $datos['IdTransaccion'] ?? null;
-        $resultado = $datos['ResultadoTransaccion'] ?? null;
-        $monto = $datos['Monto'] ?? null;
-        $esProductiva = $datos['EsProductiva'] ?? null;
-        $referencia = $datos['EnlacePago']['IdentificadorEnlaceComercio'] ?? null;
-        $idEnlace = $datos['EnlacePago']['Id'] ?? null;
+        try {
+            // La firma fue validada.
+            // Procesamos la transacción en PostgreSQL.
+            $pagos->confirmarWebhook($datos);
 
-        \Log::info('WEBHOOK WOMPI VALIDADO', [
-            'id_transaccion' => $idTransaccion,
-            'id_enlace' => $idEnlace,
-            'referencia' => $referencia,
-            'resultado' => $resultado,
-            'monto' => $monto,
-            'es_productiva' => $esProductiva,
-        ]);
+            return response()->json([
+                'success' => true,
+            ], 200);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Webhook procesado correctamente.',
-        ]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No fue posible conciliar el pago.',
+            ], 422);
+        }
     }
     public function estadoPrueba(WompiService $wompi): JsonResponse
     {

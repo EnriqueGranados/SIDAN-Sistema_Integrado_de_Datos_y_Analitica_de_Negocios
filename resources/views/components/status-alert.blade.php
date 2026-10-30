@@ -13,11 +13,11 @@
     $config = [
         'success' => [
             'title' => 'Operación exitosa',
-            'border' => 'border-emerald-200 dark:border-emerald-500/20',
-            'shadow' => 'shadow-emerald-500/10',
-            'icon' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-            'progressBackground' => 'bg-emerald-100 dark:bg-emerald-950/50',
-            'progress' => 'bg-emerald-500',
+            'border' => 'border-sidan-200 dark:border-sidan-500/20',
+            'shadow' => 'shadow-sidan-500/10',
+            'icon' => 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+            'progressBackground' => 'bg-sidan-100 dark:bg-sidan-950/50',
+            'progress' => 'bg-sidan-500',
         ],
 
         'error' => [

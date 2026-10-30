@@ -23,10 +23,14 @@ class ItemActividad extends Model
         'descripcion',
         'tipo',
         'precio',
+        'permite_anticipo',
+        'tipo_anticipo',
+        'valor_anticipo',
         'costo_referencia',
         'stock_total',
         'venta_desde',
         'venta_hasta',
+        'alcance_sesiones',
         'min_por_inscripcion',
         'max_por_inscripcion',
         'requiere_participante',
@@ -38,6 +42,8 @@ class ItemActividad extends Model
     {
         return [
             'precio' => 'decimal:2',
+            'permite_anticipo' => 'boolean',
+            'valor_anticipo' => 'decimal:2',
             'costo_referencia' => 'decimal:2',
             'stock_total' => 'integer',
             'venta_desde' => 'datetime',
@@ -67,6 +73,19 @@ class ItemActividad extends Model
             'id_item_actividad',
             'id_item_actividad'
         )->orderBy('orden');
+    }
+
+    public function sesiones(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            SesionActividad::class,
+            'tbl_items_sesiones',
+            'id_item_actividad',
+            'id_sesion',
+            'id_item_actividad',
+            'id_sesion'
+        )->orderBy('tbl_sesiones_actividad.orden')
+            ->orderBy('tbl_sesiones_actividad.fecha_inicio');
     }
 
     public function promociones(): BelongsToMany

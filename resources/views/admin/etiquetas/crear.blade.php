@@ -4,24 +4,30 @@
 
 @section('content')
 <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
-    <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mb-6">
-            <a href="{{ route('admin.etiquetas.index') }}"
-                class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Volver a etiquetas
-            </a>
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <a href="{{ route('admin.etiquetas.index') }}"
+                    class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Volver a etiquetas
+                </a>
 
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
-                Nueva etiqueta
-            </h1>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                    Administración
+                </p>
 
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-                Crea una etiqueta para identificar una característica específica que pueda
-                aplicarse a una o varias actividades.
-            </p>
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
+                    Nueva etiqueta
+                </h1>
+
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+                    Crea una etiqueta para identificar una característica específica que pueda
+                    aplicarse a una o varias actividades.
+                </p>
+            </div>
         </div>
 
         <div class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10">
@@ -33,7 +39,7 @@
                 class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-slate-50 dark:hover:bg-white/[0.03]">
 
                 <div class="flex items-center gap-3">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -64,7 +70,7 @@
             <div id="guiaEtiquetas" class="hidden border-t border-slate-200 dark:border-white/5">
                 <div class="space-y-5 px-5 py-5">
                     <div>
-                        <h2 class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                        <h2 class="text-sm font-semibold text-sidan-600 dark:text-sidan-300">
                             ¿Cuándo conviene crear una etiqueta?
                         </h2>
 
@@ -179,7 +185,7 @@
                             class="w-full rounded-xl border bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-600 dark:focus:bg-white/10
                                 {{ $errors->has('nombre')
                                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 dark:border-white/10' }}">
+                                    : 'border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10' }}">
 
                         @error('nombre')
                             <p class="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -203,7 +209,7 @@
                                 type="checkbox"
                                 value="1"
                                 @checked(old('activo', '1') == '1')
-                                class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-emerald-500 focus:ring-emerald-500 focus:ring-offset-white dark:border-slate-600 dark:bg-slate-900 dark:focus:ring-offset-[#0f172a]">
+                                class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-sidan-500 focus:ring-sidan-500 focus:ring-offset-white dark:border-slate-600 dark:bg-slate-900 dark:focus:ring-offset-[#0f172a]">
 
                             <span>
                                 <span class="block text-sm font-medium text-slate-900 dark:text-white">
@@ -227,7 +233,7 @@
 
                     <button
                         type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sidan-600">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 13l4 4L19 7" />
@@ -242,15 +248,20 @@
 
 <script>
 function showAppNotification(type, title, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, title);
+            }
+
     const previous = document.getElementById('app-notification');
     if (previous) previous.remove();
 
     const styles = {
         success: {
-            iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-            borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-            progressColor: 'bg-emerald-500',
-            progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+            iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+            borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+            progressColor: 'bg-sidan-500',
+            progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
             iconPath: 'M5 13l4 4L19 7'
         },
         error: {

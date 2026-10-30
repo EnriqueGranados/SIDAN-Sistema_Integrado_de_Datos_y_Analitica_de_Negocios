@@ -29,9 +29,9 @@
     };
 @endphp
 
-<div class="min-h-full bg-[#f6f8fb] dark:bg-sidan-950">
-    <main class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+<div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
                     Administración
@@ -71,13 +71,13 @@
                     type="search"
                     value="{{ request('buscar') }}"
                     placeholder="Buscar por nombre de actividad..."
-                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500"
+                    class="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500"
                 >
             </div>
 
             <button
                 type="submit"
-                class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-black text-white transition hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+                class="rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-black text-white transition hover:bg-sidan-600 focus:outline-none focus:ring-2 focus:ring-sidan-500/30"
             >
                 Buscar
             </button>
@@ -144,7 +144,7 @@
                         <div class="flex shrink-0 items-center">
                             <a
                                 href="{{ route('admin.actividades.revision.show', $actividad) }}"
-                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500/30 sm:w-auto"
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-sidan-600 focus:outline-none focus:ring-2 focus:ring-sidan-500/30 sm:w-auto"
                             >
                                 Revisar actividad
                                 <span aria-hidden="true">→</span>
@@ -154,7 +154,7 @@
                 </article>
             @empty
                 <div class="px-6 py-14 text-center">
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-sidan-500 dark:bg-green-500/10">
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sidan-50 text-sidan-500 dark:bg-sidan-500/10">
                         ✓
                     </div>
 
@@ -174,6 +174,6 @@
                 {{ $actividades->withQueryString()->links() }}
             </div>
         @endif
-    </main>
+    </div>
 </div>
 @endsection

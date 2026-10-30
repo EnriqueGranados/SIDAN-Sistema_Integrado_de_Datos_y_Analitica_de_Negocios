@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Espacio;
 use App\Models\Recurso;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,11 @@ class EspacioController extends Controller
                         ->orWhere('direccion', 'ilike', "%{$buscar}%")
                         ->orWhere('indicaciones', 'ilike', "%{$buscar}%")
                         ->orWhereHas('contenedor', function ($contenedor) use ($buscar) {
-                            $contenedor->where('nombre', 'ilike', "%{$buscar}%");
+                            $contenedor->where(
+                                'nombre',
+                                'ilike',
+                                "%{$buscar}%"
+                            );
                         });
                 });
             })
@@ -96,7 +101,16 @@ class EspacioController extends Controller
     {
         $datos = $this->validar($request);
 
-        $datos = $this->prepararDatos($request, $datos);
+        $datos = $this->prepararDatos(
+            $request,
+            $datos
+        );
+
+        $datos['estado_validacion'] = Espacio::VALIDACION_VALIDADO;
+        $datos['origen_registro'] = Espacio::ORIGEN_ADMINISTRACION;
+        $datos['creado_por'] = $request->user()?->id_usuario;
+        $datos['validado_por'] = $request->user()?->id_usuario;
+        $datos['validado_en'] = now();
 
         DB::transaction(function () use ($request, $datos) {
             $espacio = Espacio::create($datos);
@@ -109,7 +123,10 @@ class EspacioController extends Controller
 
         return redirect()
             ->route('admin.espacios.index')
-            ->with('success', 'El espacio se creó correctamente.');
+            ->with(
+                'success',
+                'El espacio se creó correctamente.'
+            );
     }
 
     public function edit(Espacio $espacio): View
@@ -124,7 +141,9 @@ class EspacioController extends Controller
             'recursos',
         ]);
 
-        $idsNoDisponibles = $this->obtenerIdsDescendientes($espacio);
+        $idsNoDisponibles = $this->obtenerIdsDescendientes(
+            $espacio
+        );
 
         $idsNoDisponibles[] = $espacio->id_espacio;
 
@@ -200,6 +219,12 @@ class EspacioController extends Controller
             $datos
         );
 
+        if ($espacio->estaPendienteValidacion()) {
+            $datos['estado_validacion'] = Espacio::VALIDACION_VALIDADO;
+            $datos['validado_por'] = $request->user()?->id_usuario;
+            $datos['validado_en'] = now();
+        }
+
         DB::transaction(function () use (
             $request,
             $espacio,
@@ -215,7 +240,10 @@ class EspacioController extends Controller
 
         return redirect()
             ->route('admin.espacios.index')
-            ->with('success', 'El espacio se actualizó correctamente.');
+            ->with(
+                'success',
+                'El espacio se actualizó correctamente.'
+            );
     }
 
     public function destroy(Espacio $espacio): RedirectResponse
@@ -236,7 +264,436 @@ class EspacioController extends Controller
 
         return redirect()
             ->route('admin.espacios.index')
-            ->with('success', 'El espacio se eliminó correctamente.');
+            ->with(
+                'success',
+                'El espacio se eliminó correctamente.'
+            );
+    }
+
+    public function buscar(Request $request): JsonResponse
+    {
+        $datos = $request->validate([
+            'q' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'modo' => [
+                'nullable',
+                Rule::in([
+                    'general',
+                    'sesion',
+                    'contenedor_sesion',
+                    'todos',
+                ]),
+            ],
+
+            'contexto' => [
+                'nullable',
+                'integer',
+                Rule::exists(
+                    'tbl_espacios',
+                    'id_espacio'
+                ),
+            ],
+
+            'limite' => [
+                'nullable',
+                'integer',
+                'min:5',
+                'max:30',
+            ],
+        ]);
+
+        $buscar = Str::squish(
+            (string) ($datos['q'] ?? '')
+        );
+
+        $modo = $datos['modo'] ?? 'todos';
+
+        $limite = (int) ($datos['limite'] ?? 12);
+
+        $idContexto = isset($datos['contexto'])
+            ? (int) $datos['contexto']
+            : null;
+
+        $query = Espacio::query()
+            ->where('activo', true)
+            ->with('contenedor');
+
+        if ($modo === 'sesion') {
+            $query->where('permite_actividades', true);
+        }
+
+        if (
+            in_array($modo, ['sesion', 'contenedor_sesion'], true)
+            && $idContexto
+        ) {
+            $contexto = Espacio::query()
+                ->where('activo', true)
+                ->findOrFail($idContexto);
+
+            $idsPermitidos = $this->obtenerIdsDescendientes(
+                $contexto
+            );
+
+            $idsPermitidos[] = (int) $contexto->id_espacio;
+
+            $query->whereIn(
+                'id_espacio',
+                array_unique($idsPermitidos)
+            );
+        }
+
+        if ($buscar !== '') {
+            $query->where(function ($subquery) use ($buscar) {
+                $subquery
+                    ->where(
+                        'nombre',
+                        'ilike',
+                        "%{$buscar}%"
+                    )
+                    ->orWhere(
+                        'direccion',
+                        'ilike',
+                        "%{$buscar}%"
+                    )
+                    ->orWhere(
+                        'descripcion',
+                        'ilike',
+                        "%{$buscar}%"
+                    )
+                    ->orWhereHas(
+                        'contenedor',
+                        function ($contenedor) use ($buscar) {
+                            $contenedor->where(
+                                'nombre',
+                                'ilike',
+                                "%{$buscar}%"
+                            );
+                        }
+                    );
+            });
+
+            $query->orderByRaw(
+                '
+                    CASE
+                        WHEN nombre ILIKE ? THEN 0
+                        WHEN nombre ILIKE ? THEN 1
+                        ELSE 2
+                    END
+                ',
+                [
+                    $buscar,
+                    $buscar . '%',
+                ]
+            );
+        }
+
+        $espacios = $query
+            ->orderBy('nombre')
+            ->limit($limite)
+            ->get();
+
+        return response()->json([
+            'data' => $espacios
+                ->map(
+                    fn (Espacio $espacio) =>
+                    $espacio->paraSelector()
+                )
+                ->values(),
+        ]);
+    }
+
+    public function crearRapido(Request $request): JsonResponse
+    {
+        $datos = $request->validate([
+            'origen' => [
+                'required',
+                Rule::in([
+                    Espacio::ORIGEN_ACTIVIDAD,
+                    Espacio::ORIGEN_SESION,
+                ]),
+            ],
+
+            'id_espacio_contenedor' => [
+                'nullable',
+                'integer',
+                Rule::exists(
+                    'tbl_espacios',
+                    'id_espacio'
+                )->where(
+                    fn ($query) =>
+                    $query->where('activo', true)
+                ),
+            ],
+
+            'nombre' => [
+                'required',
+                'string',
+                'max:150',
+            ],
+
+            'descripcion' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'direccion' => [
+                'required',
+                'string',
+                'max:300',
+            ],
+
+            'capacidad' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'latitud' => [
+                'nullable',
+                'numeric',
+                'between:-90,90',
+                'required_with:longitud',
+            ],
+
+            'longitud' => [
+                'nullable',
+                'numeric',
+                'between:-180,180',
+                'required_with:latitud',
+            ],
+        ], [
+            'origen.required' =>
+                'No se pudo determinar desde dónde se está creando el espacio.',
+
+            'id_espacio_contenedor.exists' =>
+                'El espacio contenedor seleccionado ya no está disponible.',
+
+            'nombre.required' =>
+                'Escribe el nombre del espacio.',
+
+            'nombre.max' =>
+                'El nombre no puede superar los 150 caracteres.',
+
+            'descripcion.max' =>
+                'La descripción no puede superar los 1000 caracteres.',
+
+            'direccion.required' =>
+                'Escribe la dirección o referencia del espacio.',
+
+            'direccion.max' =>
+                'La dirección no puede superar los 300 caracteres.',
+
+            'capacidad.min' =>
+                'La capacidad debe ser de al menos una persona.',
+
+            'latitud.between' =>
+                'La latitud debe estar entre -90 y 90.',
+
+            'longitud.between' =>
+                'La longitud debe estar entre -180 y 180.',
+
+            'latitud.required_with' =>
+                'Debes indicar también la latitud.',
+
+            'longitud.required_with' =>
+                'Debes indicar también la longitud.',
+        ]);
+
+        $nombre = $this->limpiarTexto(
+            $datos['nombre']
+        );
+
+        $idContenedor = isset(
+            $datos['id_espacio_contenedor']
+        )
+            ? (int) $datos['id_espacio_contenedor']
+            : null;
+
+        $duplicado = Espacio::query()
+            ->whereRaw(
+                'LOWER(nombre) = ?',
+                [mb_strtolower($nombre)]
+            )
+            ->where(function ($query) use ($idContenedor) {
+                if ($idContenedor === null) {
+                    $query->whereNull(
+                        'id_espacio_contenedor'
+                    );
+
+                    return;
+                }
+
+                $query->where(
+                    'id_espacio_contenedor',
+                    $idContenedor
+                );
+            })
+            ->first();
+
+        if ($duplicado) {
+            return response()->json([
+                'message' =>
+                    'Ya existe un espacio con ese nombre dentro del lugar seleccionado.',
+
+                'espacio' =>
+                    $duplicado->paraSelector(),
+            ], 422);
+        }
+
+        $espacio = DB::transaction(function () use (
+            $request,
+            $datos,
+            $nombre,
+            $idContenedor
+        ) {
+            return Espacio::create([
+                'id_espacio_contenedor' =>
+                    $idContenedor,
+
+                'nombre' =>
+                    $nombre,
+
+                'descripcion' =>
+                    $this->limpiarOpcional(
+                        $datos['descripcion'] ?? null
+                    ),
+
+                'direccion' =>
+                    $this->limpiarTexto(
+                        $datos['direccion']
+                    ),
+
+                'indicaciones' =>
+                    null,
+
+                'latitud' =>
+                    $datos['latitud'] ?? null,
+
+                'longitud' =>
+                    $datos['longitud'] ?? null,
+
+                'capacidad' =>
+                    $datos['capacidad'] ?? null,
+
+                'permite_actividades' =>
+                    true,
+
+                'activo' =>
+                    true,
+
+                'estado_validacion' =>
+                    Espacio::VALIDACION_PENDIENTE,
+
+                'origen_registro' =>
+                    $datos['origen'],
+
+                'creado_por' =>
+                    $request->user()?->id_usuario,
+
+                'validado_por' =>
+                    null,
+
+                'validado_en' =>
+                    null,
+            ]);
+        });
+
+        $espacio->load('contenedor');
+
+        return response()->json([
+            'message' =>
+                'El espacio fue registrado y quedó pendiente de validación administrativa.',
+
+            'espacio' =>
+                $espacio->paraSelector(),
+        ], 201);
+    }
+
+    public function descendientes(
+        Espacio $espacio,
+        Request $request
+    ): JsonResponse {
+        $datos = $request->validate([
+            'q' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'limite' => [
+                'nullable',
+                'integer',
+                'min:5',
+                'max:50',
+            ],
+        ]);
+
+        $buscar = Str::squish(
+            (string) ($datos['q'] ?? '')
+        );
+
+        $limite = (int) ($datos['limite'] ?? 20);
+
+        $ids = $this->obtenerIdsDescendientes(
+            $espacio
+        );
+
+        if (empty($ids)) {
+            return response()->json([
+                'data' => [],
+            ]);
+        }
+
+        $query = Espacio::query()
+            ->whereIn(
+                'id_espacio',
+                $ids
+            )
+            ->where(
+                'activo',
+                true
+            )
+            ->with('contenedor');
+
+        if ($buscar !== '') {
+            $query->where(function ($subquery) use ($buscar) {
+                $subquery
+                    ->where(
+                        'nombre',
+                        'ilike',
+                        "%{$buscar}%"
+                    )
+                    ->orWhere(
+                        'direccion',
+                        'ilike',
+                        "%{$buscar}%"
+                    )
+                    ->orWhere(
+                        'descripcion',
+                        'ilike',
+                        "%{$buscar}%"
+                    );
+            });
+        }
+
+        $espacios = $query
+            ->orderBy('nombre')
+            ->limit($limite)
+            ->get();
+
+        return response()->json([
+            'data' => $espacios
+                ->map(
+                    fn (Espacio $item) =>
+                    $item->paraSelector()
+                )
+                ->values(),
+        ]);
     }
 
     private function validar(
@@ -392,12 +849,18 @@ class EspacioController extends Controller
             $datos['capacidad'] ?? null;
 
         $datos['permite_actividades'] =
-            $request->boolean('permite_actividades');
+            $request->boolean(
+                'permite_actividades'
+            );
 
         $datos['activo'] =
-            $request->boolean('activo');
+            $request->boolean(
+                'activo'
+            );
 
-        unset($datos['recursos']);
+        unset(
+            $datos['recursos']
+        );
 
         return $datos;
     }
@@ -410,8 +873,8 @@ class EspacioController extends Controller
 
         foreach ($recursos as $idRecurso => $datos) {
             if (
-                !isset($datos['seleccionado']) ||
-                !$datos['seleccionado']
+                !isset($datos['seleccionado'])
+                || !$datos['seleccionado']
             ) {
                 continue;
             }
@@ -444,7 +907,10 @@ class EspacioController extends Controller
             return;
         }
 
-        if ($idContenedor === $espacio->id_espacio) {
+        if (
+            $idContenedor ===
+            $espacio->id_espacio
+        ) {
             abort(
                 422,
                 'Un espacio no puede estar dentro de sí mismo.'
@@ -455,11 +921,13 @@ class EspacioController extends Controller
             $espacio
         );
 
-        if (in_array(
-            $idContenedor,
-            $descendientes,
-            true
-        )) {
+        if (
+            in_array(
+                $idContenedor,
+                $descendientes,
+                true
+            )
+        ) {
             abort(
                 422,
                 'No puedes mover un espacio dentro de uno de sus propios espacios internos.'
@@ -471,36 +939,43 @@ class EspacioController extends Controller
         Espacio $espacio
     ): array {
         $ids = [];
-        $pendientes = [
-            $espacio->id_espacio,
+
+        $nivelActual = [
+            (int) $espacio->id_espacio,
         ];
 
-        while (!empty($pendientes)) {
-            $idActual = array_shift(
-                $pendientes
-            );
-
+        while (!empty($nivelActual)) {
             $hijos = Espacio::query()
-                ->where(
+                ->whereIn(
                     'id_espacio_contenedor',
-                    $idActual
+                    $nivelActual
                 )
-                ->pluck('id_espacio')
-                ->map(fn ($id) => (int) $id)
+                ->pluck(
+                    'id_espacio'
+                )
+                ->map(
+                    fn ($id) => (int) $id
+                )
                 ->all();
 
+            $siguienteNivel = [];
+
             foreach ($hijos as $idHijo) {
-                if (in_array(
-                    $idHijo,
-                    $ids,
-                    true
-                )) {
+                if (
+                    in_array(
+                        $idHijo,
+                        $ids,
+                        true
+                    )
+                ) {
                     continue;
                 }
 
                 $ids[] = $idHijo;
-                $pendientes[] = $idHijo;
+                $siguienteNivel[] = $idHijo;
             }
+
+            $nivelActual = $siguienteNivel;
         }
 
         return $ids;
@@ -509,7 +984,9 @@ class EspacioController extends Controller
     private function limpiarTexto(
         string $valor
     ): string {
-        return Str::squish($valor);
+        return Str::squish(
+            $valor
+        );
     }
 
     private function limpiarOpcional(

@@ -4,49 +4,55 @@
 
 @section('content')
     <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
-        <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-            <div class="mb-6">
-                <a href="{{ route('admin.etiquetas.index') }}"
-                    class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Volver a etiquetas
-                </a>
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <a href="{{ route('admin.etiquetas.index') }}"
+                        class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Volver a etiquetas
+                    </a>
 
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
-                            Editar etiqueta
-                        </h1>
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                                Administración
+                            </p>
 
-                        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-                            Modifica el nombre o la disponibilidad de esta etiqueta.
-                            Los cambios se reflejarán en las actividades donde se utilice.
-                        </p>
+                            <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
+                                Editar etiqueta
+                            </h1>
+
+                            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                Modifica el nombre o la disponibilidad de esta etiqueta.
+                                Los cambios se reflejarán en las actividades donde se utilice.
+                            </p>
+
+                            @if ($etiqueta->activo)
+                                <span
+                                    class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-sidan-200 bg-sidan-50 px-3 py-1.5 text-xs font-medium text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-400 mt-5">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-sidan-400"></span>
+                                    Activa
+                                </span>
+                            @else
+                                <span
+                                    class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-white/5 dark:bg-slate-800 dark:text-slate-400">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+                                    Inactiva
+                                </span>
+                            @endif
+                        </div>
                     </div>
-
-                    @if ($etiqueta->activo)
-                        <span
-                            class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                            Activa
-                        </span>
-                    @else
-                        <span
-                            class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-white/5 dark:bg-slate-800 dark:text-slate-400">
-                            <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
-                            Inactiva
-                        </span>
-                    @endif
                 </div>
             </div>
 
             <div
-                class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/5">
+                class="mb-6 rounded-2xl border border-sidan-200 bg-sidan-50 p-5 dark:border-sidan-500/20 dark:bg-sidan-500/5">
                 <div class="flex items-start gap-4">
                     <div
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sidan-100 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -54,7 +60,7 @@
                     </div>
 
                     <div>
-                        <h2 class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                        <h2 class="text-sm font-semibold text-sidan-600 dark:text-sidan-300">
                             Recuerda para qué sirve una etiqueta
                         </h2>
 
@@ -87,7 +93,7 @@
 
                     <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 dark:bg-white/[0.03]">
                         <div
-                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 17v-2a4 4 0 014-4h6m0 0-3-3m3 3-3 3M5 7h5a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z" />
@@ -148,7 +154,7 @@
                                 class="w-full rounded-xl border bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-600 dark:focus:bg-white/10
                                 {{ $errors->has('nombre')
                                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 dark:border-white/10' }}">
+                                    : 'border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10' }}">
 
                             @error('nombre')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -169,7 +175,7 @@
 
                                 <input id="activo" name="activo" type="checkbox" value="1"
                                     @checked(old('activo', $etiqueta->activo ? '1' : '0') == '1')
-                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-emerald-500 focus:ring-emerald-500 focus:ring-offset-white dark:border-slate-600 dark:bg-slate-900 dark:focus:ring-offset-[#0f172a]">
+                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 bg-white text-sidan-500 focus:ring-sidan-500 focus:ring-offset-white dark:border-slate-600 dark:bg-slate-900 dark:focus:ring-offset-[#0f172a]">
 
                                 <span>
                                     <span class="block text-sm font-medium text-slate-900 dark:text-white">
@@ -219,7 +225,7 @@
                         </a>
 
                         <button type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sidan-600">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7" />
@@ -267,15 +273,20 @@
 
     <script>
         function showAppNotification(type, title, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, title);
+            }
+
             const previous = document.getElementById('app-notification');
             if (previous) previous.remove();
 
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
                 error: {

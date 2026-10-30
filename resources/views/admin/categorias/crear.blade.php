@@ -4,153 +4,167 @@
 
 @section('content')
     <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
-        <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-            <div class="mb-6">
-                <a href="{{ route('admin.categorias.index') }}"
-                    class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6" />
-                    </svg>
-                    Volver a categorías
-                </a>
-
-                <h1 class="text-2xl font-black text-sidan-900 dark:text-white">Nueva categoría</h1>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Crea una categoría para organizar las actividades
-                    del sistema.</p>
-            </div>
-
-            <form method="POST" action="{{ route('admin.categorias.store') }}"
-                class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10">
-                @csrf
-
-                <div class="border-b border-slate-200 px-5 py-4 sm:px-6 dark:border-white/5">
-                    <h2 class="font-semibold text-slate-900 dark:text-white">Información de la categoría</h2>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-500">
-                        El slug y la posición se administrarán automáticamente.
-                    </p>
-                </div>
-
-                <div class="space-y-6 p-5 sm:p-6">
-                    <div>
-                        <label for="nombre" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-gray-300">
-                            Nombre
-                            <span class="text-red-600 dark:text-red-400">*</span>
-                        </label>
-
-                        <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" maxlength="100"
-                            required autofocus placeholder="Ej. Cursos y talleres"
-                            class="h-11 w-full rounded-xl border bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-600 dark:focus:bg-white/10
-                            @error('nombre')
-                                border-red-500 focus:border-red-500 focus:ring-red-500/20
-                            @else
-                                border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-white/10
-                            @enderror">
-
-                        @error('nombre')
-                            <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-
-                        <p class="mt-2 text-xs text-slate-500 dark:text-slate-500">
-                            Utiliza un nombre claro que permita identificar fácilmente el tipo de actividad.
-                        </p>
-                    </div>
-
-                    <div>
-                        <div class="mb-2 flex items-center justify-between gap-3">
-                            <label for="descripcion" class="block text-sm font-semibold text-slate-700 dark:text-gray-300">
-                                Descripción
-                            </label>
-
-                            <span class="text-xs text-slate-400 dark:text-slate-600">Opcional</span>
-                        </div>
-
-                        <textarea id="descripcion" name="descripcion" rows="5"
-                            placeholder="Describe brevemente qué tipo de actividades pertenecen a esta categoría..."
-                            class="w-full resize-y rounded-xl border bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-600 dark:focus:bg-white/10
-                            @error('descripcion')
-                                border-red-500 focus:border-red-500 focus:ring-red-500/20
-                            @else
-                                border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-white/10
-                            @enderror">{{ old('descripcion') }}</textarea>
-
-                        @error('descripcion')
-                            <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="activo" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-gray-300">
-                            Estado
-                            <span class="text-red-600 dark:text-red-400">*</span>
-                        </label>
-
-                        <select id="activo" name="activo" required
-                            class="h-11 w-full rounded-xl border bg-slate-50 px-3 text-sm text-slate-900 outline-none transition focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:focus:bg-white/10
-                            @error('activo')
-                                border-red-500 focus:border-red-500 focus:ring-red-500/20
-                            @else
-                                border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-white/10
-                            @enderror">
-                            <option value="1" @selected(old('activo', '1') === '1')>
-                                Activa
-                            </option>
-                            <option value="0" @selected(old('activo') === '0')>
-                                Inactiva
-                            </option>
-                        </select>
-
-                        @error('activo')
-                            <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-
-                        <p class="mt-2 text-xs text-slate-500 dark:text-slate-500">
-                            Puedes desactivar una categoría para conservarla sin tener que eliminarla.
-                        </p>
-                    </div>
-
-                    <div
-                        class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/5">
-                        <div class="flex gap-3">
-                            <svg class="mt-0.5 h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-
-                            <div>
-                                <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
-                                    Posición automática
-                                </p>
-                                <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                                    La nueva categoría se colocará al final de la lista. Después podrás cambiar su posición
-                                    directamente desde el listado de categorías.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    class="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-6 dark:border-white/5 dark:bg-white/[0.02]">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
                     <a href="{{ route('admin.categorias.index') }}"
-                        class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
-                        Cancelar
+                        class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6" />
+                        </svg>
+                        Volver a categorías
                     </a>
 
-                    <button type="submit"
-                        class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6" />
-                        </svg>
-                        Crear categoría
-                    </button>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                        Administración
+                    </p>
+
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">Nueva categoría</h1>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Crea una categoría para organizar las actividades
+                        del sistema.</p>
                 </div>
-            </form>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-colors dark:bg-[#0f172a] dark:border-white/5">
+                <div class="overflow-x-auto">
+                    <form method="POST" action="{{ route('admin.categorias.store') }}"
+                        class="overflow-hidden rounded-2xl  bg-white shadow-sm transition-colors dark:border-white/5 dark:bg-[#0f172a] dark:shadow-black/10">
+                        @csrf
+
+                        <div class="border-b border-slate-200 px-5 py-4 sm:px-6 dark:border-white/5">
+                            <h2 class="font-semibold text-slate-900 dark:text-white">Información de la categoría</h2>
+                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-500">
+                                El slug y la posición se administrarán automáticamente.
+                            </p>
+                        </div>
+
+                        <div class="space-y-6 p-5 sm:p-6">
+                            <div>
+                                <label for="nombre" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-gray-300">
+                                    Nombre
+                                    <span class="text-red-600 dark:text-red-400">*</span>
+                                </label>
+
+                                <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" maxlength="100"
+                                    required autofocus placeholder="Ej. Cursos y talleres"
+                                    class="h-11 w-full rounded-xl border bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-600 dark:focus:bg-white/10
+                                    @error('nombre')
+                                        border-red-500 focus:border-red-500 focus:ring-red-500/20
+                                    @else
+                                        border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10
+                                    @enderror">
+
+                                @error('nombre')
+                                    <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+
+                                <p class="mt-2 text-xs text-slate-500 dark:text-slate-500">
+                                    Utiliza un nombre claro que permita identificar fácilmente el tipo de actividad.
+                                </p>
+                            </div>
+
+                            <div>
+                                <div class="mb-2 flex items-center justify-between gap-3">
+                                    <label for="descripcion" class="block text-sm font-semibold text-slate-700 dark:text-gray-300">
+                                        Descripción
+                                    </label>
+
+                                    <span class="text-xs text-slate-400 dark:text-slate-600">Opcional</span>
+                                </div>
+
+                                <textarea id="descripcion" name="descripcion" rows="5"
+                                    placeholder="Describe brevemente qué tipo de actividades pertenecen a esta categoría..."
+                                    class="w-full resize-y rounded-xl border bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-600 dark:focus:bg-white/10
+                                    @error('descripcion')
+                                        border-red-500 focus:border-red-500 focus:ring-red-500/20
+                                    @else
+                                        border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10
+                                    @enderror">{{ old('descripcion') }}</textarea>
+
+                                @error('descripcion')
+                                    <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="activo" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-gray-300">
+                                    Estado
+                                    <span class="text-red-600 dark:text-red-400">*</span>
+                                </label>
+
+                                <select id="activo" name="activo" required
+                                    class="h-11 w-full rounded-xl border bg-slate-50 px-3 text-sm text-slate-900 outline-none transition focus:bg-white focus:ring-2 dark:bg-white/5 dark:text-white dark:focus:bg-white/10
+                                    @error('activo')
+                                        border-red-500 focus:border-red-500 focus:ring-red-500/20
+                                    @else
+                                        border-slate-200 focus:border-sidan-500 focus:ring-sidan-500/20 dark:border-white/10
+                                    @enderror">
+                                    <option value="1" @selected(old('activo', '1') === '1')>
+                                        Activa
+                                    </option>
+                                    <option value="0" @selected(old('activo') === '0')>
+                                        Inactiva
+                                    </option>
+                                </select>
+
+                                @error('activo')
+                                    <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+
+                                <p class="mt-2 text-xs text-slate-500 dark:text-slate-500">
+                                    Puedes desactivar una categoría para conservarla sin tener que eliminarla.
+                                </p>
+                            </div>
+
+                            <div
+                                class="rounded-xl border border-sidan-200 bg-sidan-50 p-4 dark:border-sidan-500/20 dark:bg-sidan-500/5">
+                                <div class="flex gap-3">
+                                    <svg class="mt-0.5 h-5 w-5 shrink-0 text-sidan-600 dark:text-sidan-400" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                    </svg>
+
+                                    <div>
+                                        <p class="text-sm font-semibold text-sidan-600 dark:text-sidan-300">
+                                            Posición automática
+                                        </p>
+                                        <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                                            La nueva categoría se colocará al final de la lista. Después podrás cambiar su posición
+                                            directamente desde el listado de categorías.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-6 dark:border-white/5 dark:bg-white/[0.02]">
+                            <a href="{{ route('admin.categorias.index') }}"
+                                class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
+                                Cancelar
+                            </a>
+
+                            <button type="submit"
+                                class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-5 text-sm font-semibold text-white transition hover:bg-sidan-600">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6" />
+                                </svg>
+                                Crear categoría
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         function showAppNotification(type, title, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, title);
+            }
+
             const previous = document.getElementById('app-notification');
             if (previous) {
                 previous.remove();
@@ -158,10 +172,10 @@
 
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
                 error: {

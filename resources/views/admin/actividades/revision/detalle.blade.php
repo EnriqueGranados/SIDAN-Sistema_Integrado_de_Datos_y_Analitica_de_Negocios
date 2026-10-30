@@ -541,7 +541,7 @@
 
 <div
     id="revision-app"
-    class="revision-page"
+    class="revision-page mx-auto w-full max-w-7xl px-2 py-3 text-slate-900 dark:text-white sm:px-4 lg:px-6"
     data-observaciones-url="{{ route('admin.actividades.revision.observaciones.store', $actividad) }}"
     data-aprobar-url="{{ route('admin.actividades.revision.aprobar', $actividad) }}"
     data-cambios-url="{{ route('admin.actividades.revision.solicitar-cambios', $actividad) }}"
@@ -551,14 +551,14 @@
 >
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <div class="revision-header">
+    <div class="revision-header mb-7 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-            <a href="{{ route('admin.actividades.revision.index') }}" class="back-link">
+            <a href="{{ route('admin.actividades.revision.index') }}" class="back-link transition-colors hover:text-sidan-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidan-500/30">
                 ← Volver a revisiones
             </a>
 
-            <div class="eyebrow">Revisión de actividad</div>
-            <h1>{{ $actividad->nombre }}</h1>
+            <div class="eyebrow text-xs font-black uppercase tracking-[0.16em] text-sidan-500">Revisión de actividad</div>
+            <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">{{ $actividad->nombre }}</h1>
 
             <p>
                 Comprueba cómo verá y utilizará esta actividad una persona.
@@ -566,7 +566,7 @@
             </p>
         </div>
 
-        <div class="revision-status">
+        <div class="revision-status" aria-label="Resumen de la revisión">
             <div>
                 <span>Revisión</span>
                 <strong>#{{ $actividad->revision_actual }}</strong>
@@ -656,7 +656,7 @@
         </div>
     @endif
 
-    <div class="stage-navigation">
+    <div class="stage-navigation" role="tablist" aria-label="Etapas de revisión de la actividad">
         @foreach ($etapas as $indice => $etapa)
             @php
                 $cantidad = $conteoEtapa($etapa['secciones']);
@@ -664,8 +664,10 @@
 
             <button
                 type="button"
-                class="stage-button {{ $indice === 0 ? 'active' : '' }}"
+                class="stage-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidan-500/40 {{ $indice === 0 ? 'active' : '' }}"
                 data-stage-button="{{ $etapa['id'] }}"
+                role="tab"
+                aria-selected="{{ $indice === 0 ? 'true' : 'false' }}"
             >
                 <span class="stage-number">{{ $indice + 1 }}</span>
                 <span class="stage-name">{{ $etapa['nombre'] }}</span>
@@ -1817,12 +1819,34 @@
             ])
 
             <div class="content-card programming-block">
-                <h3>Inscripción</h3>
+                <h3>Participación e inscripción</h3>
+
+                @php
+                    $tipoParticipacionRevision = match ($actividad->tipo_participacion) {
+                        'registro_gratuito' => 'Inscripción gratuita',
+                        'registro_pago' => 'Inscripción con pago',
+                        'venta_directa' => 'Venta directa',
+                        default => 'Acceso libre / informativa',
+                    };
+                @endphp
 
                 <div class="info-grid">
                     <article class="info-card">
-                        <span class="info-label">Inscripción</span>
-                        <strong>{{ $actividad->habilita_inscripcion ? 'Habilitada' : 'Deshabilitada' }}</strong>
+                        <span class="info-label">Modalidad</span>
+                        <strong>{{ $tipoParticipacionRevision }}</strong>
+                    </article>
+
+                    <article class="info-card">
+                        <span class="info-label">Precio inscripción</span>
+                        <strong>
+                            @if ($actividad->tipo_participacion === 'registro_pago')
+                                ${{ number_format((float) $actividad->precio_inscripcion, 2) }}
+                            @elseif ($actividad->tipo_participacion === 'registro_gratuito')
+                                Gratis
+                            @else
+                                No aplica
+                            @endif
+                        </strong>
                     </article>
 
                     <article class="info-card">
@@ -2190,6 +2214,38 @@
             </div>
         </section>
     </main>
+
+    {{-- Modal de decisiones: reemplaza window.confirm sin modificar la lógica del controlador. --}}
+    <dialog
+        id="revision-decision-dialog"
+        class="review-decision-dialog"
+        aria-labelledby="review-decision-title"
+        aria-describedby="review-decision-description"
+        aria-modal="true"
+    >
+        <div class="review-decision-dialog__header">
+            <div class="review-decision-dialog__icon" data-review-dialog-icon aria-hidden="true">✓</div>
+            <button type="button" class="review-decision-dialog__close" data-review-dialog-dismiss aria-label="Cerrar confirmación" title="Cerrar">
+                &times;
+            </button>
+        </div>
+        <div class="review-decision-dialog__body">
+            <p class="review-decision-dialog__eyebrow">Confirmar decisión</p>
+            <h2 id="review-decision-title">Confirmar decisión</h2>
+            <p id="review-decision-description" class="review-decision-dialog__description"></p>
+            <div class="review-decision-dialog__summary">
+                <span>Actividad</span>
+                <strong>{{ $actividad->nombre }}</strong>
+                <small data-review-dialog-summary></small>
+            </div>
+            <p class="review-decision-dialog__notice">Esta decisión quedará registrada en el historial de revisiones.</p>
+            <p class="review-decision-dialog__error" data-review-dialog-error role="alert" hidden></p>
+        </div>
+        <div class="review-decision-dialog__actions">
+            <button type="button" class="review-decision-dialog__cancel" data-review-dialog-dismiss>Cancelar</button>
+            <button type="button" class="review-decision-dialog__confirm" data-review-dialog-confirm>Confirmar</button>
+        </div>
+    </dialog>
 </div>
 
 {{-- Plantilla reutilizable de observaciones.
@@ -2220,2945 +2276,7 @@
     </div>
 </template>
 
-<style>
-    .approved-changes-panel {
-        margin-bottom: 20px;
-        border: 1px solid rgba(34, 197, 94, .25);
-        border-radius: 20px;
-        background: linear-gradient(135deg, rgba(34, 197, 94, .08), rgba(14, 165, 233, .04));
-        padding: 18px;
-    }
 
-    .approved-changes-heading {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 18px;
-    }
-
-    .approved-changes-kicker {
-        display: inline-block;
-        color: #86efac;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-    }
-
-    .approved-changes-heading h2 {
-        margin: 5px 0 0;
-        color: #fff;
-        font-size: 18px;
-        font-weight: 800;
-    }
-
-    .approved-changes-heading p {
-        margin: 6px 0 0;
-        max-width: 760px;
-        color: #94a3b8;
-        font-size: 13px;
-        line-height: 1.6;
-    }
-
-    .approved-changes-count {
-        flex: 0 0 auto;
-        border: 1px solid rgba(34, 197, 94, .22);
-        border-radius: 999px;
-        background: rgba(34, 197, 94, .1);
-        padding: 7px 10px;
-        color: #86efac;
-        font-size: 11px;
-        font-weight: 800;
-    }
-
-    .approved-changes-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 16px;
-    }
-
-    .approved-change-card {
-        display: flex;
-        min-width: 0;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-        border: 1px solid rgba(34, 197, 94, .18);
-        border-radius: 14px;
-        background: rgba(15, 23, 42, .72);
-        padding: 13px;
-        text-align: left;
-        transition: .18s ease;
-    }
-
-    .approved-change-card:hover {
-        border-color: rgba(34, 197, 94, .4);
-        background: rgba(34, 197, 94, .08);
-        transform: translateY(-1px);
-    }
-
-    .approved-change-card-title {
-        color: #fff;
-        font-size: 13px;
-        font-weight: 800;
-    }
-
-    .approved-change-card-fields {
-        color: #cbd5e1;
-        font-size: 11px;
-        line-height: 1.5;
-    }
-
-    .approved-change-card-entities {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-
-    .approved-change-card-entities span {
-        border-radius: 999px;
-        background: rgba(14, 165, 233, .1);
-        padding: 3px 7px;
-        color: #7dd3fc;
-        font-size: 10px;
-        font-weight: 700;
-    }
-
-    .entity-status-dot {
-        display: inline-block;
-        width: 7px;
-        height: 7px;
-        margin-right: 3px;
-        border-radius: 999px;
-        background: #22c55e;
-        vertical-align: middle;
-    }
-
-    .entity-status-dot--nuevo {
-        background: #38bdf8;
-    }
-
-    .entity-status-dot--eliminado {
-        background: #f87171;
-    }
-
-    .approved-change-card-action {
-        margin-top: 2px;
-        color: #86efac;
-        font-size: 11px;
-        font-weight: 800;
-    }
-
-    .stage-change-dot,
-    .field-change-dot {
-        display: inline-block;
-        flex: 0 0 auto;
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: #22c55e;
-        box-shadow: 0 0 0 3px rgba(34, 197, 94, .14);
-        vertical-align: middle;
-    }
-
-    .stage-change-dot {
-        width: 9px;
-        height: 9px;
-        margin-left: 2px;
-    }
-
-    .field-change-dot {
-        width: 7px;
-        height: 7px;
-        margin-left: 5px;
-        box-shadow: 0 0 0 2px rgba(34, 197, 94, .12);
-    }
-
-    .compact-meta {
-        margin-bottom: 4px !important;
-        font-size: 11px !important;
-        font-weight: 700;
-        letter-spacing: .04em;
-        text-transform: uppercase;
-    }
-
-    .review-stage.stage-has-changes > .section-heading {
-        border: 1px solid rgba(34, 197, 94, .22);
-        border-radius: 16px;
-        background: rgba(34, 197, 94, .055);
-        padding: 14px 16px;
-    }
-
-    @media (max-width: 1024px) {
-        .approved-changes-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 640px) {
-        .approved-changes-panel {
-            padding: 14px;
-        }
-
-        .approved-changes-heading {
-            flex-direction: column;
-        }
-
-        .approved-changes-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .revision-page {
-        --review-text: #0f172a;
-        --review-muted: #64748b;
-        --review-subtle: #94a3b8;
-        --review-surface: #ffffff;
-        --review-surface-soft: #f8fafc;
-        --review-surface-raised: #ffffff;
-        --review-border: #e2e8f0;
-        --review-border-strong: #cbd5e1;
-        --review-primary: #10b981;
-        --review-primary-hover: #059669;
-        --review-primary-soft: rgba(16, 185, 129, .10);
-        --review-primary-border: rgba(16, 185, 129, .28);
-        --review-info: #2563eb;
-        --review-info-soft: rgba(37, 99, 235, .08);
-        --review-warning: #d97706;
-        --review-warning-soft: rgba(245, 158, 11, .10);
-        --review-danger: #dc2626;
-        --review-danger-soft: rgba(239, 68, 68, .09);
-        --review-shadow: 0 8px 24px rgba(15, 23, 42, .06);
-        max-width: 1500px;
-        margin: 0 auto;
-        padding: 24px;
-        color: var(--review-text);
-    }
-
-    .dark .revision-page {
-        --review-text: #f8fafc;
-        --review-muted: #94a3b8;
-        --review-subtle: #64748b;
-        --review-surface: rgba(255, 255, 255, .045);
-        --review-surface-soft: rgba(255, 255, 255, .025);
-        --review-surface-raised: #101c2d;
-        --review-border: rgba(255, 255, 255, .10);
-        --review-border-strong: rgba(255, 255, 255, .17);
-        --review-primary: #10b981;
-        --review-primary-hover: #34d399;
-        --review-primary-soft: rgba(16, 185, 129, .11);
-        --review-primary-border: rgba(16, 185, 129, .30);
-        --review-info: #60a5fa;
-        --review-info-soft: rgba(59, 130, 246, .09);
-        --review-warning: #f59e0b;
-        --review-warning-soft: rgba(245, 158, 11, .09);
-        --review-danger: #f87171;
-        --review-danger-soft: rgba(248, 113, 113, .10);
-        --review-shadow: 0 8px 24px rgba(0, 0, 0, .12);
-    }
-
-    .revision-page *,
-    .revision-page *::before,
-    .revision-page *::after {
-        box-sizing: border-box;
-    }
-
-    .revision-header {
-        display: flex;
-        justify-content: space-between;
-        gap: 24px;
-        align-items: flex-start;
-        margin-bottom: 22px;
-    }
-
-    .revision-header h1 {
-        margin: 6px 0 7px;
-        color: var(--review-text);
-        font-size: clamp(1.7rem, 3vw, 2.35rem);
-        font-weight: 850;
-        line-height: 1.12;
-    }
-
-    .revision-header p,
-    .section-heading p,
-    .summary-heading p,
-    .simulator-heading p,
-    .rules-help,
-    .card-intro p,
-    .requested-item-header p {
-        margin: 0;
-        color: var(--review-muted);
-        line-height: 1.55;
-    }
-
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        margin-bottom: 12px;
-        color: var(--review-muted);
-        text-decoration: none;
-        font-size: .86rem;
-        font-weight: 700;
-    }
-
-    .back-link:hover {
-        color: var(--review-primary);
-    }
-
-    .eyebrow,
-    .section-kicker {
-        color: var(--review-primary);
-        font-size: .72rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: .09em;
-    }
-
-    .revision-status {
-        display: flex;
-        justify-content: flex-end;
-        align-items: stretch;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .revision-status > div {
-        min-width: 108px;
-        padding: 11px 14px;
-        background: var(--review-surface);
-        border: 1px solid var(--review-border);
-        border-radius: 12px;
-        box-shadow: var(--review-shadow);
-    }
-
-    .revision-status span,
-    .revision-status strong {
-        display: block;
-    }
-
-    .revision-status span {
-        margin-bottom: 3px;
-        color: var(--review-muted);
-        font-size: .72rem;
-    }
-
-    .revision-status strong {
-        color: var(--review-text);
-    }
-
-    .status-pending {
-        color: var(--review-warning) !important;
-    }
-
-    .stage-navigation {
-        position: sticky;
-        top: 10px;
-        z-index: 30;
-        display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 6px;
-        width: 100%;
-        padding: 7px;
-        margin-bottom: 24px;
-        overflow: visible;
-        background: var(--review-surface-raised);
-        border: 1px solid var(--review-border);
-        border-radius: 16px;
-        box-shadow: var(--review-shadow);
-    }
-
-    .stage-button {
-        min-width: 0;
-        min-height: 48px;
-        border: 1px solid transparent;
-        background: transparent;
-        border-radius: 11px;
-        padding: 8px 9px;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        cursor: pointer;
-        color: var(--review-muted);
-        font-weight: 800;
-        transition: background .15s ease, border-color .15s ease, color .15s ease;
-    }
-
-    .stage-button:hover {
-        background: var(--review-surface-soft);
-        color: var(--review-text);
-    }
-
-    .stage-button.active {
-        background: var(--review-primary-soft);
-        border-color: var(--review-primary-border);
-        color: var(--review-text);
-    }
-
-    .stage-number {
-        display: grid;
-        place-items: center;
-        width: 25px;
-        height: 25px;
-        flex: 0 0 25px;
-        border-radius: 50%;
-        background: var(--review-surface-soft);
-        border: 1px solid var(--review-border);
-        color: var(--review-muted);
-        font-size: .72rem;
-    }
-
-    .stage-button.active .stage-number {
-        background: var(--review-primary);
-        border-color: var(--review-primary);
-        color: #fff;
-    }
-
-    .stage-name {
-        min-width: 0;
-        color: inherit;
-        font-size: .76rem;
-        line-height: 1.16;
-        text-align: left;
-        white-space: normal;
-    }
-
-    .stage-count {
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
-        margin-left: auto;
-        display: inline-grid;
-        place-items: center;
-        flex: 0 0 auto;
-        border: 1px solid rgba(245, 158, 11, .28);
-        border-radius: 999px;
-        background: var(--review-warning-soft);
-        color: var(--review-warning);
-        font-size: .64rem;
-        font-weight: 900;
-    }
-
-    .hidden {
-        display: none !important;
-    }
-
-    .review-stage {
-        display: none;
-    }
-
-    .review-stage.active {
-        display: block;
-    }
-
-    .section-heading {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        margin-bottom: 18px;
-    }
-
-    .section-heading h2 {
-        margin: 5px 0 4px;
-        color: var(--review-text);
-        font-size: 1.45rem;
-        font-weight: 850;
-    }
-
-    .content-card,
-    .product-card,
-    .form-card,
-    .requested-item {
-        background: var(--review-surface);
-        border: 1px solid var(--review-border);
-        border-radius: 16px;
-        padding: 19px;
-        margin-bottom: 16px;
-        color: var(--review-text);
-        box-shadow: var(--review-shadow);
-    }
-
-    .content-card h3,
-    .product-card h3,
-    .form-card h3,
-    .requested-item h3 {
-        margin: 0 0 10px;
-        color: var(--review-text);
-    }
-
-    .content-card h3:not(:first-child) {
-        margin-top: 22px;
-    }
-
-    .content-card p,
-    .product-card p,
-    .form-card p,
-    .requested-item p {
-        color: var(--review-muted);
-    }
-
-    .long-text {
-        color: var(--review-muted);
-        line-height: 1.65;
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .info-grid.compact {
-        margin: 16px 0;
-    }
-
-    .info-card {
-        min-width: 0;
-        background: var(--review-surface);
-        border: 1px solid var(--review-border);
-        border-radius: 13px;
-        padding: 14px;
-        color: var(--review-text);
-    }
-
-    .info-label {
-        display: block;
-        margin-bottom: 5px;
-        color: var(--review-muted);
-        font-size: .73rem;
-    }
-
-    .tag-list,
-    .field-options {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 7px;
-    }
-
-    .tag,
-    .pill,
-    .field-options span {
-        display: inline-flex;
-        align-items: center;
-        padding: 5px 9px;
-        border: 1px solid var(--review-border);
-        border-radius: 999px;
-        background: var(--review-surface-soft);
-        color: var(--review-text);
-        font-size: .76rem;
-        font-weight: 700;
-    }
-
-    .presentation-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1.4fr) minmax(260px, .6fr);
-        gap: 16px;
-    }
-
-    .cover-image {
-        width: 100%;
-        max-height: 460px;
-        object-fit: cover;
-        border-radius: 12px;
-        display: block;
-    }
-
-    .empty-media,
-    .empty-state {
-        min-height: 120px;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-        text-align: center;
-        border: 1px dashed var(--review-border-strong);
-        border-radius: 13px;
-        color: var(--review-muted);
-        background: var(--review-surface-soft);
-        margin-bottom: 16px;
-    }
-
-    .compact-empty {
-        min-height: 86px;
-    }
-
-    .gallery-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 12px;
-    }
-
-    .gallery-item {
-        margin: 0;
-        border: 1px solid var(--review-border);
-        border-radius: 12px;
-        overflow: hidden;
-        background: var(--review-surface-soft);
-    }
-
-    .gallery-item img {
-        width: 100%;
-        aspect-ratio: 4 / 3;
-        object-fit: cover;
-        display: block;
-    }
-
-    .gallery-item figcaption {
-        padding: 8px 10px;
-        color: var(--review-muted);
-        font-size: .75rem;
-    }
-
-    .detail-list {
-        margin: 0;
-    }
-
-    .detail-list > div {
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 10px 0;
-        border-bottom: 1px solid var(--review-border);
-    }
-
-    .detail-list > div:last-child {
-        border-bottom: 0;
-    }
-
-    .detail-list dt {
-        color: var(--review-muted);
-    }
-
-    .detail-list dd {
-        margin: 0;
-        color: var(--review-text);
-        text-align: right;
-        font-weight: 700;
-    }
-
-    .stack {
-        display: grid;
-        gap: 16px;
-    }
-
-    .compact-stack {
-        gap: 12px;
-    }
-
-    .embedded-card {
-        margin: 0;
-        box-shadow: none;
-        background: var(--review-surface-soft);
-    }
-
-    .product-header,
-    .form-header,
-    .session-header,
-    .summary-heading,
-    .requested-item-header,
-    .card-intro {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        align-items: flex-start;
-    }
-
-    .product-header h3,
-    .form-header h3,
-    .session-header h4,
-    .requested-item-header h3 {
-        margin: 4px 0;
-        color: var(--review-text);
-    }
-
-    .product-header p,
-    .form-header p,
-    .session-header p {
-        margin: 0;
-        color: var(--review-muted);
-    }
-
-    .item-type {
-        color: var(--review-info);
-        font-size: .7rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-    }
-
-    .price-box {
-        min-width: 135px;
-        text-align: right;
-    }
-
-    .price-box span,
-    .price-box strong,
-    .price-box small {
-        display: block;
-    }
-
-    .price-box span,
-    .price-box small {
-        color: var(--review-muted);
-    }
-
-    .price-box strong {
-        margin: 2px 0;
-        color: var(--review-text);
-        font-size: 1.35rem;
-    }
-
-    .variant-summary,
-    .rules-box {
-        border-top: 1px solid var(--review-border);
-        padding-top: 16px;
-        margin-top: 16px;
-    }
-
-    .variant-summary h4,
-    .rules-box h4 {
-        margin: 0 0 10px;
-        color: var(--review-text);
-    }
-
-    .rules-help {
-        margin: -4px 0 12px;
-        font-size: .82rem;
-    }
-
-    .attribute-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 10px;
-    }
-
-    .attribute-card {
-        padding: 12px;
-        border: 1px solid var(--review-border);
-        border-radius: 11px;
-        background: var(--review-surface-soft);
-    }
-
-    .attribute-card > strong {
-        display: block;
-        margin-bottom: 8px;
-        color: var(--review-text);
-    }
-
-    .variant-simulator {
-        margin-top: 16px;
-        padding: 16px;
-        background: var(--review-info-soft);
-        border: 1px solid rgba(59, 130, 246, .16);
-        border-radius: 13px;
-    }
-
-    .simulator-heading h4 {
-        margin: 0 0 3px;
-        color: var(--review-text);
-    }
-
-    .simulator-controls {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-        gap: 10px;
-        margin-top: 14px;
-    }
-
-    .simulator-controls label > span {
-        display: block;
-        margin-bottom: 5px;
-        color: var(--review-muted);
-        font-size: .78rem;
-        font-weight: 700;
-    }
-
-    .simulator-controls select,
-    #general-observation,
-    .observation-editor textarea {
-        color-scheme: light;
-        background: var(--review-surface-raised);
-        color: var(--review-text);
-        border: 1px solid var(--review-border-strong);
-    }
-
-    .dark .simulator-controls select,
-    .dark #general-observation,
-    .dark .observation-editor textarea {
-        color-scheme: dark;
-    }
-
-    .simulator-controls select {
-        width: 100%;
-        padding: 9px 10px;
-        border-radius: 9px;
-    }
-
-    .simulator-result {
-        display: flex;
-        gap: 28px;
-        margin-top: 14px;
-        padding-top: 14px;
-        border-top: 1px solid var(--review-border);
-    }
-
-    .simulator-result span,
-    .simulator-result strong {
-        display: block;
-    }
-
-    .simulator-result span {
-        color: var(--review-muted);
-        font-size: .74rem;
-    }
-
-    .simulator-result strong {
-        color: var(--review-text);
-        font-size: 1.15rem;
-    }
-
-    .compact-notice {
-        margin-top: 15px;
-        padding: 12px 14px;
-        background: var(--review-surface-soft);
-        border: 1px solid var(--review-border);
-        border-radius: 10px;
-        color: var(--review-muted);
-    }
-
-    .rules-list {
-        display: grid;
-        gap: 8px;
-    }
-
-    .rule-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 14px;
-        padding: 11px 12px;
-        border: 1px solid var(--review-border);
-        border-radius: 10px;
-        background: var(--review-surface-soft);
-    }
-
-    .rule-main strong,
-    .rule-main small {
-        display: block;
-    }
-
-    .rule-main strong {
-        color: var(--review-text);
-    }
-
-    .rule-main small {
-        margin-top: 2px;
-        color: var(--review-muted);
-    }
-
-    .rule-values {
-        display: flex;
-        gap: 16px;
-        flex: 0 0 auto;
-    }
-
-    .rule-values > span {
-        color: var(--review-muted);
-        font-size: .74rem;
-        text-align: right;
-    }
-
-    .rule-values strong {
-        display: block;
-        margin-top: 1px;
-        color: var(--review-text);
-        font-size: .86rem;
-    }
-
-    .requested-data-overview {
-        display: grid;
-        grid-template-columns: 34px minmax(0, 1fr) auto;
-        gap: 13px;
-        align-items: start;
-        margin-bottom: 16px;
-        padding: 15px;
-        border: 1px solid rgba(59, 130, 246, .18);
-        border-radius: 14px;
-        background: var(--review-info-soft);
-    }
-
-    .overview-icon {
-        width: 30px;
-        height: 30px;
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        background: rgba(59, 130, 246, .14);
-        color: var(--review-info);
-        font-weight: 900;
-    }
-
-    .requested-data-overview strong {
-        display: block;
-        margin-bottom: 3px;
-        color: var(--review-text);
-    }
-
-    .requested-data-overview p {
-        margin: 0;
-        color: var(--review-muted);
-        font-size: .84rem;
-        line-height: 1.5;
-    }
-
-    .overview-count,
-    .friendly-status {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 5px 9px;
-        white-space: nowrap;
-        font-size: .72rem;
-        font-weight: 800;
-    }
-
-    .overview-count,
-    .friendly-status.success {
-        color: var(--review-primary);
-        background: var(--review-primary-soft);
-        border: 1px solid var(--review-primary-border);
-    }
-
-    .friendly-status.neutral {
-        color: var(--review-muted);
-        background: var(--review-surface-soft);
-        border: 1px solid var(--review-border);
-    }
-
-    .requested-item-header {
-        margin-bottom: 14px;
-    }
-
-    .requested-item-header p {
-        max-width: 720px;
-        margin-top: 4px;
-        font-size: .85rem;
-    }
-
-    .requested-fields {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 10px;
-        margin-top: 12px;
-    }
-
-    .requested-field {
-        min-width: 0;
-        padding: 13px;
-        border: 1px solid var(--review-border);
-        border-radius: 12px;
-        background: var(--review-surface-soft);
-    }
-
-    .field-title-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-    }
-
-    .field-title-row strong {
-        min-width: 0;
-        color: var(--review-text);
-    }
-
-    .requested-field-main > p {
-        margin: 4px 0 10px;
-        color: var(--review-muted);
-        font-size: .8rem;
-    }
-
-    .field-badge {
-        padding: 3px 7px;
-        border-radius: 999px;
-        font-size: .65rem;
-        font-weight: 850;
-        flex: 0 0 auto;
-    }
-
-    .field-badge.required {
-        color: var(--review-info);
-        background: var(--review-info-soft);
-    }
-
-    .field-badge.optional {
-        color: var(--review-muted);
-        background: var(--review-surface);
-        border: 1px solid var(--review-border);
-    }
-
-    .field-example {
-        color: var(--review-muted);
-        font-size: .77rem;
-        font-style: italic;
-    }
-
-    .forms-section {
-        margin-top: 16px;
-    }
-
-    .forms-section .card-intro {
-        margin-bottom: 14px;
-    }
-
-    .fields-table {
-        margin-top: 15px;
-        border: 1px solid var(--review-border);
-        border-radius: 11px;
-        overflow: hidden;
-    }
-
-    .field-row {
-        display: grid;
-        grid-template-columns: minmax(180px, 2fr) repeat(3, 1fr);
-        gap: 10px;
-        align-items: center;
-        padding: 11px 13px;
-        border-bottom: 1px solid var(--review-border);
-    }
-
-    .field-row:last-child {
-        border-bottom: 0;
-    }
-
-    .field-row strong,
-    .field-row small {
-        display: block;
-    }
-
-    .field-row small {
-        color: var(--review-subtle);
-    }
-
-    .required-text {
-        color: var(--review-danger);
-        font-weight: 700;
-    }
-
-    .price-list,
-    .session-list,
-    .history-list {
-        display: grid;
-        gap: 10px;
-        margin-bottom: 16px;
-    }
-
-    .price-item {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr;
-        gap: 15px;
-        background: var(--review-surface);
-        border: 1px solid var(--review-border);
-        border-radius: 13px;
-        padding: 14px;
-        color: var(--review-text);
-    }
-
-    .price-item span,
-    .price-item strong {
-        display: block;
-    }
-
-    .price-item span {
-        color: var(--review-muted);
-        font-size: .77rem;
-    }
-
-    .promotion-grid,
-    .resource-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 10px;
-    }
-
-    .promotion-card,
-    .resource-card {
-        padding: 13px;
-        border: 1px solid var(--review-border);
-        border-radius: 11px;
-        background: var(--review-surface-soft);
-        color: var(--review-text);
-    }
-
-    .promotion-card strong,
-    .promotion-card span,
-    .resource-card strong,
-    .resource-card span,
-    .resource-card small {
-        display: block;
-    }
-
-    .promo-code {
-        color: var(--review-muted);
-        font-size: .72rem;
-    }
-
-    .promo-value {
-        margin: 8px 0;
-        font-size: 1.1rem;
-    }
-
-    .status-ok {
-        color: var(--review-primary);
-    }
-
-    .session-card {
-        border: 1px solid var(--review-border);
-        border-radius: 13px;
-        padding: 15px;
-        background: var(--review-surface-soft);
-        color: var(--review-text);
-    }
-
-    .resource-list {
-        margin-top: 12px;
-    }
-
-    .resource-list > strong {
-        display: block;
-        margin-bottom: 7px;
-    }
-
-    .observation-box {
-        margin-top: 14px;
-        padding: 13px;
-        border: 1px solid var(--review-border);
-        background: var(--review-surface);
-        border-radius: 13px;
-    }
-
-    .observation-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 9px;
-    }
-
-    .observation-header h4 {
-        margin: 0;
-        color: var(--review-text);
-        font-size: .86rem;
-        font-weight: 800;
-    }
-
-    .observation-count {
-        display: inline-grid;
-        place-items: center;
-        min-width: 19px;
-        height: 19px;
-        padding: 0 5px;
-        border-radius: 999px;
-        background: var(--review-warning-soft);
-        border: 1px solid rgba(245, 158, 11, .25);
-        color: var(--review-warning);
-        font-size: .64rem;
-        font-weight: 900;
-    }
-
-    .saved-observations {
-        display: grid;
-        gap: 7px;
-        margin-bottom: 8px;
-    }
-
-    .saved-observation {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 9px 10px;
-        background: var(--review-warning-soft);
-        border: 1px solid rgba(245, 158, 11, .16);
-        border-left: 3px solid var(--review-warning);
-        border-radius: 9px;
-    }
-
-    .saved-observation p {
-        margin: 0;
-        color: var(--review-text);
-        font-size: .84rem;
-        line-height: 1.45;
-        white-space: pre-wrap;
-    }
-
-    .delete-observation {
-        width: 27px;
-        height: 27px;
-        border: 1px solid rgba(239, 68, 68, .18);
-        border-radius: 7px;
-        background: var(--review-danger-soft);
-        color: var(--review-danger);
-        cursor: pointer;
-        font-size: 1rem;
-        flex: 0 0 auto;
-    }
-
-    .delete-observation.resolve-observation {
-        border-color: rgba(16, 185, 129, .24);
-        background: var(--review-success-soft);
-        color: var(--review-success);
-        font-weight: 900;
-    }
-
-    .summary-revision-badge {
-        display: inline-flex;
-        margin-bottom: 5px;
-        padding: 2px 7px;
-        border: 1px solid rgba(245, 158, 11, .2);
-        border-radius: 999px;
-        background: var(--review-warning-soft);
-        color: var(--review-warning);
-        font-size: .65rem;
-        font-weight: 800;
-    }
-
-    .observation-editor {
-        display: flex;
-        align-items: stretch;
-        gap: 7px;
-    }
-
-    .observation-editor textarea {
-        flex: 1;
-        resize: vertical;
-        min-height: 46px;
-        max-height: 150px;
-        padding: 10px 11px;
-        border-radius: 9px;
-        font: inherit;
-        font-size: .86rem;
-        outline: none;
-    }
-
-    .observation-editor textarea:focus,
-    #general-observation:focus {
-        border-color: var(--review-primary);
-        box-shadow: 0 0 0 3px var(--review-primary-soft);
-    }
-
-    .save-observation {
-        width: 42px;
-        border: 0;
-        border-radius: 9px;
-        background: var(--review-primary);
-        color: #fff;
-        font-size: 1.05rem;
-        font-weight: 900;
-        cursor: pointer;
-    }
-
-    .save-observation:hover {
-        background: var(--review-primary-hover);
-    }
-
-    .save-observation:disabled,
-    .delete-observation:disabled {
-        opacity: .55;
-        cursor: wait;
-    }
-
-    .add-observation {
-        margin-top: 5px;
-        padding: 5px 2px;
-        border: 0;
-        background: transparent;
-        color: var(--review-primary);
-        font-size: .8rem;
-        font-weight: 800;
-        cursor: pointer;
-    }
-
-    .decision-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 370px;
-        gap: 18px;
-        align-items: start;
-    }
-
-    .summary-total {
-        text-align: center;
-        color: var(--review-muted);
-        font-size: .75rem;
-    }
-
-    .summary-total strong {
-        display: block;
-        color: var(--review-text);
-        font-size: 1.35rem;
-    }
-
-    .summary-section {
-        padding: 13px 0;
-        border-top: 1px solid var(--review-border);
-    }
-
-    .summary-section h4 {
-        margin: 0 0 8px;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        color: var(--review-text);
-    }
-
-    .summary-section h4 span {
-        min-width: 19px;
-        height: 19px;
-        display: inline-grid;
-        place-items: center;
-        background: var(--review-warning-soft);
-        border: 1px solid rgba(245, 158, 11, .24);
-        color: var(--review-warning);
-        border-radius: 999px;
-        font-size: .64rem;
-    }
-
-    .summary-observation {
-        padding: 8px 10px;
-        margin-top: 6px;
-        background: var(--review-warning-soft);
-        border-left: 3px solid var(--review-warning);
-        border-radius: 5px;
-    }
-
-    .summary-observation strong {
-        display: block;
-        margin-bottom: 3px;
-        color: var(--review-text);
-        font-size: .78rem;
-    }
-
-    .summary-observation p {
-        margin: 0;
-        color: var(--review-muted);
-        white-space: pre-wrap;
-    }
-
-    .empty-observations {
-        padding: 20px;
-        text-align: center;
-        color: var(--review-muted);
-        background: var(--review-surface-soft);
-        border-radius: 11px;
-    }
-
-    .decision-panel {
-        position: sticky;
-        top: 86px;
-        background: var(--review-surface);
-        border: 1px solid var(--review-border-strong);
-        border-radius: 16px;
-        padding: 18px;
-        color: var(--review-text);
-        box-shadow: var(--review-shadow);
-    }
-
-    .decision-status {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 6px 12px;
-        padding-bottom: 14px;
-        margin-bottom: 14px;
-        border-bottom: 1px solid var(--review-border);
-    }
-
-    .decision-status span {
-        color: var(--review-muted);
-    }
-
-    .decision-status strong {
-        color: var(--review-text);
-    }
-
-    #decision-form label {
-        display: block;
-        margin-bottom: 6px;
-        color: var(--review-text);
-        font-weight: 800;
-    }
-
-    #general-observation {
-        width: 100%;
-        min-height: 120px;
-        padding: 11px;
-        border-radius: 10px;
-        resize: vertical;
-        font: inherit;
-        outline: none;
-    }
-
-    .field-help {
-        margin: 7px 0 15px;
-        color: var(--review-muted);
-        font-size: .74rem;
-        line-height: 1.45;
-    }
-
-    .decision-actions {
-        display: grid;
-        gap: 9px;
-    }
-
-    .decision-button {
-        display: flex;
-        gap: 11px;
-        align-items: center;
-        width: 100%;
-        text-align: left;
-        padding: 11px 12px;
-        border-radius: 11px;
-        cursor: pointer;
-        background: var(--review-surface-soft);
-        color: var(--review-text);
-    }
-
-    .decision-button > span {
-        width: 30px;
-        height: 30px;
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        font-weight: 900;
-        flex: 0 0 auto;
-    }
-
-    .decision-button strong,
-    .decision-button small {
-        display: block;
-    }
-
-    .decision-button small {
-        margin-top: 2px;
-        color: var(--review-muted);
-        font-weight: 400;
-    }
-
-    .decision-button.approve {
-        border: 1px solid var(--review-primary-border);
-    }
-
-    .decision-button.approve > span {
-        background: var(--review-primary-soft);
-        color: var(--review-primary);
-    }
-
-    .decision-button.approve strong {
-        color: var(--review-primary);
-    }
-
-    .decision-button.changes {
-        border: 1px solid rgba(245, 158, 11, .28);
-    }
-
-    .decision-button.changes > span {
-        background: var(--review-warning-soft);
-        color: var(--review-warning);
-    }
-
-    .decision-button.changes strong {
-        color: var(--review-warning);
-    }
-
-    .decision-button.reject {
-        border: 1px solid rgba(239, 68, 68, .26);
-    }
-
-    .decision-button.reject > span {
-        background: var(--review-danger-soft);
-        color: var(--review-danger);
-    }
-
-    .decision-button.reject strong {
-        color: var(--review-danger);
-    }
-
-    .decision-button:disabled {
-        opacity: .42;
-        cursor: not-allowed;
-    }
-
-    .history-item {
-        display: flex;
-        gap: 11px;
-    }
-
-    .history-marker {
-        width: 9px;
-        height: 9px;
-        margin-top: 6px;
-        border-radius: 50%;
-        background: var(--review-primary);
-        flex: 0 0 auto;
-    }
-
-    .history-item strong {
-        color: var(--review-text);
-    }
-
-    .history-item span,
-    .history-item small {
-        display: block;
-        color: var(--review-muted);
-    }
-
-    .history-item p {
-        margin: 5px 0;
-        color: var(--review-muted);
-    }
-
-
-    .history-shell {
-        margin-top: 20px;
-        width: 100%;
-        border: 1px solid var(--review-border-strong);
-        border-radius: 16px;
-        background: var(--review-surface);
-        box-shadow: var(--review-shadow);
-        overflow: hidden;
-        color: var(--review-text);
-    }
-
-    .history-shell > summary,
-    .history-entry > summary {
-        list-style: none;
-    }
-
-    .history-shell > summary::-webkit-details-marker,
-    .history-entry > summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .history-shell-summary {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 17px 18px;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .history-shell-summary:hover {
-        background: var(--review-surface-soft);
-    }
-
-    .history-shell-title,
-    .history-entry-main,
-    .history-entry-side,
-    .history-entry-title-row,
-    .history-specific-topline {
-        display: flex;
-        align-items: center;
-    }
-
-    .history-shell-title {
-        gap: 12px;
-        min-width: 0;
-    }
-
-    .history-shell-icon {
-        display: grid;
-        place-items: center;
-        width: 36px;
-        height: 36px;
-        flex: 0 0 36px;
-        border-radius: 11px;
-        background: var(--review-primary-soft);
-        color: var(--review-primary);
-        font-size: 1.05rem;
-        font-weight: 900;
-    }
-
-    .history-shell-title strong,
-    .history-shell-title small {
-        display: block;
-    }
-
-    .history-shell-title strong {
-        color: var(--review-text);
-        font-size: .94rem;
-    }
-
-    .history-shell-title small {
-        margin-top: 2px;
-        color: var(--review-muted);
-        font-size: .74rem;
-        font-weight: 600;
-    }
-
-    .history-shell-toggle,
-    .history-detail-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        color: var(--review-primary);
-        font-size: .78rem;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    .history-shell-close-text {
-        display: none;
-    }
-
-    .history-shell[open] .history-shell-open-text {
-        display: none;
-    }
-
-    .history-shell[open] .history-shell-close-text {
-        display: inline;
-    }
-
-    .history-chevron {
-        display: inline-block;
-        transition: transform .16s ease;
-        font-size: 1rem;
-        line-height: 1;
-    }
-
-    .history-shell[open] > .history-shell-summary .history-chevron,
-    .history-entry[open] > .history-entry-summary .history-chevron {
-        transform: rotate(180deg);
-    }
-
-    .history-shell-body {
-        display: grid;
-        gap: 9px;
-        padding: 0 18px 18px;
-        border-top: 1px solid var(--review-border);
-    }
-
-    .history-entry {
-        border: 1px solid var(--review-border);
-        border-radius: 12px;
-        background: var(--review-surface-soft);
-        overflow: hidden;
-    }
-
-    .history-entry:first-child {
-        margin-top: 14px;
-    }
-
-    .history-entry-summary {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        padding: 13px 14px;
-        cursor: pointer;
-    }
-
-    .history-entry-summary:hover {
-        background: rgba(148, 163, 184, .045);
-    }
-
-    .history-entry-main {
-        gap: 11px;
-        min-width: 0;
-    }
-
-    .history-entry-dot {
-        width: 9px;
-        height: 9px;
-        flex: 0 0 9px;
-        border-radius: 50%;
-        background: var(--review-info);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, .1);
-    }
-
-    .history-entry-dot--success {
-        background: var(--review-success);
-        box-shadow: 0 0 0 4px var(--review-success-soft);
-    }
-
-    .history-entry-dot--warning {
-        background: var(--review-warning);
-        box-shadow: 0 0 0 4px var(--review-warning-soft);
-    }
-
-    .history-entry-dot--danger {
-        background: var(--review-danger);
-        box-shadow: 0 0 0 4px var(--review-danger-soft);
-    }
-
-    .history-entry-dot--muted {
-        background: var(--review-subtle);
-        box-shadow: 0 0 0 4px rgba(148, 163, 184, .08);
-    }
-
-    .history-entry-copy {
-        min-width: 0;
-    }
-
-    .history-entry-title-row {
-        flex-wrap: wrap;
-        gap: 7px;
-    }
-
-    .history-entry-title-row strong {
-        color: var(--review-text);
-        font-size: .86rem;
-    }
-
-    .history-revision-badge,
-    .history-observation-count,
-    .history-resolution-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 22px;
-        padding: 2px 8px;
-        border-radius: 999px;
-        font-size: .67rem;
-        font-weight: 800;
-    }
-
-    .history-revision-badge {
-        border: 1px solid var(--review-border);
-        background: var(--review-surface);
-        color: var(--review-muted);
-    }
-
-    .history-entry-meta {
-        display: block;
-        margin-top: 3px;
-        color: var(--review-muted);
-        font-size: .72rem;
-    }
-
-    .history-entry-side {
-        justify-content: flex-end;
-        gap: 10px;
-        flex: 0 0 auto;
-    }
-
-    .history-observation-count {
-        border: 1px solid rgba(245, 158, 11, .2);
-        background: var(--review-warning-soft);
-        color: var(--review-warning);
-    }
-
-    .history-entry-details {
-        padding: 14px;
-        border-top: 1px solid var(--review-border);
-        background: var(--review-surface);
-    }
-
-    .history-detail-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .history-detail-grid > div {
-        min-width: 0;
-        padding: 10px 11px;
-        border: 1px solid var(--review-border);
-        border-radius: 10px;
-        background: var(--review-surface-soft);
-    }
-
-    .history-detail-grid span,
-    .history-detail-grid strong {
-        display: block;
-    }
-
-    .history-detail-grid span {
-        margin-bottom: 4px;
-        color: var(--review-subtle);
-        font-size: .66rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-
-    .history-detail-grid strong {
-        color: var(--review-text);
-        font-size: .8rem;
-        overflow-wrap: anywhere;
-    }
-
-    .history-general-note,
-    .history-specific-observations,
-    .history-empty-detail {
-        margin-top: 12px;
-        padding: 12px;
-        border: 1px solid var(--review-border);
-        border-radius: 10px;
-        background: var(--review-surface-soft);
-    }
-
-    .history-general-note > span {
-        display: block;
-        margin-bottom: 5px;
-        color: var(--review-subtle);
-        font-size: .68rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-
-    .history-general-note p,
-    .history-specific-item p {
-        margin: 0;
-        color: var(--review-text);
-        line-height: 1.5;
-        white-space: pre-wrap;
-    }
-
-    .history-specific-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 9px;
-    }
-
-    .history-specific-heading > strong {
-        color: var(--review-text);
-        font-size: .8rem;
-    }
-
-    .history-specific-heading > span {
-        display: grid;
-        place-items: center;
-        min-width: 22px;
-        height: 22px;
-        padding: 0 6px;
-        border-radius: 999px;
-        background: var(--review-warning-soft);
-        color: var(--review-warning);
-        font-size: .68rem;
-        font-weight: 900;
-    }
-
-    .history-specific-list {
-        display: grid;
-        gap: 8px;
-    }
-
-    .history-specific-item {
-        padding: 10px 11px;
-        border: 1px solid var(--review-border);
-        border-radius: 9px;
-        background: var(--review-surface);
-    }
-
-    .history-specific-topline {
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 7px;
-    }
-
-    .history-specific-topline > div > strong,
-    .history-specific-topline > div > span {
-        display: block;
-    }
-
-    .history-specific-topline > div > strong {
-        color: var(--review-text);
-        font-size: .78rem;
-    }
-
-    .history-specific-topline > div > span {
-        margin-top: 2px;
-        color: var(--review-muted);
-        font-size: .7rem;
-    }
-
-    .history-resolution-badge.resolved {
-        background: var(--review-success-soft);
-        border: 1px solid var(--review-primary-border);
-        color: var(--review-success);
-    }
-
-    .history-resolution-badge.pending {
-        background: var(--review-warning-soft);
-        border: 1px solid rgba(245, 158, 11, .2);
-        color: var(--review-warning);
-    }
-
-    .history-specific-item small {
-        display: block;
-        margin-top: 6px;
-        color: var(--review-subtle);
-        font-size: .7rem;
-    }
-
-    .history-empty-detail {
-        color: var(--review-muted);
-        text-align: center;
-        font-size: .78rem;
-    }
-
-    .stage-footer {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 22px;
-        padding-top: 18px;
-        border-top: 1px solid var(--review-border);
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        border-radius: 10px;
-        padding: 10px 16px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: .15s ease;
-    }
-
-    .btn-primary {
-        border: 1px solid var(--review-primary);
-        background: var(--review-primary);
-        color: #fff;
-    }
-
-    .btn-primary:hover {
-        background: var(--review-primary-hover);
-        border-color: var(--review-primary-hover);
-    }
-
-    .btn-secondary {
-        border: 1px solid var(--review-border-strong);
-        background: var(--review-surface);
-        color: var(--review-text);
-    }
-
-    .btn-secondary:hover {
-        background: var(--review-surface-soft);
-    }
-
-    .muted {
-        color: var(--review-muted) !important;
-    }
-
-    .toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        width: min(390px, calc(100vw - 32px));
-        z-index: 99999;
-        display: grid;
-        gap: 9px;
-        pointer-events: none;
-    }
-
-    .revision-toast {
-        pointer-events: auto;
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 13px 14px;
-        border-radius: 12px;
-        background: var(--review-surface-raised);
-        border: 1px solid var(--review-border);
-        color: var(--review-text);
-        box-shadow: 0 14px 35px rgba(0, 0, 0, .18);
-        animation: toast-in .18s ease-out;
-    }
-
-    .revision-toast.success {
-        border-left: 4px solid var(--review-primary);
-    }
-
-    .revision-toast.error {
-        border-left: 4px solid var(--review-danger);
-    }
-
-    .revision-toast.info {
-        border-left: 4px solid var(--review-info);
-    }
-
-    .revision-toast strong {
-        display: block;
-        margin-bottom: 2px;
-        color: var(--review-text);
-    }
-
-    .revision-toast p {
-        margin: 0;
-        color: var(--review-muted);
-        font-size: .85rem;
-    }
-
-    @keyframes toast-in {
-        from {
-            transform: translateY(-10px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    @media (max-width: 1220px) {
-        .stage-navigation {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-
-        .info-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .decision-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .decision-panel {
-            position: static;
-        }
-    }
-
-    @media (max-width: 820px) {
-        .revision-page {
-            padding: 14px;
-        }
-
-        .revision-header {
-            display: block;
-        }
-
-        .revision-status {
-            margin-top: 15px;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .stage-navigation {
-            position: static;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .presentation-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .field-row {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .product-header,
-        .form-header,
-        .session-header,
-        .summary-heading,
-        .requested-item-header,
-        .card-intro {
-            display: block;
-        }
-
-        .price-box {
-            text-align: left;
-            margin-top: 12px;
-        }
-
-        .summary-total {
-            text-align: left;
-            margin-top: 10px;
-        }
-
-        .requested-data-overview {
-            grid-template-columns: 34px minmax(0, 1fr);
-        }
-
-        .overview-count {
-            grid-column: 2;
-            justify-self: start;
-        }
-
-        .rule-row {
-            display: block;
-        }
-
-        .rule-values {
-            margin-top: 9px;
-        }
-
-        .rule-values > span {
-            text-align: left;
-        }
-    }
-
-    @media (max-width: 540px) {
-        .info-grid,
-        .requested-fields {
-            grid-template-columns: 1fr;
-        }
-
-        .revision-status {
-            grid-template-columns: 1fr;
-        }
-
-        .revision-status > div {
-            border-right: 0;
-            border-bottom: 1px solid var(--review-border);
-        }
-
-        .revision-status > div:last-child {
-            border-bottom: 0;
-        }
-
-        .stage-navigation {
-            grid-template-columns: 1fr;
-        }
-
-        .stage-button {
-            min-height: 42px;
-        }
-
-        .price-item {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .price-item > div:first-child {
-            grid-column: 1 / -1;
-        }
-
-        .field-row {
-            grid-template-columns: 1fr;
-        }
-
-        .simulator-result {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .toast-container {
-            top: 12px;
-            right: 12px;
-            width: calc(100vw - 24px);
-        }
-
-        .stage-footer {
-            align-items: stretch;
-        }
-
-        .stage-footer .btn-primary,
-        .stage-footer .btn-secondary {
-            flex: 1;
-        }
-    }
-
-
-
-    .review-stage > .observation-box {
-        margin: 18px 0;
-    }
-
-    .review-stage > .observation-box + .content-card,
-    .review-stage > .observation-box + .programming-block {
-        margin-top: 18px;
-    }
-
-    .product-list,
-    .price-products {
-        display: grid;
-        gap: 9px;
-        margin-bottom: 18px;
-    }
-
-    .product-list-row,
-    .price-product-detail {
-        overflow: hidden;
-        background: var(--review-surface);
-        border: 1px solid var(--review-border);
-        border-radius: 13px;
-        box-shadow: var(--review-shadow);
-    }
-
-    .product-list-row > summary,
-    .price-product-detail > summary {
-        display: grid;
-        align-items: center;
-        gap: 14px;
-        padding: 11px 13px;
-        cursor: pointer;
-        list-style: none;
-        color: var(--review-text);
-    }
-
-    .product-list-row > summary {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
-
-    .price-product-detail > summary {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
-
-    .product-list-row > summary::-webkit-details-marker,
-    .price-product-detail > summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .product-list-row[open] > summary,
-    .price-product-detail[open] > summary {
-        background: var(--review-surface-soft);
-        border-bottom: 1px solid var(--review-border);
-    }
-
-    .product-list-main,
-    .price-product-main {
-        min-width: 0;
-    }
-
-    .product-list-main strong,
-    .price-product-main strong {
-        display: block;
-        margin-top: 2px;
-        color: var(--review-text);
-        font-size: .88rem;
-    }
-
-    .product-list-main small,
-    .price-product-main small {
-        display: block;
-        margin-top: 2px;
-        color: var(--review-muted);
-        font-size: .72rem;
-        line-height: 1.35;
-    }
-
-    .product-list-meta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: var(--review-muted);
-        font-size: .72rem;
-        white-space: nowrap;
-    }
-
-    .product-list-meta b {
-        color: var(--review-primary);
-        font-size: .72rem;
-    }
-
-    .product-list-expanded,
-    .price-product-expanded {
-        padding: 12px 13px 13px;
-    }
-
-    .product-list-description {
-        margin: 10px 0 0;
-        color: var(--review-muted);
-        font-size: .78rem;
-        line-height: 1.5;
-    }
-
-    .product-basic-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .product-basic-grid > div {
-        min-width: 0;
-        padding: 8px 10px;
-        border: 1px solid var(--review-border);
-        border-radius: 9px;
-        background: var(--review-surface-soft);
-    }
-
-    .product-basic-grid span,
-    .product-basic-grid strong {
-        display: block;
-    }
-
-    .product-basic-grid span {
-        color: var(--review-muted);
-        font-size: .66rem;
-    }
-
-    .product-basic-grid strong {
-        margin-top: 2px;
-        color: var(--review-text);
-        font-size: .76rem;
-    }
-
-    .price-product-summary-values {
-        display: grid;
-        grid-template-columns: repeat(2, auto) auto;
-        gap: 14px;
-        align-items: center;
-        color: var(--review-muted);
-        font-size: .67rem;
-        white-space: nowrap;
-    }
-
-    .price-product-summary-values span,
-    .price-product-summary-values b {
-        display: block;
-    }
-
-    .price-product-summary-values b {
-        margin-top: 1px;
-        color: var(--review-text);
-        font-size: .82rem;
-    }
-
-    .price-product-summary-values em {
-        color: var(--review-primary);
-        font-size: .7rem;
-        font-style: normal;
-        font-weight: 900;
-    }
-
-    .price-basic-grid {
-        margin-bottom: 12px;
-    }
-
-    .pricing-variant-summary {
-        margin-top: 0;
-        padding-top: 0;
-        border-top: 0;
-    }
-
-    .promotions-section {
-        margin-top: 20px;
-    }
-
-    .neutral-notice {
-        border: 1px solid var(--review-border);
-        background: var(--review-surface-soft);
-    }
-
-
-    /* Ajustes de densidad: la revisión debe mostrar mucho sin abrumar. */
-    .stage-count {
-        min-width: 16px;
-        height: 16px;
-        padding: 0 4px;
-        border-color: var(--review-border-strong);
-        background: transparent;
-        color: var(--review-warning);
-        font-size: .6rem;
-    }
-
-    .compact-section-heading {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 14px;
-        margin-bottom: 10px;
-    }
-
-    .compact-section-heading h4,
-    .compact-section-heading p {
-        margin: 0;
-    }
-
-    .compact-section-heading p {
-        margin-top: 3px;
-        color: var(--review-muted);
-        font-size: .8rem;
-        line-height: 1.45;
-    }
-
-    .compact-section-heading > span {
-        flex: 0 0 auto;
-        padding: 4px 8px;
-        border: 1px solid var(--review-border);
-        border-radius: 999px;
-        background: var(--review-surface-soft);
-        color: var(--review-muted);
-        font-size: .7rem;
-        font-weight: 800;
-    }
-
-    .variant-groups {
-        display: grid;
-        gap: 7px;
-    }
-
-    .variant-group {
-        overflow: hidden;
-        border: 1px solid var(--review-border);
-        border-radius: 10px;
-        background: var(--review-surface-soft);
-    }
-
-    .variant-group > summary {
-        min-height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 8px 11px;
-        cursor: pointer;
-        list-style: none;
-        color: var(--review-text);
-    }
-
-    .variant-group > summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .variant-group[open] > summary {
-        border-bottom: 1px solid var(--review-border);
-    }
-
-    .variant-group-title {
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .variant-group-title strong {
-        color: var(--review-text);
-        font-size: .82rem;
-    }
-
-    .variant-group-title small {
-        color: var(--review-muted);
-        font-size: .7rem;
-        font-weight: 700;
-    }
-
-    .variant-group-action {
-        color: var(--review-primary);
-        font-size: .7rem;
-        font-weight: 900;
-    }
-
-    .option-compact-list {
-        padding: 7px;
-    }
-
-    .option-compact-row {
-        min-height: 34px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 6px 8px;
-        border-radius: 7px;
-    }
-
-    .option-compact-row + .option-compact-row {
-        border-top: 1px solid var(--review-border);
-        border-radius: 0;
-    }
-
-    .option-compact-row > strong {
-        color: var(--review-text);
-        font-size: .78rem;
-    }
-
-    .option-adjustments {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .option-adjustments span {
-        color: var(--review-muted);
-        font-size: .68rem;
-    }
-
-    .option-adjustments b {
-        margin-left: 3px;
-        color: var(--review-text);
-        font-size: .72rem;
-    }
-
-    .option-adjustments .no-adjustment {
-        color: var(--review-subtle);
-    }
-
-    .chunk-hidden,
-    .session-page-hidden {
-        display: none !important;
-    }
-
-    .show-more-options {
-        width: 100%;
-        margin-top: 5px;
-        padding: 7px 9px;
-        border: 1px dashed var(--review-border-strong);
-        border-radius: 8px;
-        background: transparent;
-        color: var(--review-primary);
-        cursor: pointer;
-        font-size: .72rem;
-        font-weight: 900;
-    }
-
-    .variant-simulator {
-        padding: 12px;
-    }
-
-    .simulator-heading h4 {
-        font-size: .86rem;
-    }
-
-    .simulator-heading p {
-        font-size: .75rem;
-    }
-
-    .simulator-compact-row {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 14px;
-        align-items: end;
-        margin-top: 10px;
-    }
-
-    .simulator-controls {
-        margin-top: 0;
-        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-        gap: 8px;
-    }
-
-    .simulator-controls select {
-        padding: 7px 9px;
-        font-size: .78rem;
-    }
-
-    .simulator-controls label > span {
-        margin-bottom: 4px;
-        font-size: .7rem;
-    }
-
-    .simulator-result.compact-result {
-        min-width: 190px;
-        margin: 0;
-        padding: 8px 10px;
-        border: 1px solid var(--review-border);
-        border-radius: 9px;
-        background: var(--review-surface);
-        gap: 16px;
-    }
-
-    .simulator-result.compact-result strong {
-        font-size: .95rem;
-    }
-
-    .compact-notice-details {
-        margin-top: 12px;
-    }
-
-    .compact-guidance {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 14px;
-        padding: 10px 12px;
-        border: 1px solid var(--review-primary-border);
-        border-radius: 11px;
-        background: var(--review-primary-soft);
-    }
-
-    .compact-guidance strong {
-        flex: 0 0 auto;
-        color: var(--review-primary);
-        font-size: .78rem;
-    }
-
-    .compact-guidance p {
-        margin: 0;
-        color: var(--review-muted);
-        font-size: .78rem;
-        line-height: 1.45;
-    }
-
-    .commercial-card .card-intro {
-        margin-bottom: 12px;
-    }
-
-    .programming-block {
-        margin-bottom: 18px !important;
-    }
-
-    .sessions-intro {
-        margin-bottom: 12px;
-    }
-
-    .compact-session-list {
-        gap: 7px;
-        margin-bottom: 0;
-    }
-
-    .session-compact {
-        overflow: hidden;
-        border: 1px solid var(--review-border);
-        border-radius: 10px;
-        background: var(--review-surface-soft);
-    }
-
-    .session-compact > summary {
-        min-height: 48px;
-        display: grid;
-        grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
-        gap: 14px;
-        align-items: center;
-        padding: 8px 11px;
-        cursor: pointer;
-        list-style: none;
-    }
-
-    .session-compact > summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .session-compact[open] > summary {
-        border-bottom: 1px solid var(--review-border);
-        background: var(--review-surface);
-    }
-
-    .session-summary-main strong,
-    .session-summary-main span {
-        display: block;
-    }
-
-    .session-summary-main strong {
-        color: var(--review-text);
-        font-size: .8rem;
-    }
-
-    .session-summary-main span {
-        margin-top: 2px;
-        color: var(--review-muted);
-        font-size: .69rem;
-    }
-
-    .session-summary-meta {
-        display: grid;
-        grid-template-columns: minmax(120px, 1.5fr) minmax(80px, .7fr) auto;
-        gap: 10px;
-        align-items: center;
-        color: var(--review-muted);
-        font-size: .7rem;
-        text-align: right;
-    }
-
-    .session-summary-meta b {
-        color: var(--review-primary);
-        font-size: .68rem;
-    }
-
-    .session-expanded {
-        padding: 10px 11px 11px;
-    }
-
-    .session-detail-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .session-detail-grid > div {
-        padding: 8px;
-        border: 1px solid var(--review-border);
-        border-radius: 8px;
-        background: var(--review-surface);
-    }
-
-    .session-detail-grid span,
-    .session-detail-grid strong {
-        display: block;
-    }
-
-    .session-detail-grid span {
-        color: var(--review-muted);
-        font-size: .67rem;
-    }
-
-    .session-detail-grid strong {
-        margin-top: 2px;
-        color: var(--review-text);
-        font-size: .75rem;
-    }
-
-    .compact-resource-list {
-        margin-top: 9px;
-    }
-
-    .session-pager {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .session-pager > span {
-        min-width: 74px;
-        color: var(--review-muted);
-        font-size: .72rem;
-        text-align: center;
-    }
-
-    .compact-button {
-        padding: 7px 10px;
-        font-size: .72rem;
-    }
-
-    .observation-box {
-        padding: 10px 11px;
-    }
-
-    .observation-header {
-        margin-bottom: 7px;
-    }
-
-    .observation-header h4 {
-        font-size: .78rem;
-    }
-
-    .saved-observation {
-        padding: 7px 9px;
-    }
-
-    .saved-observation p {
-        font-size: .76rem;
-    }
-
-    .observation-editor textarea {
-        min-height: 40px;
-        max-height: 120px;
-        padding: 8px 9px;
-        font-size: .78rem;
-    }
-
-    .save-observation {
-        width: 40px;
-        min-height: 40px;
-    }
-
-    .add-observation {
-        margin-top: 5px;
-        padding: 4px 2px;
-        font-size: .72rem;
-    }
-
-    @media (max-width: 980px) {
-        .simulator-compact-row {
-            grid-template-columns: 1fr;
-        }
-
-        .simulator-result.compact-result {
-            min-width: 0;
-            justify-content: flex-start;
-        }
-
-        .session-compact > summary {
-            grid-template-columns: 1fr;
-            gap: 5px;
-        }
-
-        .session-summary-meta {
-            text-align: left;
-            grid-template-columns: 1fr 1fr auto;
-        }
-
-        .session-detail-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 600px) {
-        .compact-section-heading,
-        .compact-guidance {
-            display: block;
-        }
-
-        .compact-section-heading > span {
-            display: inline-flex;
-            margin-top: 7px;
-        }
-
-        .compact-guidance p {
-            margin-top: 4px;
-        }
-
-        .variant-group-title {
-            display: block;
-        }
-
-        .variant-group-title small {
-            display: block;
-            margin-top: 2px;
-        }
-
-        .option-compact-row {
-            align-items: flex-start;
-        }
-
-        .option-adjustments {
-            justify-content: flex-end;
-        }
-
-        .session-summary-meta,
-        .session-detail-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .session-summary-meta {
-            gap: 3px;
-        }
-
-        .session-pager {
-            justify-content: space-between;
-        }
-    }
-
-    @media (max-width: 1220px) {
-        .price-product-summary-values {
-            gap: 9px;
-        }
-    }
-
-    @media (max-width: 820px) {
-        .revision-status {
-            justify-content: flex-start;
-            margin-top: 15px;
-        }
-
-        .revision-status > div {
-            flex: 1 1 120px;
-        }
-
-        .stage-navigation {
-            display: flex;
-            position: static;
-            gap: 7px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding-bottom: 9px;
-            scroll-snap-type: x proximity;
-        }
-
-        .stage-button {
-            flex: 0 0 auto;
-            width: auto;
-            min-width: 150px;
-            scroll-snap-align: start;
-        }
-
-        .product-list-row > summary,
-        .price-product-detail > summary {
-            grid-template-columns: 1fr;
-            gap: 8px;
-        }
-
-        .product-list-meta,
-        .price-product-summary-values {
-            justify-content: flex-start;
-        }
-
-        .price-product-summary-values {
-            grid-template-columns: repeat(2, minmax(90px, 1fr)) auto;
-            white-space: normal;
-        }
-
-        .product-basic-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .simulator-compact-row {
-            grid-template-columns: 1fr;
-        }
-
-        .simulator-result.compact-result {
-            min-width: 0;
-        }
-    }
-
-    @media (max-width: 540px) {
-        .revision-status {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 6px;
-        }
-
-        .revision-status > div {
-            min-width: 0;
-            padding: 9px 10px;
-            border: 1px solid var(--review-border);
-            border-radius: 10px;
-        }
-
-        .stage-navigation {
-            display: flex;
-            grid-template-columns: none;
-        }
-
-        .stage-button {
-            min-width: 138px;
-            min-height: 42px;
-        }
-
-        .price-product-summary-values {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .price-product-summary-values em {
-            grid-column: 1 / -1;
-        }
-    }
-
-
-    @media (max-width: 820px) {
-        .history-entry-summary {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .history-entry-side {
-            width: 100%;
-            justify-content: space-between;
-            padding-left: 20px;
-        }
-
-        .history-detail-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 560px) {
-        .history-shell-summary {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .history-shell-toggle {
-            padding-left: 48px;
-        }
-
-        .history-shell-body {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .history-detail-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .history-entry-side {
-            padding-left: 0;
-            flex-wrap: wrap;
-        }
-
-        .history-specific-topline {
-            flex-direction: column;
-        }
-    }
-
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -5196,6 +2314,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentStageIndex = 0;
 
     function showToast(message, type = 'success') {
+        if (window.SIDANToast?.show) return window.SIDANToast.show(message, type);
         const container = document.getElementById('toast-container');
 
         if (!container) {
@@ -5254,13 +2373,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         stageButtons.forEach(function (button, buttonIndex) {
-            button.classList.toggle(
-                'active',
-                buttonIndex === currentStageIndex
-            );
+            const isActive = buttonIndex === currentStageIndex;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
-        window.scrollTo({
+        (document.getElementById('sidanAdminScroll') || window).scrollTo({
             top: 0,
             behavior: 'smooth'
         });
@@ -5948,113 +3066,200 @@ document.addEventListener('DOMContentLoaded', function () {
         renderSessionPage();
     });
 
-    async function submitDecision(type) {
-        const textarea = document.getElementById(
-            'general-observation'
-        );
+    // Un único diálogo reutilizable para aprobar, solicitar cambios o rechazar.
+    const decisionDialog = document.getElementById('revision-decision-dialog');
+    const dialogTitle = document.getElementById('review-decision-title');
+    const dialogDescription = document.getElementById('review-decision-description');
+    const dialogIcon = decisionDialog.querySelector('[data-review-dialog-icon]');
+    const dialogSummary = decisionDialog.querySelector('[data-review-dialog-summary]');
+    const dialogError = decisionDialog.querySelector('[data-review-dialog-error]');
+    const dialogConfirm = decisionDialog.querySelector('[data-review-dialog-confirm]');
+    const dialogDismissButtons = decisionDialog.querySelectorAll('[data-review-dialog-dismiss]');
+    const decisionButtons = document.querySelectorAll('[data-decision]');
+    const confirmDefaultText = 'Confirmar';
+    let preparedDecision = null;
+    let decisionSubmitting = false;
+    let decisionSucceeded = false;
+    let decisionOrigin = null;
 
+    const decisionDialogOptions = {
+        approve: {
+            title: '¿Aprobar esta actividad?',
+            description: 'Confirmas que la actividad cumple con los requisitos de revisión y autorizas su aprobación.',
+            confirm: 'Sí, aprobar actividad',
+            icon: '✓'
+        },
+        changes: {
+            title: '¿Solicitar cambios al creador?',
+            description: 'La actividad se devolverá al creador para que revise las observaciones que registraste.',
+            confirm: 'Sí, solicitar cambios',
+            icon: '↻'
+        },
+        reject: {
+            title: '¿Rechazar esta actividad?',
+            description: 'La revisión terminará como rechazada. Verificá que los motivos estén registrados antes de continuar.',
+            confirm: 'Sí, rechazar actividad',
+            icon: '✕'
+        }
+    };
+
+    function dismissDecisionDialog() {
+        if (decisionSubmitting || !decisionDialog.open) {
+            return;
+        }
+
+        decisionDialog.close();
+    }
+
+    function setDialogLoading(loading) {
+        decisionSubmitting = loading;
+        dialogConfirm.disabled = loading;
+        dialogDismissButtons.forEach(function (button) {
+            button.disabled = loading;
+        });
+        dialogConfirm.textContent = loading ? 'Procesando…' : (preparedDecision?.confirmText || confirmDefaultText);
+        decisionDialog.setAttribute('aria-busy', loading ? 'true' : 'false');
+    }
+
+    dialogDismissButtons.forEach(function (button) {
+        button.addEventListener('click', dismissDecisionDialog);
+    });
+
+    decisionDialog.addEventListener('cancel', function (event) {
+        if (decisionSubmitting) {
+            event.preventDefault();
+        }
+    });
+
+    decisionDialog.addEventListener('click', function (event) {
+        if (event.target !== decisionDialog || decisionSubmitting) {
+            return;
+        }
+
+        // Cerrar al pulsar fuera de la tarjeta, no dentro de su contenido.
+        const bounds = decisionDialog.getBoundingClientRect();
+        const inside = event.clientX >= bounds.left && event.clientX <= bounds.right &&
+            event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+        if (!inside) {
+            dismissDecisionDialog();
+        }
+    });
+
+    decisionDialog.addEventListener('close', function () {
+        preparedDecision = null;
+        dialogError.hidden = true;
+        dialogError.textContent = '';
+        if (!decisionSucceeded && decisionOrigin?.isConnected) {
+            decisionOrigin.focus();
+        }
+        decisionOrigin = null;
+    });
+
+    function submitDecision(type) {
+        if (decisionSubmitting || decisionDialog.open || !decisionDialogOptions[type]) {
+            return;
+        }
+
+        const textarea = document.getElementById('general-observation');
         const observation = textarea.value.trim();
         const total = getTotalCount();
-
         let url = null;
-        let confirmation = null;
 
         if (type === 'approve') {
             if (total > 0) {
-                showToast(
-                    'No puedes aprobar mientras existan observaciones pendientes.',
-                    'error'
-                );
+                showToast('No puedes aprobar mientras existan observaciones pendientes.', 'error');
                 return;
             }
-
             url = approveUrl;
-            confirmation = '¿Aprobar esta actividad?';
         }
 
         if (type === 'changes') {
             if (total === 0 && observation === '') {
-                showToast(
-                    'Agrega una observación general o al menos una observación específica para solicitar cambios.',
-                    'error'
-                );
+                showToast('Agrega una observación general o al menos una observación específica para solicitar cambios.', 'error');
                 textarea.focus();
                 return;
             }
-
             url = changesUrl;
-            confirmation = '¿Enviar estas correcciones al creador?';
         }
 
         if (type === 'reject') {
             if (total === 0 && observation === '') {
-                showToast(
-                    'Debes justificar el rechazo con una observación general o específica.',
-                    'error'
-                );
+                showToast('Debes justificar el rechazo con una observación general o específica.', 'error');
                 textarea.focus();
                 return;
             }
-
             url = rejectUrl;
-            confirmation = '¿Rechazar esta actividad?';
         }
 
         if (!url) {
             return;
         }
 
-        if (!window.confirm(confirmation)) {
+        const option = decisionDialogOptions[type];
+        preparedDecision = { type: type, url: url, observation: observation, confirmText: option.confirm };
+        decisionSucceeded = false;
+        decisionOrigin = document.activeElement;
+        decisionDialog.dataset.tone = type;
+        dialogTitle.textContent = option.title;
+        dialogDescription.textContent = option.description;
+        dialogIcon.textContent = option.icon;
+        dialogSummary.textContent = total + (total === 1 ? ' observación específica' : ' observaciones específicas') +
+            (observation !== '' ? ' · Incluye observación general' : '');
+        dialogError.hidden = true;
+        dialogError.textContent = '';
+        setDialogLoading(false);
+        decisionDialog.showModal();
+        dialogConfirm.focus();
+    }
+
+    dialogConfirm.addEventListener('click', async function () {
+        if (!preparedDecision || decisionSubmitting) {
             return;
         }
 
-        const buttons = document.querySelectorAll(
-            '[data-decision]'
-        );
-
-        buttons.forEach(function (button) {
+        const decision = preparedDecision;
+        setDialogLoading(true);
+        decisionButtons.forEach(function (button) {
             button.disabled = true;
         });
 
         const payload = new FormData();
-
-        if (observation !== '') {
-            payload.append('observacion', observation);
+        if (decision.observation !== '') {
+            payload.append('observacion', decision.observation);
         }
 
         try {
-            const data = await sendRequest(
-                url,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrf
-                    },
-                    body: payload
-                }
-            );
+            const data = await sendRequest(decision.url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf
+                },
+                body: payload
+            });
 
-            showToast(
-                data.message || 'Operación completada.',
-                'success'
-            );
+            decisionSucceeded = true;
+            setDialogLoading(false);
+            decisionDialog.close();
+            showToast(data?.message || 'Operación completada.', 'success');
 
-            if (data.redirect) {
+            if (data?.redirect) {
                 window.setTimeout(function () {
                     window.location.href = data.redirect;
                 }, 650);
             }
         } catch (error) {
-            buttons.forEach(function (button) {
+            setDialogLoading(false);
+            decisionButtons.forEach(function (button) {
                 button.disabled = false;
             });
-
             updateApproveState(getTotalCount());
-
-            showToast(error.message, 'error');
+            dialogError.textContent = error.message || 'No se pudo completar la operación.';
+            dialogError.hidden = false;
+            dialogConfirm.focus();
+            showToast(dialogError.textContent, 'error');
         }
-    }
+    });
 
     document.querySelectorAll(
         '[data-decision]'

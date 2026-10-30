@@ -5,10 +5,13 @@
 @section('content')
     <div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-
             <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 class="text-2xl font-black text-sidan-900 dark:text-white">
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                        Administración
+                    </p>
+
+                    <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                         Categorías
                     </h1>
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -17,7 +20,7 @@
                 </div>
 
                 <a href="{{ route('admin.categorias.create') }}"
-                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white transition hover:bg-indigo-500">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-sidan-500 px-4 text-sm font-semibold text-white transition hover:bg-sidan-600">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -47,11 +50,11 @@
 
                                 <input type="text" id="buscar" name="buscar" value="{{ $buscar }}"
                                     autocomplete="off" placeholder="Buscar por nombre, slug o descripción..."
-                                    class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111c2f] dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-[#162238]">
+                                    class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sidan-500 focus:bg-white focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-[#111c2f] dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-[#162238]">
 
                                 <div id="indicadorBusqueda"
                                     class="pointer-events-none absolute inset-y-0 right-0 hidden items-center pr-3">
-                                    <svg class="h-4 w-4 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
+                                    <svg class="h-4 w-4 animate-spin text-sidan-400" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor"
@@ -68,7 +71,7 @@
                             </label>
 
                             <select id="estado" name="estado"
-                                class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111c2f] dark:text-white dark:focus:bg-[#162238] dark:[color-scheme:dark]">
+                                class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 outline-none transition focus:border-sidan-500 focus:bg-white focus:ring-2 focus:ring-sidan-500/20 dark:border-white/10 dark:bg-[#111c2f] dark:text-white dark:focus:bg-[#162238] dark:[color-scheme:dark]">
                                 <option value="">Todos</option>
                                 <option value="activo" @selected($estado === 'activo')>
                                     Activas
@@ -125,7 +128,7 @@
 
                         @if ($buscar === '' && !$estado)
                             <a href="{{ route('admin.categorias.create') }}"
-                                class="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white transition hover:bg-indigo-500">
+                                class="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-sidan-500 px-4 text-sm font-semibold text-sidan-950 transition hover:bg-sidan-600">
                                 Crear categoría
                             </a>
                         @endif
@@ -133,15 +136,15 @@
                 @else
                     @if ($buscar === '' && !$estado)
                         <div
-                            class="mb-4 flex items-start gap-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4 transition-colors dark:border-indigo-500/20 dark:bg-indigo-500/10">
-                            <svg class="mt-0.5 h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400" fill="none"
+                            class="mb-4 flex items-start gap-3 rounded-xl border border-sidan-200 bg-sidan-50 p-4 transition-colors dark:border-sidan-500/20 dark:bg-sidan-500/10">
+                            <svg class="mt-0.5 h-5 w-5 shrink-0 text-sidan-600 dark:text-sidan-400" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 9l4-4 4 4m0 6-4 4-4-4" />
                             </svg>
 
                             <div>
-                                <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                                <p class="text-sm font-semibold text-sidan-600 dark:text-sidan-300">
                                     Organiza las categorías
                                 </p>
                                 <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
@@ -162,7 +165,7 @@
                                         <div class="flex shrink-0 items-center gap-1 lg:flex-col">
 
                                             <button type="button"
-                                                class="btn-subir inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-30 dark:border-white/10 dark:bg-[#111c2f] dark:text-slate-400 dark:hover:border-indigo-500/40 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
+                                                class="btn-subir inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-sidan-300 hover:bg-sidan-50 hover:text-sidan-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-white/10 dark:bg-[#111c2f] dark:text-slate-400 dark:hover:border-sidan-500/40 dark:hover:bg-sidan-600/10 dark:hover:text-sidan-300"
                                                 title="Subir categoría">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -172,7 +175,7 @@
                                             </button>
 
                                             <button type="button"
-                                                class="btn-bajar inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-30 dark:border-white/10 dark:bg-[#111c2f] dark:text-slate-400 dark:hover:border-indigo-500/40 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
+                                                class="btn-bajar inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-sidan-300 hover:bg-sidan-50 hover:text-sidan-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-white/10 dark:bg-[#111c2f] dark:text-slate-400 dark:hover:border-sidan-500/40 dark:hover:bg-sidan-600/10 dark:hover:text-sidan-300"
                                                 title="Bajar categoría">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -193,8 +196,8 @@
 
                                             @if ($categoria->activo)
                                                 <span
-                                                    class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                                                    class="inline-flex items-center gap-1.5 rounded-full border border-sidan-200 bg-sidan-50 px-2.5 py-1 text-xs font-medium text-sidan-600 dark:border-sidan-500/20 dark:bg-sidan-500/10 dark:text-sidan-300">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-sidan-400"></span>
                                                     Activa
                                                 </span>
                                             @else
@@ -236,15 +239,14 @@
                                         </div>
 
                                         <a href="{{ route('admin.categorias.edit', $categoria) }}"
-                                            class="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20">
-
+                                            title="Editar categoría"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-sidan-300 hover:bg-sidan-50 hover:text-sidan-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-sidan-500/50 dark:hover:bg-sidan-500/10 dark:hover:text-sidan-400">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="m16.862 3.487 3.651 3.651M5 19l4.5-1 11-11a2.582 2.582 0 0 0-3.651-3.651l-11 11L5 19Z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
-
-                                            Editar
                                         </a>
 
                                         @if ($categoria->actividades_count === 0)
@@ -262,7 +264,8 @@
                                                     <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M6 7h12m-10 0 1 13h6l1-13M9 7V4h6v3" />
+                                                            stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" />
                                                     </svg>
                                                 </button>
 
@@ -274,8 +277,9 @@
 
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M6 7h12m-10 0 1 13h6l1-13M9 7V4h6v3" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" />
                                                 </svg>
                                             </button>
                                         @endif
@@ -300,6 +304,11 @@
 
     <script>
         function showAppNotification(type, title, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, title);
+            }
+
             const previous = document.getElementById('app-notification');
 
             if (previous) {
@@ -308,10 +317,10 @@
 
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
                 error: {

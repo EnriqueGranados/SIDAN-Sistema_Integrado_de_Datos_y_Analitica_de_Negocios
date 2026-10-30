@@ -3,10 +3,16 @@
 @section('title', 'Gestión de Roles')
 
 @section('content')
-    <div class="max-w-7xl mx-auto space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+<div class="min-h-screen bg-[#f6f8fb] text-slate-900 transition-colors duration-200 dark:bg-transparent dark:text-white">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-black text-sidan-900 dark:text-white">
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-sidan-500">
+                    Administración
+                </p>
+
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-sidan-900 dark:text-white">
                     Gestión de Roles
                 </h1>
 
@@ -16,7 +22,7 @@
             </div>
 
             <a href="{{ route('admin.roles.create') }}"
-                class="px-4 py-2 text-sm font-bold text-white bg-emerald-500 rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition flex items-center gap-2">
+                class="px-4 py-2 text-sm font-bold text-white bg-sidan-500 rounded-xl hover:bg-sidan-600 shadow-lg shadow-sidan-500/20 transition flex items-center gap-2">
 
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
@@ -76,8 +82,8 @@
                                         bg-slate-100 text-slate-600 border-slate-200
                                         dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20
                                     @else
-                                        bg-emerald-50 text-emerald-700 border-emerald-200
-                                        dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 @endif">
+                                        bg-sidan-50 text-sidan-600 border-sidan-200
+                                        dark:bg-sidan-500/10 dark:text-sidan-400 dark:border-sidan-500/20 @endif">
 
                                         {{ ucfirst($rol->nombre) }}
                                     </span>
@@ -179,10 +185,16 @@
             @endif
         </div>
     </div>
+</div>
 
     <script>
         // Mostrar notificaciones de éxito, error, advertencia o información
         function showAppNotification(type, title, message) {
+            // Centralizar avisos sin alterar las acciones existentes del módulo.
+            if (window.SIDANToast && typeof window.SIDANToast.show === 'function') {
+                return window.SIDANToast.show(message, type, title);
+            }
+
             const previous = document.getElementById('app-notification');
 
             // Evitar mostrar varias notificaciones al mismo tiempo
@@ -193,10 +205,10 @@
             // Definir los estilos de la notificación según su tipo
             const styles = {
                 success: {
-                    iconColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-                    borderColor: 'border-emerald-200 dark:border-emerald-500/20',
-                    progressColor: 'bg-emerald-500',
-                    progressBackground: 'bg-emerald-100 dark:bg-emerald-950/50',
+                    iconColor: 'bg-sidan-50 text-sidan-600 dark:bg-sidan-500/10 dark:text-sidan-400',
+                    borderColor: 'border-sidan-200 dark:border-sidan-500/20',
+                    progressColor: 'bg-sidan-500',
+                    progressBackground: 'bg-sidan-100 dark:bg-sidan-950/50',
                     iconPath: 'M5 13l4 4L19 7'
                 },
 
