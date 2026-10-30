@@ -28,9 +28,19 @@ class SidanCargaMasivaSeeder extends Seeder
      * Cada décima actividad comercial recibe cuatro veces
      * el volumen normal.
      */
-    private const ACTIVIDADES = 10;
-    private const PERSONAS_POR_ACTIVIDAD = 30;
+
+    private const ACTIVIDADES = 120;
+    private const PERSONAS_POR_ACTIVIDAD = 250;
     private const LOTE_PERSONAS = 100;
+
+    // Período de análisis histórico.
+    private const FECHA_INICIO = '2025-01-01 00:00:00';
+    private const FECHA_FIN = '2026-10-28 23:59:59';
+
+    // Mes de carga concentrada.
+    private const MES_PRUEBA_INICIO = '2026-06-01 00:00:00';
+    private const MES_PRUEBA_FIN = '2026-06-30 23:59:59';
+
 
     /*
      * Orden de inserción: padres antes que hijos.
@@ -74,6 +84,7 @@ class SidanCargaMasivaSeeder extends Seeder
     private int $admin;
     private CarbonImmutable $ahora;
     private CarbonImmutable $inicio;
+    private CarbonImmutable $finHistorico;
 
     public function run(): void
     {
@@ -112,8 +123,25 @@ class SidanCargaMasivaSeeder extends Seeder
             );
         }
 
+
         $this->ahora = CarbonImmutable::now('UTC');
-        $this->inicio = CarbonImmutable::parse('2023-01-01 12:00:00', 'UTC');
+
+        $this->inicio = CarbonImmutable::parse(
+            self::FECHA_INICIO,
+            'UTC'
+        );
+
+        $this->finHistorico = CarbonImmutable::parse(
+            self::FECHA_FIN,
+            'UTC'
+        );
+
+        if ($this->ahora->lessThan($this->finHistorico)) {
+            throw new RuntimeException(
+                'La fecha final de prueba todavía está en el futuro.'
+            );
+        }
+
 
         if ($this->ahora->lessThan($this->inicio->addDays(30))) {
             throw new RuntimeException('Revisá la fecha inicial del seeder.');
@@ -136,7 +164,7 @@ class SidanCargaMasivaSeeder extends Seeder
 
         try {
             $catalogos = DB::transaction(
-                fn () => $this->crearBase()
+                fn() => $this->crearBase()
             );
 
             for ($a = 0; $a < self::ACTIVIDADES; $a++) {
@@ -158,7 +186,7 @@ class SidanCargaMasivaSeeder extends Seeder
             $this->command?->table(
                 ['Tabla', 'Filas insertadas'],
                 array_map(
-                    fn ($tabla, $cantidad) => [$tabla, $cantidad],
+                    fn($tabla, $cantidad) => [$tabla, $cantidad],
                     array_keys($this->conteos),
                     array_values($this->conteos)
                 )
@@ -223,8 +251,12 @@ class SidanCargaMasivaSeeder extends Seeder
         $etiquetas = [];
 
         foreach ([
-            'Tecnología', 'Formación', 'Deportes',
-            'Cultura', 'Emprendimiento', 'Solidaridad',
+            'Tecnología',
+            'Formación',
+            'Deportes',
+            'Cultura',
+            'Emprendimiento',
+            'Solidaridad',
         ] as $i => $nombre) {
             $categorias[] = $this->agregar('tbl_categorias', [
                 'nombre' => "SEED {$nombre}",
@@ -252,9 +284,12 @@ class SidanCargaMasivaSeeder extends Seeder
         };
 
         $estados = [
-            'borrador', 'pendiente_revision',
-            'cambios_solicitados', 'aprobada',
-            'rechazada', 'retirada',
+            'borrador',
+            'pendiente_revision',
+            'cambios_solicitados',
+            'aprobada',
+            'rechazada',
+            'retirada',
         ];
 
         /*
@@ -276,6 +311,17 @@ class SidanCargaMasivaSeeder extends Seeder
             $tipo,
             ['registro_gratuito', 'registro_pago'],
             true
+        );
+
+        $diasActividad = max(
+            1,
+            (int) $this->inicio->diffInDays(
+                $this->finHistorico
+            )
+        );
+
+        $fechaActividad = $this->inicio->addDays(
+            ($a * 37) % ($diasActividad + 1)
         );
 
         $actividad = $this->agregar('tbl_actividades', [
@@ -302,7 +348,7 @@ class SidanCargaMasivaSeeder extends Seeder
             'realizacion_hasta' => $this->ahora->addDays(33),
             'creado_por' => $this->admin,
             'actualizado_por' => $this->admin,
-        ] + $this->fechas($this->inicio));
+        ] + $this->fechas($fechaActividad));
 
         $this->agregar('tbl_actividades_etiquetas', [
             'id_actividad' => $actividad,
@@ -340,9 +386,16 @@ class SidanCargaMasivaSeeder extends Seeder
         $items = [];
 
         foreach ([
-            'producto', 'producto', 'servicio',
-            'acceso', 'donacion', 'reserva', 'otro',
-            'producto', 'producto', 'producto',
+            'producto',
+            'producto',
+            'servicio',
+            'acceso',
+            'donacion',
+            'reserva',
+            'otro',
+            'producto',
+            'producto',
+            'producto',
         ] as $k => $tipoItem) {
             $precio = $k === 9 ? 0 : 1000 + $k * 500;
             $costo = $k === 9 ? 0 : 300 + $k * 100;
@@ -395,8 +448,12 @@ class SidanCargaMasivaSeeder extends Seeder
             }
 
             $items[] = compact(
-                'id', 'variante', 'precio', 'costo',
-                'anticipo', 'tipoItem'
+                'id',
+                'variante',
+                'precio',
+                'costo',
+                'anticipo',
+                'tipoItem'
             );
         }
 
@@ -444,17 +501,52 @@ class SidanCargaMasivaSeeder extends Seeder
                 : $persona['correo'];
 
             $caso = $j % 16;
-            $dias = max(
-                1,
-                (int) $this->inicio->diffInDays(
-                    $this->ahora->subDays(10)
-                )
+
+            /*
+             * Distribución histórica:
+             *
+             * 60%: enero 2025 - octubre 2026.
+             * 40%: junio 2026.
+             *
+             * Los casos pendientes recientes se ajustan
+             * posteriormente, conservando la lógica original.
+             */
+
+            $inicioMes = CarbonImmutable::parse(
+                self::MES_PRUEBA_INICIO,
+                'UTC'
             );
 
-            $t = $this->inicio
-                ->addDays(($a * 97 + $j * 17) % $dias)
-                ->addMinutes($j % 600);
+            $finMes = CarbonImmutable::parse(
+                self::MES_PRUEBA_FIN,
+                'UTC'
+            );
 
+            $concentrarEnJunio = ($j % 5) < 2;
+
+            if ($concentrarEnJunio) {
+
+                $segundosMes = $inicioMes->diffInSeconds($finMes);
+
+                $desplazamiento = (
+                    $a * 86417 + $j * 3719
+                ) % ($segundosMes + 1);
+
+                $t = $inicioMes->addSeconds($desplazamiento);
+
+            } else {
+
+                $segundosPeriodo = $this->inicio
+                    ->diffInSeconds($this->finHistorico);
+
+                $desplazamiento = (
+                    $a * 173489 + $j * 7919
+                ) % ($segundosPeriodo + 1);
+
+                $t = $this->inicio->addSeconds(
+                    $desplazamiento
+                );
+            }
             /*
              * Pendientes y anticipos abiertos son recientes.
              * Los demás casos tienen fechas históricas.
@@ -514,8 +606,8 @@ class SidanCargaMasivaSeeder extends Seeder
                         true
                     ) ? 3 : (
                         in_array($caso, [9, 10, 12, 13], true)
-                            ? 0
-                            : $caso
+                        ? 0
+                        : $caso
                     );
 
                     $this->crearOrden(
@@ -525,15 +617,17 @@ class SidanCargaMasivaSeeder extends Seeder
                         $correo,
                         $t,
                         $casoInscripcion,
-                        [[
-                            'id' => null,
-                            'variante' => null,
-                            'precio' => 2500,
-                            'costo' => null,
-                            'anticipo' => false,
-                            'tipoItem' => 'inscripcion',
-                            'cantidad' => 1,
-                        ]],
+                        [
+                            [
+                                'id' => null,
+                                'variante' => null,
+                                'precio' => 2500,
+                                'costo' => null,
+                                'anticipo' => false,
+                                'tipoItem' => 'inscripcion',
+                                'cantidad' => 1,
+                            ]
+                        ],
                         null,
                         null,
                         true
@@ -727,8 +821,8 @@ class SidanCargaMasivaSeeder extends Seeder
                 true
             ) ? null : (
                 $esInscripcion
-                    ? $t->addMinutes(30)
-                    : $t->addDays(2)
+                ? $t->addMinutes(30)
+                : $t->addDays(2)
             ),
             'limite_saldo_en' => $parcial ? $t->addDays(2) : null,
             'cierre_financiero_estado' => $caso === 10
@@ -1029,7 +1123,7 @@ class SidanCargaMasivaSeeder extends Seeder
                 );
 
                 $this->reservas[$tabla] = array_map(
-                    fn ($r) => (int) $r->id,
+                    fn($r) => (int) $r->id,
                     $reserva
                 );
             }
